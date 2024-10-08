@@ -18,7 +18,6 @@ router.post('/register', async (req, res) => {
         // Create a new user if not found
         const user = new User({ name, email, password, role });
         await user.save();
-        await user.save();
 
         // Generate JWT token
         const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '1h' });

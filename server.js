@@ -2,6 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const authRoutes = require('./routes/auth');
+const customerRoutes = require('./routes/customers');
+const propertyRoutes = require('./routes/properties');
+const bookingRoutes = require('./routes/bookings');
+const paymentRoutes = require('./routes/payments');
 
 dotenv.config();
 
@@ -33,3 +37,7 @@ app.listen(PORT, () => {
 
 // Auth Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/customers', customerRoutes);
+app.use('/api/properties', propertyRoutes);
+app.use('/api/bookings', bookingRoutes);
+app.use('/api/payments', paymentRoutes);

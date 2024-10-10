@@ -1,15 +1,25 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
+const multer = require('multer');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const propertyRoutes = require('./routes/properties');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
+const UploadController = require('./controllers/uploadController');
 
 dotenv.config();
 
 const app = express();
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024, // limit file size to 5MB
+    },
+});
+
+const uploadController = new UploadController();
 
 // Middleware to parse JSON requests
 app.use(express.json());
@@ -29,6 +39,11 @@ app.get('/', (req, res) => {
     res.send('Duomo Admin Portal Backend');
 });
 
+// s3 routes
+app.post('/getSignUrlForUpload/:orderId',
+     upload.single('file'),
+      uploadController.upload);
+
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -41,3 +56,5 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+
+

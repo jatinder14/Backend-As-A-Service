@@ -1,4 +1,5 @@
 const express = require('express');
+const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const multer = require('multer');
@@ -12,6 +13,12 @@ const UploadController = require('./controllers/uploadController');
 dotenv.config();
 
 const app = express();
+
+app.use(cors());
+
+// Middleware to parse JSON requests
+app.use(express.json());
+
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
@@ -20,9 +27,6 @@ const upload = multer({
 });
 
 const uploadController = new UploadController();
-
-// Middleware to parse JSON requests
-app.use(express.json());
 
 // MongoDB Connection
 mongoose.connect(process.env.MONGO_URI, {

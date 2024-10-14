@@ -2,6 +2,7 @@ const express = require('express');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const User = require('../models/User');
+const { verifyToken, adminRole } = require('../middleware/auth');
 const router = express.Router();
 
 // Register a new user
@@ -46,6 +47,29 @@ router.post('/login', async (req, res) => {
         res.status(200).json({ token, user });
     } catch (err) {
         res.status(500).json({ message: 'Login error', error: err.message });
+    }
+});
+
+// Get all users (Admin-only, with pagination and Bearer token authentication)
+router.get('/getAllUsers', verifyToken, adminRole, async (req, res) => {
+    const { page = 1, limit = 10 } = req.query; // Default page is 1 and limit is 10
+
+    try {
+        const users = await User.find()
+            .limit(limit * 1)  // Convert limit to a number
+            .skip((page - 1) * limit)
+            .exec();
+
+        const totalUsers = await User.countDocuments(); // Total number of users in the database
+
+        res.status(200).json({
+            total: totalUsers,
+            currentPage: page,
+            totalPages: Math.ceil(totalUsers / limit),
+            users
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching users', error: err.message });
     }
 });
 

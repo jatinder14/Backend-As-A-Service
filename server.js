@@ -8,6 +8,7 @@ const customerRoutes = require('./routes/customers');
 const propertyRoutes = require('./routes/properties');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
+const userRoutes = require('./routes/User');
 const UploadController = require('./controllers/uploadController');
 
 dotenv.config();
@@ -60,5 +61,6 @@ app.use('/api/customers', customerRoutes);
 app.use('/api/properties', propertyRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/user', userRoutes);
 
 

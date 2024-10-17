@@ -3,18 +3,19 @@ const cors = require('cors');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const multer = require('multer');
+require('./cron-jobs/syncHostaway');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const propertyRoutes = require('./routes/properties');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const userRoutes = require('./routes/User');
+const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
 
 dotenv.config();
 
 const app = express();
-
 app.use(cors());
 
 // Middleware to parse JSON requests
@@ -62,5 +63,6 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/hostaway', hostawayRoutes);
 
 

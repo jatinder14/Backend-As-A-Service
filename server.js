@@ -1,9 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-const mongoose = require('mongoose');
+const connectDB = require('./Database/connection');
 const dotenv = require('dotenv');
 const multer = require('multer');
-require('./cron-jobs/syncHostaway');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
 const propertyRoutes = require('./routes/properties');
@@ -12,8 +11,10 @@ const paymentRoutes = require('./routes/payments');
 const userRoutes = require('./routes/User');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
+require('./cron-jobs/syncHostaway');
 
 dotenv.config();
+connectDB();
 
 const app = express();
 app.use(cors());
@@ -29,16 +30,6 @@ const upload = multer({
 });
 
 const uploadController = new UploadController();
-
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI, {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-}).then(() => {
-    console.log('MongoDB connected');
-}).catch((err) => {
-    console.error('MongoDB connection error: ', err);
-});
 
 // Simple route for testing
 app.get('/', (req, res) => {

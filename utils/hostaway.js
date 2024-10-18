@@ -42,5 +42,5 @@ async function syncListings() {
         console.error('Error syncing listings:', error.message);
     }
 }
-syncListings();
+
 module.exports = { syncListings };

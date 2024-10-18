@@ -5,8 +5,8 @@ echo "Deleting all PM2 processes..."
 sudo pm2 delete all
 
 # Navigate to project directory
-echo "Navigating to duomo-property-manager-dubai directory..."
-cd ~/duomo-property-manager-dubai || exit
+# echo "Navigating to duomo-property-manager-dubai directory..."
+# cd ~/duomo-property-manager-dubai || exit
 
 # Pull the latest code from GitHub
 echo "Pulling the latest code from GitHub..."
@@ -16,9 +16,13 @@ git pull
 echo "Installing dependencies"
 npm i
 
+# #Make the script executable
+# chmod +x start-docker.sh
+
 # Start the application using PM2
 echo "Starting the duomo application with PM2..."
-sudo pm2 start npm --name "duomo" -- run start
+# sudo pm2 start npm --name "duomo" -- run start  // without docker
+sudo pm2 start ./start-docker.sh --name "duomo"
 
 # Save the current PM2 process list
 echo "Saving the current PM2 process list..."

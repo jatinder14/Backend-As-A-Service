@@ -46,9 +46,9 @@ app.get('/', (req, res) => {
 });
 
 // s3 routes
-app.post('/getSignUrlForUpload/:orderId',
-     upload.single('file'),
-      uploadController.upload);
+app.post('/getSignUrlForUpload',
+    upload.single('file'),
+    uploadController.upload);
 
 // Start server
 const PORT = process.env.PORT || 3000;

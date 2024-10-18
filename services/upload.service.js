@@ -1,11 +1,10 @@
 const { getSignedUrlForUpload, downloadResourceFromS3 } = require('../utils/s3');
 
 class UploadService {
-    async upload(path, fileType) {
-        console.log("path---->", path);
-        console.log("path--filetype-->", fileType);
+    async upload(file) {
+        console.log("file-->", file);
 
-        return await getSignedUrlForUpload({ path, fileType });
+        return await getSignedUrlForUpload({ file });
     }
 
     async download(fileKey) {

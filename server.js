@@ -8,7 +8,8 @@ const customerRoutes = require('./routes/customers');
 const propertyRoutes = require('./routes/properties');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
-const userRoutes = require('./routes/User');
+const taskRoutes = require('./routes/task');
+const userRoutes = require('./routes/user');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
 require('./cron-jobs/syncHostaway');
@@ -54,6 +55,7 @@ app.use('/api/properties', propertyRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/user', userRoutes);
+app.use('/api/tasks', taskRoutes);
 app.use('/api/hostaway', hostawayRoutes);
 
 

@@ -9,9 +9,10 @@ const propertyRoutes = require('./routes/properties');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
-const userRoutes = require('./routes/user');
+const userRoutes = require('./routes/User');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
+const StatusCodes = require('./constants/statusCode')
 require('./cron-jobs/syncHostaway');
 
 dotenv.config();
@@ -32,7 +33,7 @@ const upload = multer({
 
 const uploadController = new UploadController();
 
-// Simple route for testing
+// Server health check
 app.get('/', (req, res) => {
     res.send('Duomo Admin Portal Backend');
 });
@@ -59,3 +60,8 @@ app.use('/api/tasks', taskRoutes);
 app.use('/api/hostaway', hostawayRoutes);
 
 
+// Notification.create({
+//     event_type: "order_creation",
+//     details: `Order has been Accepted with id: ${orderIds}`,
+//     name: userName,
+//   })

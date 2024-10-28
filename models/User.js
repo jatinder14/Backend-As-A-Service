@@ -1,15 +1,24 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// User Schema
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
     password: { type: String, required: true },
-    role: { 
-        type: String, 
+    role: {
+        type: String,
         enum: ['admin', 'sales', 'onboarding', 'operations', 'hr', 'accounts', 'inventory', 'property_management'],
         default: 'admin'
+    },
+    position: { type: String}, // Job title
+    dateOfJoining: { type: Date },
+    phone: { type: String },
+    emergencyContact: { type: String },
+    address: { type: String },
+    employmentType: { 
+        type: String,
+        enum: ['full-time', 'part-time', 'contract', 'intern'],
+        default: 'full-time'
     }
 });
 

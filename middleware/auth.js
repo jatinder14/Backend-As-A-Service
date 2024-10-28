@@ -24,4 +24,19 @@ const adminRole = (req, res, next) => {
     next();
 };
 
-module.exports = { verifyToken, adminRole };
+const hrRole = (req, res, next) => {
+    if (req.user.role !== 'hr') {
+        return res.status(403).json({ message: 'Access denied. hr only.' });
+    }
+    next();
+};
+
+// Check if User is HR or Admin
+const hrOrAdmin = (req, res, next) => {
+    if (req.user.role !== 'hr' && req.user.role !== 'admin') {
+        return res.status(403).json({ message: 'Access denied. HR or Admin only.' });
+    }
+    next();
+};
+
+module.exports = { verifyToken, adminRole, hrOrAdmin };

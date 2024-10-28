@@ -1,115 +1,109 @@
 const express = require('express');
 const Property = require('../models/Property');
+const { getSignedUrl, getKey } = require('../utils/s3');
 const router = express.Router();
 
-// Get all properties (with pagination, sorting, and filtering by location)
-router.get('/', async (req, res) => {
-    try {
-        const { page = 1, limit = 10, sortBy = 'propertyName', location } = req.query;
-        const query = location ? { location } : {};
-        const properties = await Property.find(query)
-            .sort(sortBy)
-            .limit(limit * 1)
-            .skip((page - 1) * limit);
-        res.json(properties);
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-// Get a single property by ID (with error handling)
-router.get('/:id', async (req, res) => {
-    try {
-        const property = await Property.findById(req.params.id);
-        if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
-        }
-        res.json(property);
-    } catch (err) {
-        res.status(500).json({ message: 'Invalid property ID' });
-    }
-});
-
-// Create a new property (with propertyId check)
 router.post('/', async (req, res) => {
-    const {
-        propertyId, propertyName, location, type, pricing, features, 
-        maintenanceHistory, propertyOwner, status, paymentDue, ejariExpiryDate, 
-        paymentDueDate, addendum, bankAccount, chequeCopies
-    } = req.body;
-
     try {
-        const existingProperty = await Property.findOne({ propertyId });
-        if (existingProperty) {
-            return res.status(400).json({ message: 'Property with this ID already exists' });
-        }
-
-        const property = new Property({
-            propertyId, propertyName, location, type, pricing, features, 
-            maintenanceHistory, propertyOwner, status, paymentDue, ejariExpiryDate, 
-            paymentDueDate, addendum, bankAccount, chequeCopies
-        });
+        const property = new Property(req.body);
         await property.save();
         res.status(201).json(property);
     } catch (err) {
-        res.status(500).json({ message: 'Error creating property', error: err.message });
+        res.status(400).json({ message: err.message });
     }
 });
 
-// Update a property (with validation and existence check)
-router.put('/:id', async (req, res) => {
-    const {
-        propertyId, propertyName, location, type, pricing, features, 
-        maintenanceHistory, propertyOwner, status, paymentDue, ejariExpiryDate, 
-        paymentDueDate, addendum, bankAccount, chequeCopies
-    } = req.body;
-
+router.get('/', async (req, res) => {
     try {
-        const property = await Property.findById(req.params.id);
-        if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
+        const { page = 1, limit = 10, category } = req.query;
+        const query = {};
+
+        if (category) {
+            query.category = { $regex: category, $options: 'i' };
         }
 
-        if (propertyId && propertyId !== property.propertyId) {
-            const propertyExists = await Property.findOne({ propertyId });
-            if (propertyExists) {
-                return res.status(400).json({ message: 'Property ID already in use' });
-            }
-        }
+        const totalProperties = await Property.countDocuments(query);
+        const properties = await Property.find(query)
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
 
-        property.propertyId = propertyId || property.propertyId;
-        property.propertyName = propertyName || property.propertyName;
-        property.location = location || property.location;
-        property.type = type || property.type;
-        property.pricing = pricing || property.pricing;
-        property.features = features || property.features;
-        property.maintenanceHistory = maintenanceHistory || property.maintenanceHistory;
-        property.propertyOwner = propertyOwner || property.propertyOwner;
-        property.status = status || property.status;
-        property.paymentDue = paymentDue || property.paymentDue;
-        property.ejariExpiryDate = ejariExpiryDate || property.ejariExpiryDate;
-        property.paymentDueDate = paymentDueDate || property.paymentDueDate;
-        property.addendum = addendum || property.addendum;
-        property.bankAccount = bankAccount || property.bankAccount;
-        property.chequeCopies = chequeCopies || property.chequeCopies;
+        // Generate signed URLs for logos and images in parallel for each property
+        const propertiesWithSignedUrls = await Promise.all(
+            properties.map(async (property) => {
+                const logoPromise = property.logo ? getSignedUrl(getKey(property.logo)) : null;
+                const imagesPromises = property.images && Array.isArray(property.images)
+                    ? property.images.map(image => getSignedUrl(getKey(image)))
+                    : [];
 
-        await property.save();
-        res.json(property);
+                const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
+                    logoPromise,
+                    Promise.all(imagesPromises)
+                ]);
+
+                // Assign signed URLs back to the property object
+                property.logo = logoSignedUrl;
+                property.images = imagesSignedUrls;
+
+                return property;
+            })
+        );
+
+        res.json({
+            totalProperties,
+            currentPage: page,
+            totalPages: Math.ceil(totalProperties / limit),
+            properties: propertiesWithSignedUrls
+        });
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-// Delete a property (with existence check)
-router.delete('/:id', async (req, res) => {
+
+router.get('/:id', async (req, res) => {
     try {
         const property = await Property.findById(req.params.id);
-        if (!property) {
-            return res.status(404).json({ message: 'Property not found' });
-        }
+        if (!property) return res.status(404).json({ message: 'Property not found' });
 
-        await property.deleteOne();
-        res.json({ message: 'Property deleted' });
+        // Run logo and images transformations in parallel
+        const logoPromise = property.logo ? getSignedUrl(getKey(property.logo)) : null;
+        const imagesPromises = property.images && Array.isArray(property.images)
+            ? property.images.map(image => getSignedUrl(getKey(image)))
+            : [];
+
+        // Await all promises concurrently
+        const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
+            logoPromise,
+            Promise.all(imagesPromises)
+        ]);
+
+        // Assign the results to property fields
+        property.logo = logoSignedUrl;
+        property.images = imagesSignedUrls;
+
+        res.status(200).json(property);
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+
+router.put('/:id', async (req, res) => {
+    try {
+        const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        if (!property) return res.status(404).json({ message: 'Property not found' });
+        res.status(200).json(property);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+router.delete('/:id', async (req, res) => {
+    try {
+        const property = await Property.findByIdAndDelete(req.params.id);
+        if (!property) return res.status(404).json({ message: 'Property not found' });
+        res.status(200).json({ message: 'Property deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

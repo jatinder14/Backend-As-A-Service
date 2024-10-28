@@ -18,7 +18,8 @@ npm i
 
 # #Make the script executable
 # chmod +x start-docker.sh
-
+# sudo pm2 start npm --name "space" -- run start 
+# sudo pm2 save
 # Start the application using PM2
 echo "Starting the duomo application with PM2..."
 # sudo pm2 start npm --name "duomo" -- run start  // without docker

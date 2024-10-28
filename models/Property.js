@@ -1,22 +1,25 @@
 const mongoose = require('mongoose');
 
 const propertySchema = new mongoose.Schema({
-    propertyId: { type: String, required: true, unique: true },
-    propertyName: { type: String, required: true },
-    location: { type: String, required: true },
-    type: { type: String },
-    availability: { type: Boolean, default: true },
-    pricing: { type: Number, required: true },
-    features: { type: [String] },
-    maintenanceHistory: [{ type: String }],
-    propertyOwner: { type: String, required: true },
-    status: { type: String, enum: ['Furnished', 'Semi-Furnished', 'Unfurnished'] },
-    paymentDue: { type: String }, // DU/DEWA details
-    ejariExpiryDate: { type: Date },
-    paymentDueDate: { type: Date },
-    addendum: { type: String }, 
-    bankAccount: { type: String },
-    chequeCopies: [{ type: String }]
-});
+    title: { type: String },
+    category: { type: String, enum: ['Firestopping Products', 'Fire Resistant Coatings'], required: true },
+    description: { type: String },
+    keyTechnicalData: { type: String },
+    featuresApplications: { type: String },
+    // featuresApplications: [
+    //     {
+    //         key: { type: String },
+    //         value: { type: String },
+    //         _id: false
+    //     }
+    // ],
+    featuresImages: [
+        {type: String}             
+     ],          //  This is simple a key not an image 
+
+    logo: { type: String },
+    images: [{ type: String }],
+
+}, { timestamps: true });
 
 module.exports = mongoose.model('Property', propertySchema);

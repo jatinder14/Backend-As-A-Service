@@ -15,16 +15,27 @@ router.get('/getListing/:id', async (req, res) => {
     }
 });
 
-// Get all listings (with pagination)
 router.get('/getListings', async (req, res) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
-        const totalListings = await hostaway.countDocuments();
-        const listings = await hostaway.find()
+        const { page = 1, limit = 10, name, address } = req.query;
+
+        // Build the filter object based on query parameters
+        const filter = {};
+        if (name) {
+            filter.name = { $regex: name, $options: 'i' }; // Case-insensitive search for name
+        }
+        if (address) {
+            filter.address = { $regex: address, $options: 'i' };
+        }
+
+        const totalListings = await hostaway.countDocuments(filter);
+
+        const listings = await hostaway.find(filter)
             .limit(limit * 1)
             .skip((page - 1) * limit);
+
         res.json({
-            totalListings,    
+            totalListings,
             currentPage: page,
             totalPages: Math.ceil(totalListings / limit),
             listings

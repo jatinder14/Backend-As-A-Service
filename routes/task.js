@@ -22,7 +22,6 @@ router.post('/createTask', async (req, res) => {
         if (!listing) {
             return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
         }
-
         // Check if all assigned users exist
         const foundUsers = await User.find({ _id: { $in: assignedUsers } });
         const foundUserIds = foundUsers.map(user => user._id.toString());
@@ -41,7 +40,7 @@ router.post('/createTask', async (req, res) => {
             listingId,
             assignedUsers,
             dueDate,
-            createdBy: req.user.id,  // Set createdBy to the current user
+            createdBy: req.user.id,  // Set createdBy to the current logged in user
             updatedBy: [{
                 user: req.user.id,
                 updatedAt: new Date()

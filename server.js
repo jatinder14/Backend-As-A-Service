@@ -10,6 +10,7 @@ const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
 const userRoutes = require('./routes/User');
+const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
@@ -52,7 +53,8 @@ app.listen(PORT, () => {
 // Auth Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/customers', customerRoutes);
-app.use('/api/properties', propertyRoutes);
+app.use('/mvl/api/properties', propertyRoutes);
+app.use('/mvl/api/contact', contactUsRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/user', userRoutes);

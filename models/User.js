@@ -19,7 +19,8 @@ const UserSchema = new mongoose.Schema({
         type: String,
         enum: ['full-time', 'part-time', 'contract', 'intern'],
         default: 'full-time'
-    }
+    },
+    manager: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 
 // Password hashing middleware

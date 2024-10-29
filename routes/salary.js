@@ -50,8 +50,6 @@ router.post('/:employeeId', async (req, res) => {
     }
 });
 
-
-// Update a Salary Pay Period for an Employee
 router.put('/:employeeId', async (req, res) => {
     const { startDate, endDate, baseSalary, allowances, deductions } = req.body;
     const employeeId = req.params.employeeId;
@@ -94,9 +92,6 @@ router.put('/:employeeId', async (req, res) => {
     }
 });
 
-
-
-// Get Salary Details
 router.get('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
 
@@ -118,6 +113,39 @@ router.get('/:employeeId', async (req, res) => {
         res.status(500).json({ message: 'Error fetching salary details', error: err.message });
     }
 });
+
+// Get a specific pay period by periodId for an employee
+router.get('/:employeeId/period/:periodId', async (req, res) => {
+    const { employeeId, periodId } = req.params;
+
+    try {
+        const user = await User.findById(employeeId);
+        if (!user) {
+            return res.status(404).json({ message: 'Employee not found' });
+        }
+        // Fetch the salary record for the given employee
+        const salary = await Salary.findOne({ employeeId });
+
+        // Check if salary record exists
+        if (!salary) {
+            return res.status(404).json({ message: 'Salary record not found for this employee.' });
+        }
+
+        // Find the specific pay period within the employee's salary record
+        const payPeriod = salary.payPeriod.find(period => period._id.toString() === periodId);
+
+        // If the pay period is not found, return an error
+        if (!payPeriod) {
+            return res.status(404).json({ message: 'Pay period not found.' });
+        }
+
+        res.status(200).json(payPeriod);
+    } catch (err) {
+        console.error('Error fetching pay period:', err); 
+        res.status(500).json({ message: 'Error fetching pay period', error: err.message });
+    }
+});
+
 
 router.get('/', async (req, res) => {
     try {
@@ -154,7 +182,6 @@ router.delete('/:employeeId', async (req, res) => {
     const { startDate, endDate } = req.body;
     const employeeId = req.params.employeeId;
 
-    // Validate input
     if (!startDate || !endDate) {
         return res.status(400).json({ message: 'Both start date and end date are required.' });
     }

@@ -28,7 +28,7 @@ router.get('/getAllUsers', async (req, res) => {
 });
 
 router.post('/createUser', async (req, res) => {
-    const { name, email, password, role, position, dateOfJoining, phone, emergencyContact, address, employmentType } = req.body;
+    const { name, email, password, role, position, dateOfJoining, phone, emergencyContact, address, employmentType, manager } = req.body;
 
     try {
         // Check if the user already exists
@@ -52,6 +52,7 @@ router.post('/createUser', async (req, res) => {
             emergencyContact,
             address,
             employmentType,
+            manager
         });
 
         await user.save();

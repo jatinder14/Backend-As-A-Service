@@ -19,7 +19,6 @@ router.post('/createTask', async (req, res) => {
 
     try {
         const listing = await hostaway.findById(listingId);
-        console.log("-------------------",listing,listingId);
         if (!listing) {
             return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
         }

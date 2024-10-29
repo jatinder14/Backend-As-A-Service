@@ -15,7 +15,7 @@ const PayPeriodSchema = new mongoose.Schema({
     baseSalary: { type: Number, required: true },
     allowances: { type: Number, default: 0 },
     deductions: { type: Number, default: 0 },
-    _id: false
+    currency: { type: String, default: 'AED' }
 });
 
 const SalarySchema = new mongoose.Schema({

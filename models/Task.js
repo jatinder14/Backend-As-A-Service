@@ -8,7 +8,7 @@ const updateHistorySchema = new mongoose.Schema({
 const taskSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String, required: true },
-    listingId: { type: Number, ref: 'Listing', required: true },
+    listingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing', required: true },
     assignedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }], // Reference to multiple users
     dueDate: { type: Date, required: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true}, 

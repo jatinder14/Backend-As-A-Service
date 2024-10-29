@@ -121,7 +121,14 @@ router.get('/:employeeId', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const salaries = await Salary.find().populate('employeeId');
+        const { page = 1, limit = 10 } = req.query;
+
+        const totalSalaries = await Salary.countDocuments();
+
+        const salaries = await Salary.find().populate('employeeId')
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .exec()
 
         // Adjust each salary object to rename `employeeId` to `employee`
         const salariesResponse = salaries.map(salary => {
@@ -131,7 +138,12 @@ router.get('/', async (req, res) => {
             return salaryObj;
         });
 
-        res.status(200).json(salariesResponse);
+        res.status(200).json({
+            totalSalaries,
+            currentPage: page,
+            totalPages: Math.ceil(totalSalaries / limit),
+            salariesResponse
+        });
     } catch (err) {
         res.status(500).json({ message: 'Error fetching all salary details', error: err.message });
     }
@@ -159,8 +171,8 @@ router.delete('/:employeeId', async (req, res) => {
 
         // Filter out the pay period to be deleted
         const updatedPayPeriods = salary.payPeriod.filter(period =>
-            !(period.startDate.toISOString() === parsedStartDate.toISOString() && 
-              period.endDate.toISOString() === parsedEndDate.toISOString())
+            !(period.startDate.toISOString() === parsedStartDate.toISOString() &&
+                period.endDate.toISOString() === parsedEndDate.toISOString())
         );
 
         // Check if any period was removed

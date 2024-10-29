@@ -1,6 +1,5 @@
 const mongoose = require('mongoose');
 
-// PayPeriod schema
 const PayPeriodSchema = new mongoose.Schema({
     startDate: { type: Date, required: true },
     endDate: { 
@@ -16,13 +15,12 @@ const PayPeriodSchema = new mongoose.Schema({
     baseSalary: { type: Number, required: true },
     allowances: { type: Number, default: 0 },
     deductions: { type: Number, default: 0 },
+    _id: false
 });
 
-// Salary schema
 const SalarySchema = new mongoose.Schema({
     employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     payPeriod: [PayPeriodSchema]
 });
 
-// Export the model
 module.exports = mongoose.model('Salary', SalarySchema);

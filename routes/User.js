@@ -4,7 +4,6 @@ const bcrypt = require('bcryptjs');
 const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-// Apply middleware to all routes in this router
 router.use(verifyToken, hrOrAdmin);
 
 router.get('/getAllUsers', async (req, res) => {

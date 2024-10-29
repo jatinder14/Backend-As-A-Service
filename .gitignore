@@ -1,4 +1,6 @@
 .env
 node_modules
 package-*.json
-docker-compose.yml
+
+# Ignore docker-compose files
+*.yml

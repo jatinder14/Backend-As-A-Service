@@ -11,6 +11,7 @@ const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
 const userRoutes = require('./routes/User');
 const salaryRoutes = require('./routes/salary');
+const documentRoutes = require('./routes/document');
 const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
@@ -64,6 +65,11 @@ app.use('/api/hostaway', hostawayRoutes);
 
 // HR routes
 app.use('/api/hr/salary', salaryRoutes);
+
+// user documents
+app.use('/api/user/document', documentRoutes);
+
+
 
 
 // Notification.create({

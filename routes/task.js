@@ -18,7 +18,8 @@ router.post('/createTask', async (req, res) => {
     const { title, description, listingId, assignedUsers, dueDate } = req.body;
 
     try {
-        const listing = await hostaway.findOne({ listingId: listingId - '0' });
+        const listing = await hostaway.findById(listingId);
+        console.log("-------------------",listing,listingId);
         if (!listing) {
             return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
         }
@@ -77,6 +78,7 @@ router.get('/getTasks', async (req, res) => {
             .skip((page - 1) * limit)
             .populate('assignedUsers')
             .populate('createdBy')
+            .populate('listingId')
             .populate('updatedBy.user')
             .select('-createdAt -updatedAt') 
             .exec()
@@ -98,6 +100,7 @@ router.get('/:id', async (req, res) => {
         const task = await Task.findById(req.params.id)
             .populate('assignedUsers')
             .populate('updatedBy.user')
+            .populate('listingId')
             .select('-createdAt -updatedAt')
             .exec();
 

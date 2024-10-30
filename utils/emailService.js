@@ -2,7 +2,7 @@ const { sendEmail } = require('../services/emailService');
 const { EMAIL_SUBJECTS, EMAIL_MESSAGES } = require('../constants/message');
 
 const sendTaskEmail = async (users, task, action) => {
-    const emailPromises = users.map(user => {
+    const emailPromises = users.map((user) => {
         let subject, text;
 
         switch (action) {

@@ -20,7 +20,9 @@ router.get('/', async (req, res) => {
 // Get a single payment by ID (with error handling)
 router.get('/:id', async (req, res) => {
     try {
-        const payment = await Payment.findById(req.params.id).populate('bookingId');
+        const payment = await Payment.findById(req.params.id).populate(
+            'bookingId'
+        );
         if (!payment) {
             return res.status(404).json({ message: 'Payment not found' });
         }
@@ -45,12 +47,15 @@ router.post('/', async (req, res) => {
             amount,
             method,
             status,
-            transactionId
+            transactionId,
         });
         await payment.save();
         res.status(201).json(payment);
     } catch (err) {
-        res.status(500).json({ message: 'Error creating payment', error: err.message });
+        res.status(500).json({
+            message: 'Error creating payment',
+            error: err.message,
+        });
     }
 });
 
@@ -79,7 +84,7 @@ router.put('/:id', async (req, res) => {
 // Delete a payment (with existence check)
 router.delete('/:id', async (req, res) => {
     try {
-        console.log("-------debug-----")
+        console.log('-------debug-----');
         const payment = await Payment.findById(req.params.id);
         if (!payment) {
             return res.status(404).json({ message: 'Payment not found' });

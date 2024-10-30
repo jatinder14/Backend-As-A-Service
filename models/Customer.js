@@ -6,7 +6,7 @@ const customerSchema = new mongoose.Schema({
     phone: { type: String, required: true },
     address: { type: String },
     preferences: { type: String },
-    bookingHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }]
+    bookingHistory: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Booking' }],
 });
 
 module.exports = mongoose.model('Customer', customerSchema);

@@ -31,19 +31,32 @@ router.get('/:id', async (req, res) => {
 
 // Create a new customer (with duplicate email check)
 router.post('/', async (req, res) => {
-    const { name, email, phone, address, preferences, bookingHistory } = req.body;
+    const { name, email, phone, address, preferences, bookingHistory } =
+        req.body;
 
     try {
         const existingCustomer = await Customer.findOne({ email });
         if (existingCustomer) {
-            return res.status(400).json({ message: 'Customer with this email already exists' });
+            return res
+                .status(400)
+                .json({ message: 'Customer with this email already exists' });
         }
 
-        const customer = new Customer({ name, email, phone, address, preferences, bookingHistory });
+        const customer = new Customer({
+            name,
+            email,
+            phone,
+            address,
+            preferences,
+            bookingHistory,
+        });
         await customer.save();
         res.status(201).json(customer);
     } catch (err) {
-        res.status(500).json({ message: 'Error creating customer', error: err.message });
+        res.status(500).json({
+            message: 'Error creating customer',
+            error: err.message,
+        });
     }
 });
 
@@ -60,7 +73,9 @@ router.put('/:id', async (req, res) => {
         if (email && email !== customer.email) {
             const emailExists = await Customer.findOne({ email });
             if (emailExists) {
-                return res.status(400).json({ message: 'Email already in use' });
+                return res
+                    .status(400)
+                    .json({ message: 'Email already in use' });
             }
         }
 

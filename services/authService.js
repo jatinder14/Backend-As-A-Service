@@ -4,13 +4,12 @@ const qs = require('qs');
 
 dotenv.config();
 
-
 let accessToken = null;
 let data = qs.stringify({
     grant_type: process.env.GRANT_TYPE,
     client_id: process.env.CLIENT_ID,
     client_secret: process.env.CLIENT_SECRET,
-    scope: process.env.SCOPE
+    scope: process.env.SCOPE,
 });
 
 let config = {
@@ -19,11 +18,10 @@ let config = {
     url: `${process.env.HOSTAWAY_URL}/${process.env.VERSION}/accessTokens`,
     headers: {
         'Cache-control': 'no-cache',
-        'Content-type': 'application/x-www-form-urlencoded'
+        'Content-type': 'application/x-www-form-urlencoded',
     },
-    data: data
+    data: data,
 };
-
 
 async function generateAuthToken() {
     try {
@@ -31,7 +29,11 @@ async function generateAuthToken() {
         accessToken = response.data.access_token; // Store the access token
         console.log('Access Token Generated:', accessToken);
     } catch (error) {
-        console.error('Error generating auth token:', error.message, process.env.GRANT_TYPE);
+        console.error(
+            'Error generating auth token:',
+            error.message,
+            process.env.GRANT_TYPE
+        );
     }
 }
 
@@ -41,6 +43,5 @@ async function getAccessToken() {
     }
     return accessToken;
 }
-
 
 module.exports = { generateAuthToken, getAccessToken };

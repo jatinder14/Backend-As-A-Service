@@ -4,7 +4,11 @@ const jwt = require('jsonwebtoken');
 const verifyToken = (req, res, next) => {
     const token = req.header('Authorization');
     if (!token || !token.startsWith('Bearer ')) {
-        return res.status(401).json({ message: 'Access denied. No token provided or invalid format.' });
+        return res
+            .status(401)
+            .json({
+                message: 'Access denied. No token provided or invalid format.',
+            });
     }
 
     try {
@@ -34,7 +38,9 @@ const hrRole = (req, res, next) => {
 // Check if User is HR or Admin
 const hrOrAdmin = (req, res, next) => {
     if (req.user.role !== 'hr' && req.user.role !== 'admin') {
-        return res.status(403).json({ message: 'Access denied. HR or Admin only.' });
+        return res
+            .status(403)
+            .json({ message: 'Access denied. HR or Admin only.' });
     }
     next();
 };

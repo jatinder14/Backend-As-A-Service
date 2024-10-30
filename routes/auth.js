@@ -20,10 +20,17 @@ router.post('/register', async (req, res) => {
         await user.save();
 
         // Generate JWT token
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
         res.status(201).json({ token, user });
     } catch (err) {
-        res.status(500).json({ message: 'Error registering user', error: err.message });
+        res.status(500).json({
+            message: 'Error registering user',
+            error: err.message,
+        });
     }
 });
 
@@ -42,7 +49,11 @@ router.post('/login', async (req, res) => {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign(
+            { id: user._id, role: user.role },
+            process.env.JWT_SECRET,
+            { expiresIn: '30d' }
+        );
         res.status(200).json({ token, user });
     } catch (err) {
         res.status(500).json({ message: 'Login error', error: err.message });

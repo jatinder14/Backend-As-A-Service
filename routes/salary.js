@@ -9,7 +9,13 @@ router.use(verifyToken, hrOrAdmin);
 
 router.post('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
-    const { startDate, endDate, baseSalary, allowances = 0, deductions = 0 } = req.body;
+    const {
+        startDate,
+        endDate,
+        baseSalary,
+        allowances = 0,
+        deductions = 0,
+    } = req.body;
 
     try {
         const user = await User.findById(employeeId);
@@ -20,33 +26,57 @@ router.post('/:employeeId', async (req, res) => {
         const start = new Date(startDate);
         const end = new Date(endDate);
 
-        if (!startDate || !endDate || isNaN(start.getTime()) || isNaN(end.getTime())) {
+        if (
+            !startDate ||
+            !endDate ||
+            isNaN(start.getTime()) ||
+            isNaN(end.getTime())
+        ) {
             return res.status(400).json({ message: 'Invalid date format' });
         }
 
         if (end <= start) {
-            return res.status(400).json({ message: 'End date must be greater than start date' });
+            return res
+                .status(400)
+                .json({ message: 'End date must be greater than start date' });
         }
 
-        const salary = await Salary.findOne({ employeeId }) || new Salary({ employeeId });
+        const salary =
+            (await Salary.findOne({ employeeId })) ||
+            new Salary({ employeeId });
 
         // Check for overlapping periods
-        const overlappingPeriod = salary.payPeriod.find(period =>
-            (start >= period.startDate && start <= period.endDate) ||
-            (end >= period.startDate && end <= period.endDate)
+        const overlappingPeriod = salary.payPeriod.find(
+            (period) =>
+                (start >= period.startDate && start <= period.endDate) ||
+                (end >= period.startDate && end <= period.endDate)
         );
 
         if (overlappingPeriod) {
-            return res.status(400).json({ message: 'Overlapping pay period exists.' });
+            return res
+                .status(400)
+                .json({ message: 'Overlapping pay period exists.' });
         }
 
         // Add new pay period
-        salary.payPeriod.push({ startDate: start, endDate: end, baseSalary, allowances, deductions });
+        salary.payPeriod.push({
+            startDate: start,
+            endDate: end,
+            baseSalary,
+            allowances,
+            deductions,
+        });
         await salary.save();
 
-        res.status(201).json({ message: 'Pay period added successfully', salary });
+        res.status(201).json({
+            message: 'Pay period added successfully',
+            salary,
+        });
     } catch (err) {
-        res.status(500).json({ message: 'Error adding pay period', error: err.message });
+        res.status(500).json({
+            message: 'Error adding pay period',
+            error: err.message,
+        });
     }
 });
 
@@ -55,40 +85,68 @@ router.put('/:employeeId', async (req, res) => {
     const employeeId = req.params.employeeId;
 
     // Validate input
-    if (!startDate || !endDate || (baseSalary === undefined && allowances === undefined && deductions === undefined)) {
-        return res.status(400).json({ message: 'Start date, end date, and at least one salary detail to update are required.' });
+    if (
+        !startDate ||
+        !endDate ||
+        (baseSalary === undefined &&
+            allowances === undefined &&
+            deductions === undefined)
+    ) {
+        return res
+            .status(400)
+            .json({
+                message:
+                    'Start date, end date, and at least one salary detail to update are required.',
+            });
     }
 
     try {
         const salary = await Salary.findOne({ employeeId });
         if (!salary) {
-            return res.status(404).json({ message: 'Salary record not found for this employee.' });
+            return res
+                .status(404)
+                .json({
+                    message: 'Salary record not found for this employee.',
+                });
         }
 
         // Find the pay period to update
-        const payPeriodIndex = salary.payPeriod.findIndex(period =>
-            period.startDate.toISOString() === new Date(startDate).toISOString() &&
-            period.endDate.toISOString() === new Date(endDate).toISOString()
+        const payPeriodIndex = salary.payPeriod.findIndex(
+            (period) =>
+                period.startDate.toISOString() ===
+                    new Date(startDate).toISOString() &&
+                period.endDate.toISOString() === new Date(endDate).toISOString()
         );
 
         // Check if the pay period exists
         if (payPeriodIndex === -1) {
-            return res.status(404).json({ message: 'Specified pay period not found.' });
+            return res
+                .status(404)
+                .json({ message: 'Specified pay period not found.' });
         }
 
         // Update the salary details
-        if (baseSalary !== undefined) salary.payPeriod[payPeriodIndex].baseSalary = baseSalary;
-        if (allowances !== undefined) salary.payPeriod[payPeriodIndex].allowances = allowances;
-        if (deductions !== undefined) salary.payPeriod[payPeriodIndex].deductions = deductions;
+        if (baseSalary !== undefined)
+            salary.payPeriod[payPeriodIndex].baseSalary = baseSalary;
+        if (allowances !== undefined)
+            salary.payPeriod[payPeriodIndex].allowances = allowances;
+        if (deductions !== undefined)
+            salary.payPeriod[payPeriodIndex].deductions = deductions;
 
         // Save the updated salary record
         await salary.save();
 
         // Return the updated salary record
-        res.status(200).json({ message: 'Pay period updated successfully', salary });
+        res.status(200).json({
+            message: 'Pay period updated successfully',
+            salary,
+        });
     } catch (err) {
         console.error('Error updating pay period:', err); // Log error for debugging
-        res.status(500).json({ message: 'Error updating pay period', error: err.message });
+        res.status(500).json({
+            message: 'Error updating pay period',
+            error: err.message,
+        });
     }
 });
 
@@ -96,7 +154,9 @@ router.get('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
 
     try {
-        const salary = await Salary.findOne({ employeeId }).populate('employeeId');
+        const salary = await Salary.findOne({ employeeId }).populate(
+            'employeeId'
+        );
 
         if (!salary) {
             return res.status(404).json({ message: 'Salary record not found' });
@@ -110,7 +170,10 @@ router.get('/:employeeId', async (req, res) => {
 
         res.status(200).json(salaryResponse);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching salary details', error: err.message });
+        res.status(500).json({
+            message: 'Error fetching salary details',
+            error: err.message,
+        });
     }
 });
 
@@ -128,11 +191,17 @@ router.get('/:employeeId/period/:periodId', async (req, res) => {
 
         // Check if salary record exists
         if (!salary) {
-            return res.status(404).json({ message: 'Salary record not found for this employee.' });
+            return res
+                .status(404)
+                .json({
+                    message: 'Salary record not found for this employee.',
+                });
         }
 
         // Find the specific pay period within the employee's salary record
-        const payPeriod = salary.payPeriod.find(period => period._id.toString() === periodId);
+        const payPeriod = salary.payPeriod.find(
+            (period) => period._id.toString() === periodId
+        );
 
         // If the pay period is not found, return an error
         if (!payPeriod) {
@@ -141,11 +210,13 @@ router.get('/:employeeId/period/:periodId', async (req, res) => {
 
         res.status(200).json(payPeriod);
     } catch (err) {
-        console.error('Error fetching pay period:', err); 
-        res.status(500).json({ message: 'Error fetching pay period', error: err.message });
+        console.error('Error fetching pay period:', err);
+        res.status(500).json({
+            message: 'Error fetching pay period',
+            error: err.message,
+        });
     }
 });
-
 
 router.get('/', async (req, res) => {
     try {
@@ -153,13 +224,14 @@ router.get('/', async (req, res) => {
 
         const totalSalaries = await Salary.countDocuments();
 
-        const salaries = await Salary.find().populate('employeeId')
+        const salaries = await Salary.find()
+            .populate('employeeId')
             .limit(limit * 1)
             .skip((page - 1) * limit)
-            .exec()
+            .exec();
 
         // Adjust each salary object to rename `employeeId` to `employee`
-        const salariesResponse = salaries.map(salary => {
+        const salariesResponse = salaries.map((salary) => {
             const salaryObj = salary.toObject();
             salaryObj.employee = salaryObj.employeeId; // Rename populated field
             delete salaryObj.employeeId; // Remove original field
@@ -170,10 +242,13 @@ router.get('/', async (req, res) => {
             totalSalaries,
             currentPage: page,
             totalPages: Math.ceil(totalSalaries / limit),
-            salariesResponse
+            salariesResponse,
         });
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching all salary details', error: err.message });
+        res.status(500).json({
+            message: 'Error fetching all salary details',
+            error: err.message,
+        });
     }
 });
 
@@ -183,13 +258,19 @@ router.delete('/:employeeId', async (req, res) => {
     const employeeId = req.params.employeeId;
 
     if (!startDate || !endDate) {
-        return res.status(400).json({ message: 'Both start date and end date are required.' });
+        return res
+            .status(400)
+            .json({ message: 'Both start date and end date are required.' });
     }
 
     try {
         const salary = await Salary.findOne({ employeeId });
         if (!salary) {
-            return res.status(404).json({ message: 'Salary record not found for this employee.' });
+            return res
+                .status(404)
+                .json({
+                    message: 'Salary record not found for this employee.',
+                });
         }
 
         // Parse the dates for comparison
@@ -197,14 +278,20 @@ router.delete('/:employeeId', async (req, res) => {
         const parsedEndDate = new Date(endDate);
 
         // Filter out the pay period to be deleted
-        const updatedPayPeriods = salary.payPeriod.filter(period =>
-            !(period.startDate.toISOString() === parsedStartDate.toISOString() &&
-                period.endDate.toISOString() === parsedEndDate.toISOString())
+        const updatedPayPeriods = salary.payPeriod.filter(
+            (period) =>
+                !(
+                    period.startDate.toISOString() ===
+                        parsedStartDate.toISOString() &&
+                    period.endDate.toISOString() === parsedEndDate.toISOString()
+                )
         );
 
         // Check if any period was removed
         if (updatedPayPeriods.length === salary.payPeriod.length) {
-            return res.status(404).json({ message: 'Specified pay period not found.' });
+            return res
+                .status(404)
+                .json({ message: 'Specified pay period not found.' });
         }
 
         // Update the payPeriod array and save
@@ -212,12 +299,17 @@ router.delete('/:employeeId', async (req, res) => {
         await salary.save();
 
         // Response includes updated salary data
-        res.status(200).json({ message: 'Pay period deleted successfully', salary });
+        res.status(200).json({
+            message: 'Pay period deleted successfully',
+            salary,
+        });
     } catch (err) {
         console.error('Error deleting pay period:', err); // Log error for debugging
-        res.status(500).json({ message: 'Error deleting pay period', error: err.message });
+        res.status(500).json({
+            message: 'Error deleting pay period',
+            error: err.message,
+        });
     }
 });
-
 
 module.exports = router;

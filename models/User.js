@@ -7,20 +7,29 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: {
         type: String,
-        enum: ['admin', 'sales', 'onboarding', 'operations', 'hr', 'accounts', 'inventory', 'property_management'],
-        default: 'admin'
+        enum: [
+            'admin',
+            'sales',
+            'onboarding',
+            'operations',
+            'hr',
+            'accounts',
+            'inventory',
+            'property_management',
+        ],
+        default: 'admin',
     },
-    position: { type: String}, // Job title
+    position: { type: String }, // Job title
     dateOfJoining: { type: Date },
     phone: { type: String },
     emergencyContact: { type: String },
     address: { type: String },
-    employmentType: { 
+    employmentType: {
         type: String,
         enum: ['full-time', 'part-time', 'contract', 'intern'],
-        default: 'full-time'
+        default: 'full-time',
     },
-    manager: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    manager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 
 // Password hashing middleware

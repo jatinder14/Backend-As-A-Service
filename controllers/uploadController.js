@@ -5,10 +5,13 @@ const uploadService = new UploadService();
 class UploadController {
     async upload(req, res, next) {
         try {
-            console.log("req.params.type------>", req.params.orderId, "file", req.file)
-            const result = await uploadService.upload(
+            console.log(
+                'req.params.type------>',
+                req.params.orderId,
+                'file',
                 req.file
             );
+            const result = await uploadService.upload(req.file);
             res.json(result);
         } catch (e) {
             next(e);
@@ -17,10 +20,8 @@ class UploadController {
 
     async download(req, res, next) {
         try {
-            console.log("req.params.type------>", req.params.fileKey)
-            const result = await uploadService.download(
-                req.params.fileKey
-            );
+            console.log('req.params.type------>', req.params.fileKey);
+            const result = await uploadService.download(req.params.fileKey);
             res.send(result);
         } catch (e) {
             next(e);
@@ -29,4 +30,3 @@ class UploadController {
 }
 
 module.exports = UploadController;
-

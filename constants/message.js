@@ -3,7 +3,7 @@ const EMAIL_SUBJECTS = {
     TASK_ASSIGNED: 'New Task Assigned:',
     TASK_UPDATED: 'Task UPDATED SUCCESSFULLY!',
     TASK_DELETED: 'Task DELETED SUCCESSFULLY!',
-}
+};
 
 const EMAIL_MESSAGES = {
     HI: 'Hi',
@@ -12,7 +12,7 @@ const EMAIL_MESSAGES = {
     TASK_CREATED: 'You have created a new task:',
     TASK_UPDATED: 'The task has been updated:',
     TASK_UPDATED_USER: 'A task assigned to you has been updated:',
-    TASK_DELETED: 'Task DELETED SUCCESSFULLY!'
-}
+    TASK_DELETED: 'Task DELETED SUCCESSFULLY!',
+};
 
-module.exports = { EMAIL_SUBJECTS, EMAIL_MESSAGES }
+module.exports = { EMAIL_SUBJECTS, EMAIL_MESSAGES };

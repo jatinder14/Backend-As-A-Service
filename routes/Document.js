@@ -27,14 +27,29 @@ router.post('/:employeeId', async (req, res) => {
             document.labourCard = labourCard || document.labourCard;
             document.visaCopy = visaCopy || document.visaCopy;
             await document.save();
-            res.status(200).json({ message: 'Document updated successfully', document });
+            res.status(200).json({
+                message: 'Document updated successfully',
+                document,
+            });
         } else {
-            document = new Document({ employeeId, emiratesId, passportCopy, labourCard, visaCopy });
+            document = new Document({
+                employeeId,
+                emiratesId,
+                passportCopy,
+                labourCard,
+                visaCopy,
+            });
             await document.save();
-            res.status(201).json({ message: 'Document created successfully', document });
+            res.status(201).json({
+                message: 'Document created successfully',
+                document,
+            });
         }
     } catch (err) {
-        res.status(500).json({ message: 'Error processing document', error: err.message });
+        res.status(500).json({
+            message: 'Error processing document',
+            error: err.message,
+        });
     }
 });
 
@@ -47,29 +62,39 @@ router.get('/fetchAllDocuments', async (req, res) => {
         const Documents = await Document.find()
             .limit(limit * 1)
             .skip((page - 1) * limit)
-            .exec()
+            .exec();
 
         res.json({
             totalDocuments,
             currentPage: page,
             totalPages: Math.ceil(totalDocuments / limit),
-            Documents
+            Documents,
         });
     } catch (err) {
-        res.status(500).json({ message: ERROR_MESSAGES.ERROR_FETCHING_TASKS, error: err.message });
+        res.status(500).json({
+            message: ERROR_MESSAGES.ERROR_FETCHING_TASKS,
+            error: err.message,
+        });
     }
 });
 
 router.get('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
     try {
-        const document = await Document.findOne({ employeeId }).populate('employeeId');
+        const document = await Document.findOne({ employeeId }).populate(
+            'employeeId'
+        );
         if (!document) {
-            return res.status(404).json({ message: 'Document not found for this employee.' });
+            return res
+                .status(404)
+                .json({ message: 'Document not found for this employee.' });
         }
         res.status(200).json(document);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching document', error: err.message });
+        res.status(500).json({
+            message: 'Error fetching document',
+            error: err.message,
+        });
     }
 });
 
@@ -90,12 +115,20 @@ router.put('/:employeeId', async (req, res) => {
         );
 
         if (!document) {
-            return res.status(404).json({ message: 'Document not found for this employee.' });
+            return res
+                .status(404)
+                .json({ message: 'Document not found for this employee.' });
         }
 
-        res.status(200).json({ message: 'Document updated successfully', document });
+        res.status(200).json({
+            message: 'Document updated successfully',
+            document,
+        });
     } catch (err) {
-        res.status(500).json({ message: 'Error updating document', error: err.message });
+        res.status(500).json({
+            message: 'Error updating document',
+            error: err.message,
+        });
     }
 });
 
@@ -106,19 +139,27 @@ router.delete('/:employeeId', async (req, res) => {
     try {
         const document = await Document.findOne({ employeeId });
         if (!document) {
-            return res.status(404).json({ message: 'Document not found for this employee.' });
+            return res
+                .status(404)
+                .json({ message: 'Document not found for this employee.' });
         }
 
-        fields.forEach(field => {
+        fields.forEach((field) => {
             if (document[field] !== undefined) {
                 document[field] = undefined; // Set to undefined to delete the field
             }
         });
 
         await document.save();
-        res.status(200).json({ message: 'Document fields deleted successfully', document });
+        res.status(200).json({
+            message: 'Document fields deleted successfully',
+            document,
+        });
     } catch (err) {
-        res.status(500).json({ message: 'Error deleting document fields', error: err.message });
+        res.status(500).json({
+            message: 'Error deleting document fields',
+            error: err.message,
+        });
     }
 });
 

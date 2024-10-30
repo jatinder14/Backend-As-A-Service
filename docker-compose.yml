@@ -1,25 +1,25 @@
 version: '1'
 services:
-  duomo:
-    build: .
-    container_name: duomo
-    ports:
-      - "80:80"
-    environment:
-      - MONGO_URI=mongodb://mongo:27017/duomo
-    depends_on:
-      - mongo
-    volumes:
-      - .:/usr/src/app
-    command: npm start
+    duomo:
+        build: .
+        container_name: duomo
+        ports:
+            - '80:80'
+        environment:
+            - MONGO_URI=mongodb://mongo:27017/duomo
+        depends_on:
+            - mongo
+        volumes:
+            - .:/usr/src/app
+        command: npm start
 
-  mongo:
-    image: mongo:latest
-    container_name: mongo
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
+    mongo:
+        image: mongo:latest
+        container_name: mongo
+        ports:
+            - '27017:27017'
+        volumes:
+            - mongo-data:/data/db
 
 volumes:
-  mongo-data:
+    mongo-data:

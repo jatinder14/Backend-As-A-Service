@@ -8,14 +8,14 @@ async function syncListings() {
         method: 'get',
         maxBodyLength: Infinity,
         url: `${process.env.HOSTAWAY_URL}/${process.env.VERSION}/listings?limit=&offset=&sortOrder=&city=&match=&country=&contactName=&propertyTypeId=`,
-        headers: { 
-          'Authorization': `Bearer ${token}`, 
-          'Cache-control': 'no-cache'
-        }
-      };
+        headers: {
+            Authorization: `Bearer ${token}`,
+            'Cache-control': 'no-cache',
+        },
+    };
 
     if (!token) {
-        console.log('No valid token found. Skipping sync.',token);
+        console.log('No valid token found. Skipping sync.', token);
         return;
     }
 

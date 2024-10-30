@@ -25,7 +25,7 @@ const sendEmail = (contact) => {
             Message: ${contact.message}
         `,
     };
-    console.log("----jatin",mailOptions);
+    console.log('----jatin', mailOptions);
 
     return transporter.sendMail(mailOptions);
 };
@@ -33,7 +33,13 @@ const sendEmail = (contact) => {
 router.post('/', async (req, res) => {
     const { fullName, phone, email, subject, message } = req.body;
 
-    const newContact = new Contact({ fullName, phone, email, subject, message });
+    const newContact = new Contact({
+        fullName,
+        phone,
+        email,
+        subject,
+        message,
+    });
 
     try {
         await newContact.save();
@@ -44,7 +50,5 @@ router.post('/', async (req, res) => {
         res.status(500).json({ message: 'Internal Server Error' });
     }
 });
-
-
 
 module.exports = router;

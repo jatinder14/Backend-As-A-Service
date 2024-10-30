@@ -1,17 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const hostaway = require('../models/hostway-listing')
+const hostaway = require('../models/hostway-listing');
 
 router.get('/getListing/:id', async (req, res) => {
     try {
         const listingId = req.params.id;
-        const listing = await hostaway.findOne({ listingId: listingId-'0' });
+        const listing = await hostaway.findOne({ listingId: listingId - '0' });
         if (!listing) {
             return res.status(404).json({ message: 'Listing not found' });
         }
         res.json(listing);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching listing', error: err.message });
+        res.status(500).json({
+            message: 'Error fetching listing',
+            error: err.message,
+        });
     }
 });
 
@@ -30,7 +33,8 @@ router.get('/getListings', async (req, res) => {
 
         const totalListings = await hostaway.countDocuments(filter);
 
-        const listings = await hostaway.find(filter)
+        const listings = await hostaway
+            .find(filter)
             .limit(limit * 1)
             .skip((page - 1) * limit);
 
@@ -38,12 +42,11 @@ router.get('/getListings', async (req, res) => {
             totalListings,
             currentPage: page,
             totalPages: Math.ceil(totalListings / limit),
-            listings
+            listings,
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
-
 
 module.exports = router;

@@ -15,7 +15,7 @@ const documentRoutes = require('./routes/Document');
 const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
-const StatusCodes = require('./constants/statusCode')
+const StatusCodes = require('./constants/statusCode');
 require('./cron-jobs/syncHostaway');
 
 dotenv.config();
@@ -42,9 +42,11 @@ app.get('/', (req, res) => {
 });
 
 // s3 routes
-app.post('/getSignUrlForUpload',
+app.post(
+    '/getSignUrlForUpload',
     upload.single('file'),
-    uploadController.upload);
+    uploadController.upload
+);
 
 // Start server
 const PORT = process.env.PORT || 3000;
@@ -68,9 +70,6 @@ app.use('/api/hr/salary', salaryRoutes);
 
 // user documents
 app.use('/api/user/document', documentRoutes);
-
-
-
 
 // Notification.create({
 //     event_type: "order_creation",

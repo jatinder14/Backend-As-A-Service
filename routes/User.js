@@ -20,15 +20,30 @@ router.get('/getAllUsers', async (req, res) => {
             total: totalUsers,
             currentPage: page,
             totalPages: Math.ceil(totalUsers / limit),
-            users
+            users,
         });
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching users', error: err.message });
+        res.status(500).json({
+            message: 'Error fetching users',
+            error: err.message,
+        });
     }
 });
 
 router.post('/createUser', async (req, res) => {
-    const { name, email, password, role, position, dateOfJoining, phone, emergencyContact, address, employmentType, manager } = req.body;
+    const {
+        name,
+        email,
+        password,
+        role,
+        position,
+        dateOfJoining,
+        phone,
+        emergencyContact,
+        address,
+        employmentType,
+        manager,
+    } = req.body;
 
     try {
         // Check if the user already exists
@@ -52,14 +67,17 @@ router.post('/createUser', async (req, res) => {
             emergencyContact,
             address,
             employmentType,
-            manager
+            manager,
         });
 
         await user.save();
 
         res.status(201).json({ message: 'User created successfully', user });
     } catch (err) {
-        res.status(500).json({ message: 'Error creating user', error: err.message });
+        res.status(500).json({
+            message: 'Error creating user',
+            error: err.message,
+        });
     }
 });
 
@@ -71,12 +89,25 @@ router.get('/:id', async (req, res) => {
         }
         res.status(200).json(user);
     } catch (err) {
-        res.status(500).json({ message: 'Error fetching user', error: err.message });
+        res.status(500).json({
+            message: 'Error fetching user',
+            error: err.message,
+        });
     }
 });
 
 router.put('/:id', async (req, res) => {
-    const { name, email, role, position, dateOfJoining, phone, emergencyContact, address, employmentType } = req.body;
+    const {
+        name,
+        email,
+        role,
+        position,
+        dateOfJoining,
+        phone,
+        emergencyContact,
+        address,
+        employmentType,
+    } = req.body;
 
     try {
         const user = await User.findById(req.params.id);
@@ -98,7 +129,10 @@ router.put('/:id', async (req, res) => {
         await user.save();
         res.status(200).json({ message: 'User updated successfully', user });
     } catch (err) {
-        res.status(500).json({ message: 'Error updating user', error: err.message });
+        res.status(500).json({
+            message: 'Error updating user',
+            error: err.message,
+        });
     }
 });
 
@@ -112,7 +146,10 @@ router.delete('/:id', async (req, res) => {
         await user.deleteOne();
         res.status(200).json({ message: 'User deleted' });
     } catch (err) {
-        res.status(500).json({ message: 'Error deleting user', error: err.message });
+        res.status(500).json({
+            message: 'Error deleting user',
+            error: err.message,
+        });
     }
 });
 

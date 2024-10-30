@@ -30,14 +30,19 @@ router.get('/', async (req, res) => {
         // Generate signed URLs for logos and images in parallel for each property
         const propertiesWithSignedUrls = await Promise.all(
             properties.map(async (property) => {
-                const logoPromise = property.logo ? getSignedUrl(getKey(property.logo)) : null;
-                const imagesPromises = property.images && Array.isArray(property.images)
-                    ? property.images.map(image => getSignedUrl(getKey(image)))
-                    : [];
+                const logoPromise = property.logo
+                    ? getSignedUrl(getKey(property.logo))
+                    : null;
+                const imagesPromises =
+                    property.images && Array.isArray(property.images)
+                        ? property.images.map((image) =>
+                              getSignedUrl(getKey(image))
+                          )
+                        : [];
 
                 const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
                     logoPromise,
-                    Promise.all(imagesPromises)
+                    Promise.all(imagesPromises),
                 ]);
 
                 // Assign signed URLs back to the property object
@@ -52,30 +57,32 @@ router.get('/', async (req, res) => {
             totalProperties,
             currentPage: page,
             totalPages: Math.ceil(totalProperties / limit),
-            properties: propertiesWithSignedUrls
+            properties: propertiesWithSignedUrls,
         });
-
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
-
 router.get('/:id', async (req, res) => {
     try {
         const property = await Property.findById(req.params.id);
-        if (!property) return res.status(404).json({ message: 'Property not found' });
+        if (!property)
+            return res.status(404).json({ message: 'Property not found' });
 
         // Run logo and images transformations in parallel
-        const logoPromise = property.logo ? getSignedUrl(getKey(property.logo)) : null;
-        const imagesPromises = property.images && Array.isArray(property.images)
-            ? property.images.map(image => getSignedUrl(getKey(image)))
-            : [];
+        const logoPromise = property.logo
+            ? getSignedUrl(getKey(property.logo))
+            : null;
+        const imagesPromises =
+            property.images && Array.isArray(property.images)
+                ? property.images.map((image) => getSignedUrl(getKey(image)))
+                : [];
 
         // Await all promises concurrently
         const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
             logoPromise,
-            Promise.all(imagesPromises)
+            Promise.all(imagesPromises),
         ]);
 
         // Assign the results to property fields
@@ -88,11 +95,15 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-
 router.put('/:id', async (req, res) => {
     try {
-        const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
-        if (!property) return res.status(404).json({ message: 'Property not found' });
+        const property = await Property.findByIdAndUpdate(
+            req.params.id,
+            req.body,
+            { new: true, runValidators: true }
+        );
+        if (!property)
+            return res.status(404).json({ message: 'Property not found' });
         res.status(200).json(property);
     } catch (err) {
         res.status(400).json({ message: err.message });
@@ -102,7 +113,8 @@ router.put('/:id', async (req, res) => {
 router.delete('/:id', async (req, res) => {
     try {
         const property = await Property.findByIdAndDelete(req.params.id);
-        if (!property) return res.status(404).json({ message: 'Property not found' });
+        if (!property)
+            return res.status(404).json({ message: 'Property not found' });
         res.status(200).json({ message: 'Property deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: err.message });

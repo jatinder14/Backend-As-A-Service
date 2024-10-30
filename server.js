@@ -12,6 +12,7 @@ const taskRoutes = require('./routes/task');
 const userRoutes = require('./routes/User');
 const salaryRoutes = require('./routes/salary');
 const documentRoutes = require('./routes/Document');
+const bankRoutes = require('./routes/bankAccount');
 const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
@@ -68,9 +69,7 @@ app.use('/api/hr/salary', salaryRoutes);
 
 // user documents
 app.use('/api/user/document', documentRoutes);
-
-
-
+app.use('/api/user/bankdetails', bankRoutes);
 
 // Notification.create({
 //     event_type: "order_creation",

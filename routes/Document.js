@@ -47,6 +47,7 @@ router.get('/fetchAllDocuments', async (req, res) => {
         const Documents = await Document.find()
             .limit(limit * 1)
             .skip((page - 1) * limit)
+            .sort({ createdAt: -1 })
             .exec()
 
         res.json({

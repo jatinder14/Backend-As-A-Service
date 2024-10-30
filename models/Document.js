@@ -6,6 +6,6 @@ const DocumentSchema = new mongoose.Schema({
     passportCopy: { type: String },
     labourCard: { type: String },
     visaCopy: { type: String }
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Document', DocumentSchema);

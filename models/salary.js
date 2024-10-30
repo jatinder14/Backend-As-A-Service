@@ -2,8 +2,8 @@ const mongoose = require('mongoose');
 
 const PayPeriodSchema = new mongoose.Schema({
     startDate: { type: Date, required: true },
-    endDate: { 
-        type: Date, 
+    endDate: {
+        type: Date,
         required: true,
         validate: {
             validator: function (v) {
@@ -16,11 +16,11 @@ const PayPeriodSchema = new mongoose.Schema({
     allowances: { type: Number, default: 0 },
     deductions: { type: Number, default: 0 },
     currency: { type: String, default: 'AED' }
-});
+}, { timestamps: true });
 
 const SalarySchema = new mongoose.Schema({
     employeeId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, index: true },
     payPeriod: [PayPeriodSchema]
-});
+}, { timestamps: true });
 
 module.exports = mongoose.model('Salary', SalarySchema);

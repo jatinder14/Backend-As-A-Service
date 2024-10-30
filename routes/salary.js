@@ -94,13 +94,13 @@ router.put('/:employeeId', async (req, res) => {
 
 router.get('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
-
     try {
         const salary = await Salary.findOne({ employeeId }).populate('employeeId');
 
         if (!salary) {
             return res.status(404).json({ message: 'Salary record not found' });
         }
+        salary.payPeriod.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
 
         const salaryResponse = {
             ...salary.toObject(),
@@ -156,6 +156,7 @@ router.get('/', async (req, res) => {
         const salaries = await Salary.find().populate('employeeId')
             .limit(limit * 1)
             .skip((page - 1) * limit)
+            .sort({ createdAt: -1 })
             .exec()
 
         // Adjust each salary object to rename `employeeId` to `employee`

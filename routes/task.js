@@ -116,12 +116,15 @@ router.get('/:id', async (req, res) => {
 
 // Update Task
 router.put('/:id', async (req, res) => {
-    const { title, description, listingId, assignedUsers, dueDate } = req.body;
+    const { title, description, listingId=null, assignedUsers, dueDate } = req.body;
 
     try {
-        const listing = await hostaway.findOne({ listingId: listingId - '0' });
-        if (!listing) {
-            return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
+        if (listingId) {
+            const listing = await hostaway.findById(listingId);
+            console.log("--------", listingId, listingId);
+            if (!listing) {
+                return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
+            }
         }
 
         // Check if all assigned users exist

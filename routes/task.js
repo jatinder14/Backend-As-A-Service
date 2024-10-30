@@ -18,9 +18,11 @@ router.post('/createTask', async (req, res) => {
     const { title, description, listingId, assignedUsers, dueDate } = req.body;
 
     try {
-        const listing = await hostaway.findById(listingId);
-        if (!listing) {
-            return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
+        if (listingId) {
+            const listing = await hostaway.findById(listingId);
+            if (!listing) {
+                return res.status(404).json({ message: ERROR_MESSAGES.LISTING_NOT_FOUND });
+            }
         }
         // Check if all assigned users exist
         const foundUsers = await User.find({ _id: { $in: assignedUsers } });
@@ -79,7 +81,7 @@ router.get('/getTasks', async (req, res) => {
             .populate('createdBy')
             .populate('listingId')
             .populate('updatedBy.user')
-            .select('-createdAt -updatedAt') 
+            .select('-createdAt -updatedAt')
             .exec()
 
         res.json({

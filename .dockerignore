@@ -1,0 +1,9 @@
+# Ignore source control directories and files
+.git
+.gitignore
+
+# Ignore local dependencies and build artifacts
+node_modules
+
+# Ignore environment files
+# .env

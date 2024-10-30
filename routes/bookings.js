@@ -32,8 +32,6 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-// Create a new booking (with checks for customer, property, and overlapping dates)
-// Create a new booking (with checks for customer, property, overlapping dates, and date duration)
 router.post('/', async (req, res) => {
     const { customerId, propertyId, bookingDates, paymentStatus, confirmationDetails, totalPrice } = req.body;
 

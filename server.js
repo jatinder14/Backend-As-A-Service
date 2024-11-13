@@ -13,6 +13,7 @@ const userRoutes = require('./routes/User');
 const salaryRoutes = require('./routes/salary');
 const documentRoutes = require('./routes/Document');
 const bankRoutes = require('./routes/bankAccount');
+const dailyAttendanceRoutes = require('./routes/dailyAttendance');
 const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
@@ -62,6 +63,8 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/tasks', taskRoutes);
+
+// Hostaway routes
 app.use('/api/hostaway', hostawayRoutes);
 
 // HR routes
@@ -70,6 +73,9 @@ app.use('/api/hr/salary', salaryRoutes);
 // user documents
 app.use('/api/user/document', documentRoutes);
 app.use('/api/user/bankdetails', bankRoutes);
+
+// Attendance
+app.use('/api/user/daily-attendance', dailyAttendanceRoutes);
 
 // Notification.create({
 //     event_type: "order_creation",

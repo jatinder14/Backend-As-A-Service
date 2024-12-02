@@ -6,7 +6,7 @@ const reservationModel = require('../models/Hostway-Reservation')
 router.get('/getListing/:id', async (req, res) => {
     try {
         const listingId = req.params.id;
-        const listing = await listingModel.findOne({ listingId: listingId-'0' });
+        const listing = await listingModel.findOne({ listingId: listingId - '0' });
         if (!listing) {
             return res.status(404).json({ message: 'Listing not found' });
         }
@@ -49,7 +49,7 @@ router.get('/getListings', async (req, res) => {
 router.get('/getReservation/:id', async (req, res) => {
     try {
         const reservationId = req.params.id;
-        const reservation = await reservationModel.findOne({ reservationId: reservationId});
+        const reservation = await reservationModel.findOne({ reservationId: reservationId });
         if (!reservation) {
             return res.status(404).json({ message: 'reservation not found' });
         }

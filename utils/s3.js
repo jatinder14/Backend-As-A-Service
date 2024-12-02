@@ -1,63 +1,64 @@
-const AWS = require('aws-sdk');
-const uuidv4 = require('uuid').v4;
-const fs = require('fs');
+const { S3Client, PutObjectCommand, GetObjectCommand } = require('@aws-sdk/client-s3');
+const { getSignedUrl } = require('@aws-sdk/s3-request-presigner');
+const { v4: uuidv4 } = require('uuid');
 
-async function uploadImageToS3(imagePath, bucketName, keyName) {
-    // Create an S3 instance
-    const s3 = new AWS.S3({
+// Create an S3 client
+const s3 = new S3Client({
+    region: process.env.S3_REGION,
+    credentials: {
         accessKeyId: process.env.AWS_ACCESS_KEY_ID,
         secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-    });
+    },
+});
 
+// Function to upload an image to S3
+async function uploadImageToS3(imagePath, bucketName, keyName) {
     const params = {
         Bucket: bucketName,
         Key: keyName,
-        Body: imagePath
+        Body: imagePath,
     };
 
     try {
-        const data = await s3.upload(params).promise();
-        console.log('Image uploaded successfully:', data);
-        let imageUrl = await getSignedUrl(data.Key);
-        return { success: true, message: 'Image uploaded successfully', imageUrl: imageUrl };
-
+        const command = new PutObjectCommand(params);
+        await s3.send(command);
+        console.log('Image uploaded successfully');
+        const imageUrl = await generateSignedUrl(keyName);
+        return { success: true, message: 'Image uploaded successfully', imageUrl };
     } catch (err) {
         console.error('Error uploading image to S3:', err);
         return { success: false, message: 'Error uploading image to S3', error: err?.message };
     }
 }
 
-async function getSignedUrl(fileKey) {
-    // const signedUrlExpireSeconds = 60 * 12
-    const s3 = new AWS.S3({
-        accessKeyId: process.env.AWS_ACCESS_KEY_ID,
-        secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY,
-        region: process.env.S3_REGION,
-        signatureVersion: process.env.S3_VERSION
-    });
-    console.log("=======key", fileKey);
-
-    const url = s3.getSignedUrl('getObject', {
+async function generateSignedUrl(fileKey) {
+    const command = new GetObjectCommand({
         Bucket: process.env.S3_BUCKET,
         Key: fileKey,
-        // Expires: signedUrlExpireSeconds
     });
-    return url;
+
+    try {
+        const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
+        return url;
+    } catch (err) {
+        console.error('Error generating signed URL:', err);
+        throw err;
+    }
 }
 
+// Wrapper function for generating a signed URL after uploading
 async function getSignedUrlForUpload(data) {
     const imagePath = data.file.buffer;
     const keyName = `${uuidv4()}-${data.file.originalname}`; // Specify the key (path) in the bucket where you want to store the image
-    let result = await uploadImageToS3(imagePath, process.env.S3_BUCKET, keyName)
-    console.log("---------result------------", result)
-    return await new Promise((resolve, reject) => {
-        resolve({
-            success: true,
-            message: 'AWS SDK S3 Pre-signed urls generated successfully.',
-            publicUrl: result.imageUrl,
-            urls: result.imageUrl
-        });
-    });
+    const result = await uploadImageToS3(imagePath, process.env.S3_BUCKET, keyName);
+    console.log("---------result------------", result);
+
+    return {
+        success: true,
+        message: 'AWS SDK S3 Pre-signed URLs generated successfully.',
+        publicUrl: result.imageUrl,
+        urls: result.imageUrl,
+    };
 }
 
 // async function downloadResourceFromS3(fileKey) {
@@ -92,7 +93,7 @@ async function getSignedUrlForUpload(data) {
 
 function getKey(url) {
     const lastSlashIndex = url.lastIndexOf('/');
-    
+
     const queryIndex = url.indexOf('?');
     const endIndex = queryIndex !== -1 ? queryIndex : url.length;
     return url.substring(lastSlashIndex + 1, endIndex);

@@ -9,6 +9,7 @@ const propertyRoutes = require('./routes/properties');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
+const salesRoutes = require('./routes/sales');
 const userRoutes = require('./routes/User');
 const salaryRoutes = require('./routes/salary');
 const documentRoutes = require('./routes/Document');
@@ -63,6 +64,7 @@ app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/sales', salesRoutes);
 
 // Hostaway routes
 app.use('/api/hostaway', hostawayRoutes);

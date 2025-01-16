@@ -3,7 +3,9 @@ const mongoose = require('mongoose');
 const updateHistorySchema = new mongoose.Schema({
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     updatedAt: { type: Date, default: Date.now }
-});
+},
+    { _id: false } // Exclude the `_id` field from this sub-schema
+);
 
 const taskSchema = new mongoose.Schema({
     title: { type: String, required: true },

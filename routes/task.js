@@ -16,7 +16,6 @@ router.use(verifyToken);
 // Create Task
 router.post('/createTask', async (req, res) => {
     const { title, description, listingId, assignedUsers, dueDate } = req.body;
-
     try {
         if (listingId) {
             const listing = await hostaway.findOne({ _id: listingId }); // Use _id field for querying
@@ -71,18 +70,31 @@ router.post('/createTask', async (req, res) => {
 router.get('/getTasks', async (req, res) => {
     try {
         const { page = 1, limit = 10 } = req.query;
+        const userId = req.user.id; // Assuming `verifyToken` attaches `req.user`
+        const isAdmin = req.user.role === 'admin'; // Assuming `req.user.role` exists
 
-        const totalTasks = await Task.countDocuments();
+        // Superadmin gets all tasks, others only get their tasks
+        const filter = isAdmin
+            ? {} // No filter for superadmin
+            : {
+                $or: [
+                    { createdBy: userId },
+                    { assignedUsers: userId }
+                ]
+            };
+        // Count the total tasks based on the filter
+        const totalTasks = await Task.countDocuments(filter);
 
-        const tasks = await Task.find()
-            .limit(limit * 1)
+        // Fetch tasks with pagination
+        const tasks = await Task.find(filter)
+            .limit(limit * 1) // Convert limit to a number
             .skip((page - 1) * limit)
             .populate('assignedUsers')
             .populate('createdBy')
             .populate('listingId')
             .populate('updatedBy.user')
-            .select('-createdAt -updatedAt')
-            .exec()
+            .select('-createdAt -updatedAt') // Exclude fields if not needed
+            .exec();
 
         res.json({
             totalTasks,

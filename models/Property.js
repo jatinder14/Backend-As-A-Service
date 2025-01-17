@@ -2,7 +2,7 @@ const mongoose = require('mongoose');
 
 const propertySchema = new mongoose.Schema({
     title: { type: String },
-    category: { type: String, enum: ['Firestopping Products', 'Fire Resistant Coatings'], required: true },
+    category: { type: String, enum: ['Firestopping Products', 'Fire Resistant Coatings', 'Fire-resistive Joint Products', 'MEP Penetrations Firestop Products', 'Fire Proof Coatings', 'General Purpose Sealant'], required: true },
     description: { type: String },
     keyTechnicalData: { type: String },
     featuresApplications: { type: String },
@@ -14,8 +14,8 @@ const propertySchema = new mongoose.Schema({
     //     }
     // ],
     featuresImages: [
-        {type: String}             
-     ],          //  This is simple a key not an image 
+        { type: String }
+    ],          //  This is simple a key not an image 
 
     logo: { type: String },
     images: [{ type: String }],

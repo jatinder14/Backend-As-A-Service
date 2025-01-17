@@ -1,6 +1,6 @@
 const express = require('express');
 const Property = require('../models/Property');
-const { getSignedUrl, getKey } = require('../utils/s3');
+const { generateSignedUrl, getKey } = require('../utils/s3');
 const router = express.Router();
 
 router.post('/', async (req, res) => {
@@ -30,9 +30,9 @@ router.get('/', async (req, res) => {
         // Generate signed URLs for logos and images in parallel for each property
         const propertiesWithSignedUrls = await Promise.all(
             properties.map(async (property) => {
-                const logoPromise = property.logo ? getSignedUrl(getKey(property.logo)) : null;
+                const logoPromise = property.logo ? generateSignedUrl(getKey(property.logo)) : null;
                 const imagesPromises = property.images && Array.isArray(property.images)
-                    ? property.images.map(image => getSignedUrl(getKey(image)))
+                    ? property.images.map(image => generateSignedUrl(getKey(image)))
                     : [];
 
                 const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
@@ -67,9 +67,9 @@ router.get('/:id', async (req, res) => {
         if (!property) return res.status(404).json({ message: 'Property not found' });
 
         // Run logo and images transformations in parallel
-        const logoPromise = property.logo ? getSignedUrl(getKey(property.logo)) : null;
+        const logoPromise = property.logo ? generateSignedUrl(getKey(property.logo)) : null;
         const imagesPromises = property.images && Array.isArray(property.images)
-            ? property.images.map(image => getSignedUrl(getKey(image)))
+            ? property.images.map(image => generateSignedUrl(getKey(image)))
             : [];
 
         // Await all promises concurrently

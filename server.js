@@ -5,7 +5,9 @@ const dotenv = require('dotenv');
 const multer = require('multer');
 const authRoutes = require('./routes/auth');
 const customerRoutes = require('./routes/customers');
-const propertyRoutes = require('./routes/properties');
+const productRoutes = require('./routes/product');
+const blogRoutes = require('./routes/blog');
+const projectRoutes = require('./routes/project');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
@@ -55,13 +57,19 @@ app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
+// MVL
+
 // Auth Routes
 app.use('/api/auth', authRoutes);
-app.use('/api/customers', customerRoutes);
-app.use('/mvl/api/properties', propertyRoutes);
-app.use('/mvl/api/contact', contactUsRoutes);
+app.use('/api/products', productRoutes);
+app.use('/api/contact', contactUsRoutes);
+app.use('/api/blogs', blogRoutes);
+app.use('/api/projects', projectRoutes);
+
+// end MVL
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/customers', customerRoutes);
 app.use('/api/user', userRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/sales', salesRoutes);

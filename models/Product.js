@@ -6,13 +6,7 @@ const productSchema = new mongoose.Schema({
     description: { type: String },
     keyTechnicalData: { type: String },
     featuresApplications: { type: String },
-    // featuresApplications: [
-    //     {
-    //         key: { type: String },
-    //         value: { type: String },
-    //         _id: falses
-    //     }
-    // ],
+    tested: { type: String },
     featuresImages: [
         { type: String }
     ],          //  This is simple a key not an image 

@@ -1,6 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
+const { verifyToken } = require('../middleware/auth');
+
+router.use(verifyToken);
 
 router.post('/lead', async (req, res) => {
     try {
@@ -15,8 +18,24 @@ router.post('/lead', async (req, res) => {
 
 router.get('/leads', async (req, res) => {
     try {
-        const leads = await Lead.find();
-        res.status(200).json({ leads });
+        console.log(req.user);
+        const { page = 1, limit = 10 } = req.query;
+        const query = {};
+        if (req.user.role == "ceo") {
+            query.status = "OM-Approval"
+        }
+        const totalLeads = await Lead.countDocuments(query);
+
+        const leads = await Lead.find(query)
+            .limit(limit * 1)
+            .skip((page - 1) * limit);
+
+        res.status(200).json({
+            totalLeads,
+            currentPage: page,
+            totalPages: Math.ceil(totalLeads / limit),
+            leads
+        });
     } catch (err) {
         res.status(500).json({ message: 'Error retrieving leads', error: err.message });
     }
@@ -35,8 +54,15 @@ router.get('/leads/:id', async (req, res) => {
 router.patch('/lead/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
+    let validStatuses = [];
 
-    const validStatuses = ['New', 'Contacted', 'Converted', 'Lost'];
+    if (req.user.role == "ceo") {
+        validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'];
+    }
+    else if (req.user.role == "operations_manager") {
+        validStatuses = ['Pending', 'OM-Approval', 'Rejected'];
+    }
+
     if (!validStatuses.includes(status)) {
         return res.status(400).json({
             message: `Invalid status. Allowed statuses are: ${validStatuses.join(', ')}.`,

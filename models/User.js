@@ -7,7 +7,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     role: {
         type: String,
-        enum: ['admin', 'sales', 'onboarding', 'operations', 'hr', 'accounts', 'inventory', 'property_management'],
+        enum: ['admin','ceo' ,'sales', 'onboarding', 'operations_manager', 'hr', 'accounts', 'inventory', 'property_management'],
         default: 'admin'
     },
     position: { type: String}, // Job title

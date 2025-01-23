@@ -18,9 +18,13 @@ const LeadSchema = new mongoose.Schema({
     leadName: { type: String },
     status: {
         type: String,
-        enum: ['New', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
-        default: 'New', // Default status
+        enum: ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
+        default: 'Pending', // Default status
     },
+    //pending to approve by  
+    // pending by OM
+    //pending to approve by  
+    // pending by CEO
     createdAt: { type: Date, default: Date.now },
     updatedAt: { type: Date, default: Date.now }
 });

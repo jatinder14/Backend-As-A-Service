@@ -1,12 +1,12 @@
 version: '1'
 services:
-  duomo:
+  mvl:
     build: .
-    container_name: duomo
+    container_name: mvl
     ports:
       - "8000:8000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/duomo
+      - MONGO_URI=mongodb://mongo:27017/mvl
     depends_on:
       - mongo
     volumes:

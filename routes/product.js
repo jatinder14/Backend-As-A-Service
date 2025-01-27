@@ -30,18 +30,15 @@ router.get('/', async (req, res) => {
         // Generate signed URLs for logos and images in parallel for each Product
         const productsWithSignedUrls = await Promise.all(
             products.map(async (Product) => {
-                const logoPromise = Product.logo ? generateSignedUrl(getKey(Product.logo)) : null;
                 const imagesPromises = Product.images && Array.isArray(Product.images)
                     ? Product.images.map(image => generateSignedUrl(getKey(image)))
                     : [];
 
-                const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
-                    logoPromise,
+                const [imagesSignedUrls] = await Promise.all([
                     Promise.all(imagesPromises)
                 ]);
 
                 // Assign signed URLs back to the Product object
-                Product.logo = logoSignedUrl;
                 Product.images = imagesSignedUrls;
 
                 return Product;
@@ -67,19 +64,16 @@ router.get('/:id', async (req, res) => {
         if (!product) return res.status(404).json({ message: 'Product not found' });
 
         // Run logo and images transformations in parallel
-        const logoPromise = product.logo ? generateSignedUrl(getKey(product.logo)) : null;
         const imagesPromises = product.images && Array.isArray(product.images)
             ? product.images.map(image => generateSignedUrl(getKey(image)))
             : [];
 
         // Await all promises concurrently
-        const [logoSignedUrl, imagesSignedUrls] = await Promise.all([
-            logoPromise,
+        const [imagesSignedUrls] = await Promise.all([
             Promise.all(imagesPromises)
         ]);
 
         // Assign the results to Product fields
-        product.logo = logoSignedUrl;
         product.images = imagesSignedUrls;
 
         res.status(200).json(product);

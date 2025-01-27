@@ -4,23 +4,23 @@ const bcrypt = require('bcryptjs');
 const UserSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    password: { type: String, required: true, select: false },
     role: {
         type: String,
-        enum: ['admin','ceo' ,'sales', 'onboarding', 'operations_manager', 'hr', 'accounts', 'inventory', 'property_management'],
+        enum: ['admin', 'ceo', 'sales', 'onboarding', 'operations_manager', 'hr', 'accounts', 'inventory', 'property_management'],
         default: 'admin'
     },
-    position: { type: String}, // Job title
+    position: { type: String }, // Job title
     dateOfJoining: { type: Date },
     phone: { type: String },
     emergencyContact: { type: String },
     address: { type: String },
-    employmentType: { 
+    employmentType: {
         type: String,
         enum: ['full-time', 'part-time', 'contract', 'intern'],
         default: 'full-time'
     },
-    manager: {type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    manager: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
 });
 
 // Password hashing middleware

@@ -27,6 +27,20 @@ router.get('/getAllUsers', async (req, res) => {
     }
 });
 
+router.get('/getUsersDetails', async (req, res) => {
+
+    try {
+        const users = await User.find()
+            .exec();
+
+        res.status(200).json({
+            users
+        });
+    } catch (err) {
+        res.status(500).json({ message: 'Error fetching users', error: err.message });
+    }
+});
+
 router.post('/createUser', async (req, res) => {
     const { name, email, password, role, position, dateOfJoining, phone, emergencyContact, address, employmentType, manager } = req.body;
 

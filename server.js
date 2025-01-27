@@ -9,7 +9,7 @@ const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/project');
 const contactUsRoutes = require('./routes/contactUs');
 const UploadController = require('./controllers/uploadController');
-const StatusCodes = require('./constants/statusCode')
+const { verifyToken } = require('./middleware/auth');
 
 dotenv.config();
 connectDB();
@@ -29,16 +29,6 @@ const upload = multer({
 
 const uploadController = new UploadController();
 
-// Server health check
-app.get('/', (req, res) => {
-    res.send('MVL Admin Portal Backend');
-});
-
-// s3 routes
-app.post('/getSignUrlForUpload',
-    upload.single('file'),
-    uploadController.upload);
-
 // Start server
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
@@ -47,11 +37,25 @@ app.listen(PORT, () => {
 
 // MVL
 
+// Server health check
+app.get('/', (req, res) => {
+    res.send('MVL Admin Portal Backend');
+});
+
 // Auth Routes
 app.use('/api/auth', authRoutes);
+
+app.use(verifyToken);
+
 app.use('/api/products', productRoutes);
 app.use('/api/contact', contactUsRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
+
+// s3 routes
+app.post('/getSignUrlForUpload',
+    upload.single('file'),
+    uploadController.upload);
+
 
 // end MVL

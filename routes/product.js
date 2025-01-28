@@ -1,9 +1,10 @@
 const express = require('express');
 const Product = require('../models/Product');
 const { generateSignedUrl, getKey } = require('../utils/s3');
+const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     try {
         const product = new Product(req.body);
         await product.save();
@@ -83,7 +84,7 @@ router.get('/:id', async (req, res) => {
 });
 
 
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
     try {
         const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!product) return res.status(404).json({ message: 'Product not found' });
@@ -93,7 +94,7 @@ router.put('/:id', async (req, res) => {
     }
 });
 
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const product = await Product.findByIdAndDelete(req.params.id);
         if (!product) return res.status(404).json({ message: 'Product not found' });

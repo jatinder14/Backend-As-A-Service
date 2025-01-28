@@ -45,15 +45,13 @@ app.get('/', (req, res) => {
 // Auth Routes
 app.use('/api/auth', authRoutes);
 
-app.use(verifyToken);
-
 app.use('/api/products', productRoutes);
 app.use('/api/contact', contactUsRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
 
 // s3 routes
-app.post('/getSignUrlForUpload',
+app.post('/getSignUrlForUpload', verifyToken,
     upload.single('file'),
     uploadController.upload);
 

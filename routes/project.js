@@ -1,6 +1,7 @@
 const express = require('express');
 const Project = require('../models/Project');
 const { generateSignedUrl, getKey } = require('../utils/s3');
+const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all projects (with pagination, sorting, and filtering)
@@ -70,7 +71,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new project
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     const { title, image, video, date, description } = req.body;
 
     try {
@@ -83,7 +84,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a project by ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
     const { title, image, video, date, description } = req.body;
 
     try {
@@ -106,7 +107,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a project by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const project = await Project.findById(req.params.id);
         if (!project) {

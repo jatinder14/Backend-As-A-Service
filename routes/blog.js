@@ -1,6 +1,7 @@
 const express = require('express');
 const Blog = require('../models/Blog');
 const { generateSignedUrl, getKey } = require('../utils/s3');
+const { verifyToken } = require('../middleware/auth');
 const router = express.Router();
 
 // Get all blogs (with pagination, sorting, and filtering)
@@ -51,7 +52,7 @@ router.get('/:id', async (req, res) => {
         if (!blog) {
             return res.status(404).json({ message: 'Blog not found' });
         }
-        
+
         const imagePromise = blog.image ? generateSignedUrl(getKey(blog.image)) : null;
         const videoPromise = blog.video ? generateSignedUrl(getKey(blog.video)) : null;
 
@@ -70,7 +71,7 @@ router.get('/:id', async (req, res) => {
 });
 
 // Create a new blog
-router.post('/', async (req, res) => {
+router.post('/', verifyToken, async (req, res) => {
     const { title, image, video, date, description } = req.body;
 
     try {
@@ -83,7 +84,7 @@ router.post('/', async (req, res) => {
 });
 
 // Update a blog by ID
-router.put('/:id', async (req, res) => {
+router.put('/:id', verifyToken, async (req, res) => {
     const { title, image, video, date, description } = req.body;
 
     try {
@@ -106,7 +107,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // Delete a blog by ID
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', verifyToken, async (req, res) => {
     try {
         const blog = await Blog.findById(req.params.id);
         if (!blog) {

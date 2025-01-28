@@ -21,6 +21,8 @@ const LeadSchema = new mongoose.Schema({
         enum: ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
         default: 'Pending', // Default status
     },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true },
     //pending to approve by  
     // pending by OM
     //pending to approve by  

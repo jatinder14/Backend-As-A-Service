@@ -8,6 +8,14 @@ router.use(verifyToken);
 router.post('/lead', async (req, res) => {
     try {
         const leadData = req.body;
+
+        const userId = req.user?.id; // Ensure req.user is populated through middleware
+        if (!userId) {
+            return res.status(400).json({ message: 'User ID is required' });
+        }
+
+        leadData.createdBy = userId;
+
         const newLead = new Lead(leadData);
         await newLead.save();
         res.status(201).json({ message: 'Lead created successfully', lead: newLead });
@@ -20,7 +28,12 @@ router.get('/leads', async (req, res) => {
     try {
         console.log(req.user);
         const { page = 1, limit = 10 } = req.query;
-        const query = {};
+
+        let query = {};
+        if (req.user.role == "sales") {
+            query = { createdBy: req.user.id }; // Filter leads by the logged-in user's ID
+        }
+
         if (req.user.role == "ceo") {
             query.status = "OM-Approval"
         }
@@ -28,7 +41,9 @@ router.get('/leads', async (req, res) => {
 
         const leads = await Lead.find(query)
             .limit(limit * 1)
-            .skip((page - 1) * limit);
+            .skip((page - 1) * limit)
+            .populate('createdBy')
+            .populate('updatedBy');
 
         res.status(200).json({
             totalLeads,
@@ -54,7 +69,8 @@ router.get('/leads/:id', async (req, res) => {
 router.patch('/lead/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status } = req.body;
-    let validStatuses = [];
+
+    let validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'];
 
     if (req.user.role == "ceo") {
         validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'];
@@ -72,9 +88,15 @@ router.patch('/lead/:id/status', async (req, res) => {
     try {
         const updatedLead = await Lead.findByIdAndUpdate(
             id,
-            { $set: { status } },
+            {
+                $set: {
+                    status,
+                    updatedBy: req?.user?.id
+                }
+            },
             { new: true }
         );
+        console.log(req?.user?.id)
 
         if (!updatedLead) {
             return res.status(404).json({ message: 'Lead not found.' });
@@ -91,6 +113,7 @@ router.patch('/lead/:id/status', async (req, res) => {
 
 router.patch('/leads/:id', async (req, res) => {
     try {
+        req.body.updatedBy = req.user.id;
         const updatedLead = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!updatedLead) return res.status(404).json({ message: 'Lead not found' });
         res.status(200).json({ message: 'Lead updated successfully', lead: updatedLead });

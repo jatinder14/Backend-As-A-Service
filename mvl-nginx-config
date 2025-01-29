@@ -1,0 +1,101 @@
+# HTTP server block for main site
+server {
+    listen 80;
+    server_name mvlfirestop.com www.mvlfirestop.com;
+
+    # Redirect HTTP to HTTPS for main site
+    return 301 https://$host$request_uri;
+}
+
+# HTTP server block for admin subdomain backend
+server {
+    listen 80;
+    server_name backend.mvlfirestop.com;
+
+    # Redirect HTTP to HTTPS for admin subdomain
+    return 301 https://$host$request_uri;
+}
+
+# HTTP server block for admin subdomain frontend
+server {
+    listen 80;
+    server_name admin.mvlfirestop.com;
+
+    # Redirect HTTP to HTTPS for admin subdomain
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS server block for main site (Next.js running on port 3000)
+server {
+    listen 443 ssl;
+    server_name mvlfirestop.com www.mvlfirestop.com;
+
+    # SSL configuration for main site
+    ssl_certificate /etc/letsencrypt/live/mvlfirestop.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mvlfirestop.com/privkey.pem;
+
+    # Enable SSL protocols (Optional)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:EECDH+AESGCM:EECDH+AES:!DSS';
+    ssl_prefer_server_ciphers on;
+
+    # Path to your Next.js build folder or app (Running on port 3000)
+    location / {
+        proxy_pass http://localhost:3000;  # Next.js app running on port 3000
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# HTTPS server block for admin subdomain backend(Redirecting to port 8000)
+server {
+    listen 443 ssl;
+    server_name backend.mvlfirestop.com;
+
+    # SSL configuration for admin subdomain
+    ssl_certificate /etc/letsencrypt/live/mvlfirestop.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mvlfirestop.com/privkey.pem;
+
+    # Enable SSL protocols (Optional)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:EECDH+AESGCM:EECDH+AES:!DSS';
+    ssl_prefer_server_ciphers on;
+
+    # Redirect to port 8000 for admin subdomain
+    location / {
+        proxy_pass http://localhost:8000;  # Admin panel running on port 8000
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}
+
+# HTTPS server block for admin subdomain frontend(Redirecting to port 8001)
+server {
+    listen 443 ssl;
+    server_name admin.mvlfirestop.com;
+
+    # SSL configuration for admin subdomain
+    ssl_certificate /etc/letsencrypt/live/mvlfirestop.com/fullchain.pem;
+    ssl_certificate_key /etc/letsencrypt/live/mvlfirestop.com/privkey.pem;
+
+    # Enable SSL protocols (Optional)
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers 'ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES256-GCM-SHA384:EECDH+AESGCM:EECDH+AES:!DSS';
+    ssl_prefer_server_ciphers on;
+
+    # Redirect to port 8001 for admin subdomain
+    location / {
+        proxy_pass http://localhost:8001;  # Admin panel running on port 8001
+        proxy_http_version 1.1;
+        proxy_set_header Upgrade $http_upgrade;
+        proxy_set_header Connection 'upgrade';
+        proxy_set_header Host $host;
+        proxy_cache_bypass $http_upgrade;
+    }
+}

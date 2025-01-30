@@ -23,6 +23,9 @@ const LeadSchema = new mongoose.Schema({
     },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true },
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true },
+    rejectedReason: { type: String },
+
     //pending to approve by  
     // pending by OM
     //pending to approve by  

@@ -23,7 +23,7 @@ router.get('/getAll', async (req, res) => {
 // Create Bank Account
 router.post('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
-    const { accountNumber, accountName, iban, branchName } = req.body;
+    const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey } = req.body;
 
     try {
         const user = await User.findById(employeeId);
@@ -36,7 +36,7 @@ router.post('/:employeeId', async (req, res) => {
             return res.status(400).json({ message: 'Bank account already exists for this employee' });
         }
 
-        const bankAccount = new BankAccount({ employeeId, accountNumber, accountName, iban, branchName });
+        const bankAccount = new BankAccount({ employeeId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey });
         await bankAccount.save();
         res.status(201).json({ message: 'Bank account created successfully', bankAccount });
     } catch (err) {
@@ -66,7 +66,7 @@ router.get('/:employeeId', async (req, res) => {
 // Update Bank Account
 router.put('/:employeeId', async (req, res) => {
     const { employeeId } = req.params;
-    const { accountNumber, accountName, iban, branchName } = req.body;
+    const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey } = req.body;
 
     try {
         const user = await User.findById(employeeId);
@@ -75,7 +75,7 @@ router.put('/:employeeId', async (req, res) => {
         }
         const bankAccount = await BankAccount.findOneAndUpdate(
             { employeeId },
-            { accountNumber, accountName, iban, branchName },
+            { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey },
             { new: true, runValidators: true }
         );
         if (!bankAccount) {

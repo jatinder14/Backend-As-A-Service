@@ -43,7 +43,8 @@ router.get('/leads', async (req, res) => {
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .populate('createdBy')
-            .populate('updatedBy');
+            .populate('updatedBy')
+            .populate('rejectedBy')
 
         res.status(200).json({
             totalLeads,
@@ -58,7 +59,10 @@ router.get('/leads', async (req, res) => {
 
 router.get('/leads/:id', async (req, res) => {
     try {
-        const lead = await Lead.findById(req.params.id);
+        const lead = await Lead.findById(req.params.id)
+            .populate('createdBy')
+            .populate('updatedBy')
+            .populate('rejectedBy')
         if (!lead) return res.status(404).json({ message: 'Lead not found' });
         res.status(200).json({ lead });
     } catch (err) {
@@ -68,7 +72,7 @@ router.get('/leads/:id', async (req, res) => {
 
 router.patch('/lead/:id/status', async (req, res) => {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, rejectedReason } = req.body;
 
     let validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'];
 
@@ -91,7 +95,9 @@ router.patch('/lead/:id/status', async (req, res) => {
             {
                 $set: {
                     status,
-                    updatedBy: req?.user?.id
+                    updatedBy: req?.user?.id,
+                    rejectedBy: req?.user?.id,
+                    rejectedReason
                 }
             },
             { new: true }

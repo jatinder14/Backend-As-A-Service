@@ -5,7 +5,19 @@ const BankAccountSchema = new mongoose.Schema({
     accountNumber: { type: String, required: true },
     accountName: { type: String, required: true },
     iban: { type: String, required: true },
-    branchName: { type: String, required: true }
-}, { timestamps: true }); 
+    branchName: { type: String, required: true },
+
+    // documents
+    emiratesIdFront: { type: String },
+    emiratesIdBack: { type: String },
+    passport: { type: String },
+    ejari: { type: String },
+
+    // keys
+    maintenanceKey: { type: Boolean },
+    accessCard: { type: Boolean },
+    parkingKey: { type: Boolean },
+
+}, { timestamps: true });
 
 module.exports = mongoose.model('BankAccount', BankAccountSchema);

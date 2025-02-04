@@ -1,6 +1,6 @@
 const express = require('express');
 const BankAccount = require('../models/BankAccount');
-const User = require('../models/User');
+const Lead = require('../models/Lead');
 const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 
 const router = express.Router();
@@ -10,7 +10,7 @@ router.use(verifyToken);
 // Get all Bank Accounts
 router.get('/getAll', async (req, res) => {
     try {
-        const bankAccount = await BankAccount.find().populate('employeeId').sort({ createdAt: -1 });
+        const bankAccount = await BankAccount.find().populate('leadId').sort({ createdAt: -1 });
         if (!bankAccount) {
             return res.status(404).json({ message: 'No Bank account found' });
         }
@@ -21,23 +21,25 @@ router.get('/getAll', async (req, res) => {
 });
 
 // Create Bank Account
-router.post('/:employeeId', async (req, res) => {
-    const { employeeId } = req.params;
+router.post('/:leadId', async (req, res) => {
+    const { leadId } = req.params;
     const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey } = req.body;
 
     try {
-        const user = await User.findById(employeeId);
-        if (!user) {
-            return res.status(404).json({ message: 'Employee not found' });
+        const lead = await Lead.findById(leadId);
+        if (!lead) {
+            return res.status(404).json({ message: 'Lead not found' });
         }
 
-        const existingAccount = await BankAccount.findOne({ employeeId });
+        const existingAccount = await BankAccount.findOne({ leadId });
         if (existingAccount) {
-            return res.status(400).json({ message: 'Bank account already exists for this employee' });
+            return res.status(400).json({ message: 'Bank account already exists for this lead' });
         }
 
-        const bankAccount = new BankAccount({ employeeId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey });
+        const bankAccount = new BankAccount({ leadId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey });
         await bankAccount.save();
+        lead.documentUploaded = true
+        await lead.save();
         res.status(201).json({ message: 'Bank account created successfully', bankAccount });
     } catch (err) {
         res.status(500).json({ message: 'Error creating bank account', error: err.message });
@@ -45,18 +47,19 @@ router.post('/:employeeId', async (req, res) => {
 });
 
 // Get Bank Account
-router.get('/:employeeId', async (req, res) => {
-    const { employeeId } = req.params;
+router.get('/:leadId', async (req, res) => {
+    const { leadId } = req.params;
 
     try {
-        const user = await User.findById(employeeId);
-        if (!user) {
-            return res.status(404).json({ message: 'Employee not found' });
+        const lead = await Lead.findById(leadId);
+        if (!lead) {
+            return res.status(404).json({ message: 'Lead not found' });
         }
-        const bankAccount = await BankAccount.findOne({ employeeId }).populate('employeeId');
+        const bankAccount = await BankAccount.findOne({ leadId }).populate('leadId');
         if (!bankAccount) {
-            return res.status(404).json({ message: 'Bank account not found for this employee' });
+            return res.status(404).json({ message: 'Bank account not found for this lead' });
         }
+
         res.status(200).json(bankAccount);
     } catch (err) {
         res.status(500).json({ message: 'Error fetching bank account', error: err.message });
@@ -64,22 +67,22 @@ router.get('/:employeeId', async (req, res) => {
 });
 
 // Update Bank Account
-router.put('/:employeeId', async (req, res) => {
-    const { employeeId } = req.params;
+router.put('/:leadId', async (req, res) => {
+    const { leadId } = req.params;
     const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey } = req.body;
 
     try {
-        const user = await User.findById(employeeId);
-        if (!user) {
-            return res.status(404).json({ message: 'Employee not found' });
+        const lead = await Lead.findById(leadId);
+        if (!lead) {
+            return res.status(404).json({ message: 'Lead not found' });
         }
         const bankAccount = await BankAccount.findOneAndUpdate(
-            { employeeId },
+            { leadId },
             { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey },
             { new: true, runValidators: true }
         );
         if (!bankAccount) {
-            return res.status(404).json({ message: 'Bank account not found for this employee' });
+            return res.status(404).json({ message: 'Bank account not found for this lead' });
         }
         res.status(200).json({ message: 'Bank account updated successfully', bankAccount });
     } catch (err) {
@@ -88,14 +91,22 @@ router.put('/:employeeId', async (req, res) => {
 });
 
 // Delete Bank Account
-router.delete('/:employeeId', async (req, res) => {
-    const { employeeId } = req.params;
+router.delete('/:leadId', async (req, res) => {
+    const { leadId } = req.params;
 
     try {
-        const bankAccount = await BankAccount.findOneAndDelete({ employeeId });
-        if (!bankAccount) {
-            return res.status(404).json({ message: 'Bank account not found for this employee' });
+        const lead = await Lead.findById(leadId);
+        if (!lead) {
+            return res.status(404).json({ message: 'Lead not found' });
         }
+
+        const bankAccount = await BankAccount.findOneAndDelete({ leadId });
+        if (!bankAccount) {
+            return res.status(404).json({ message: 'Bank account not found for this lead' });
+        }
+        
+        lead.documentUploaded = false
+        await lead.save();
         res.status(200).json({ message: 'Bank account deleted successfully' });
     } catch (err) {
         res.status(500).json({ message: 'Error deleting bank account', error: err.message });

@@ -27,7 +27,7 @@ async function uploadImageToS3(imagePath, bucketName, keyName) {
         return { success: true, message: 'Image uploaded successfully', imageUrl };
     } catch (err) {
         console.error('Error uploading image to S3:', err);
-        return { success: false, message: 'Error uploading image to S3', error: err?.message };
+        throw err;
     }
 }
 
@@ -48,17 +48,21 @@ async function generateSignedUrl(fileKey) {
 
 // Wrapper function for generating a signed URL after uploading
 async function getSignedUrlForUpload(data) {
-    const imagePath = data.file.buffer;
-    const keyName = `${uuidv4()}-${data.file.originalname}`; // Specify the key (path) in the bucket where you want to store the image
-    const result = await uploadImageToS3(imagePath, process.env.S3_BUCKET, keyName);
-    console.log("---------result------------", result);
+    try {
+        const imagePath = data.file.buffer;
+        const keyName = `${uuidv4()}-${data.file.originalname}`; // Specify the key (path) in the bucket where you want to store the image
+        const result = await uploadImageToS3(imagePath, process.env.S3_BUCKET, keyName);
 
-    return {
-        success: true,
-        message: 'AWS SDK S3 Pre-signed URLs generated successfully.',
-        publicUrl: result.imageUrl,
-        urls: result.imageUrl,
-    };
+        return {
+            success: true,
+            message: 'AWS SDK S3 Pre-signed URLs generated successfully.',
+            publicUrl: result.imageUrl,
+            urls: result.imageUrl,
+        };
+    }
+    catch (err) {
+        return { success: false, message: 'Error uploading image to S3', error: err?.message };
+    }
 }
 
 // async function downloadResourceFromS3(fileKey) {

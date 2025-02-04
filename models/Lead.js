@@ -21,9 +21,13 @@ const LeadSchema = new mongoose.Schema({
         enum: ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
         default: 'Pending', // Default status
     },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, unique: true },
-    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true },
-    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', unique: true },
+    documentUploaded: {
+        type: Boolean,
+        default: false, // Default status
+    },
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     rejectedReason: { type: String },
 
     //pending to approve by  

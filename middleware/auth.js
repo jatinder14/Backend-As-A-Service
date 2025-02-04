@@ -1,7 +1,8 @@
 const jwt = require('jsonwebtoken');
+const User = require('../models/User');
 
 // Verify JWT Token
-const verifyToken = (req, res, next) => {
+const verifyToken = async (req, res, next) => {
     const token = req.header('Authorization');
     if (!token || !token.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'Access denied. No token provided or invalid format.' });
@@ -10,9 +11,15 @@ const verifyToken = (req, res, next) => {
     try {
         const decoded = jwt.verify(token.split(' ')[1], process.env.JWT_SECRET); // Extract the token after 'Bearer '
         req.user = decoded;
+
+        const userId = req.user?.id;
+
+        const user = await User.findById(userId);
+        if (!user) throw new Error('User not found');
+
         next();
     } catch (err) {
-        res.status(400).json({ message: 'Invalid token.' });
+        res.status(400).json({ message: `Invalid token. ${err}` });
     }
 };
 

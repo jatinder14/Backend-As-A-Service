@@ -27,7 +27,7 @@ router.post('/lead', async (req, res) => {
 router.get('/leads', async (req, res) => {
     try {
         console.log(req.user);
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, status } = req.query;
 
         let query = {};
         if (req.user.role == "sales") {
@@ -36,6 +36,10 @@ router.get('/leads', async (req, res) => {
 
         if (req.user.role == "ceo") {
             query.status = "OM-Approval"
+        }
+
+        if (status) {
+            query.status = status
         }
         const totalLeads = await Lead.countDocuments(query);
 

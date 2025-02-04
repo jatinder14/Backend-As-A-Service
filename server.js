@@ -83,7 +83,8 @@ app.use('/api/hr/salary', salaryRoutes);
 // user documents
 // app.use('/api/user/document', documentRoutes);
 
-app.use('/api/user/bankdetails', bankRoutes);
+// app.use('/api/user/bankdetails', bankRoutes);
+app.use('/api/lead/bankdetails', bankRoutes);
 
 // Attendance
 app.use('/api/user/daily-attendance', dailyAttendanceRoutes);

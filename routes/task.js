@@ -41,11 +41,7 @@ router.post('/createTask', async (req, res) => {
             listingId,
             assignedUsers,
             dueDate,
-            createdBy: req.user.id,  // Set createdBy to the current logged in user
-            updatedBy: [{
-                user: req.user.id,
-                updatedAt: new Date()
-            }]
+            createdBy: req.user.id  // Set createdBy to the current logged in user
         });
 
         await task.save();
@@ -69,25 +65,31 @@ router.post('/createTask', async (req, res) => {
 
 router.get('/getTasks', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status } = req.query;
+        const { page = 1, limit = 10, status, isAssigned, isCreated } = req.query;
         const userId = req.user.id; // Assuming `verifyToken` attaches `req.user`
         const isAdmin = req.user.role === 'admin'; // Assuming `req.user.role` exists
 
         // Superadmin gets all tasks, others only get their tasks
-        const filter = isAdmin
-            ? {} // No filter for superadmin
-            : {
-                $or: [
-                    { createdBy: userId },
-                    { assignedUsers: userId }
-                ]
-            };
+        const filter = {}
+
+        if (!isAdmin) {
+            filter.$or = [];
+
+            if (isAssigned) {
+                filter.$or.push({ assignedUsers: { $elemMatch: { $eq: userId } } }); // Check if `userId` is in the array
+            }
+
+
+            if (isCreated) {
+                filter.$or.push({ createdBy: userId });
+            }
+
+        }
 
         if (status) {
             filter.status = status
         }
-        // console.log("filter", filter)
-        
+
         // Count the total tasks based on the filter
         const totalTasks = await Task.countDocuments(filter);
 
@@ -134,7 +136,7 @@ router.get('/:id', async (req, res) => {
 
 // Update Task
 router.put('/:id', async (req, res) => {
-    const { title, description, listingId, assignedUsers, dueDate, status } = req.body;
+    const { title, description, listingId, assignedUsers, dueDate, status, remarks } = req.body;
 
     try {
         if (listingId) {
@@ -168,7 +170,8 @@ router.put('/:id', async (req, res) => {
                 $push: {
                     updatedBy: {
                         user: req.user.id,
-                        updatedAt: new Date()
+                        updatedAt: new Date(),
+                        remarks
                     }
                 }
             },

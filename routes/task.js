@@ -69,7 +69,7 @@ router.post('/createTask', async (req, res) => {
 
 router.get('/getTasks', async (req, res) => {
     try {
-        const { page = 1, limit = 10 } = req.query;
+        const { page = 1, limit = 10, status } = req.query;
         const userId = req.user.id; // Assuming `verifyToken` attaches `req.user`
         const isAdmin = req.user.role === 'admin'; // Assuming `req.user.role` exists
 
@@ -82,6 +82,12 @@ router.get('/getTasks', async (req, res) => {
                     { assignedUsers: userId }
                 ]
             };
+
+        if (status) {
+            filter.status = status
+        }
+        // console.log("filter", filter)
+        
         // Count the total tasks based on the filter
         const totalTasks = await Task.countDocuments(filter);
 
@@ -151,15 +157,22 @@ router.put('/:id', async (req, res) => {
             });
         }
 
-        const task = await Task.findByIdAndUpdate(req.params.id, {
-            title,
-            description,
-            listingId,
-            assignedUsers,
-            dueDate,
-            status
-        }, { runValidators: true, new: true },
-            { new: true });
+        const task = await Task.findByIdAndUpdate(req.params.id,
+            {
+                title,
+                description,
+                listingId,
+                assignedUsers,
+                dueDate,
+                status,
+                $push: {
+                    updatedBy: {
+                        user: req.user.id,
+                        updatedAt: new Date()
+                    }
+                }
+            },
+            { runValidators: true, new: true });
 
         if (!task) {
             return res.status(404).json({ message: ERROR_MESSAGES.TASK_NOT_FOUND });

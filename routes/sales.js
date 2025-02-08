@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
 const { verifyToken } = require('../middleware/auth');
+const { notifyAdmins } = require('../websockets/websocket');
 
 router.use(verifyToken);
 
@@ -18,6 +19,9 @@ router.post('/lead', async (req, res) => {
 
         const newLead = new Lead(leadData);
         await newLead.save();
+
+        notifyAdmins("lead created", "new lead");
+
         res.status(201).json({ message: 'Lead created successfully', lead: newLead });
     } catch (err) {
         res.status(400).json({ message: 'Error creating lead', error: err.message });

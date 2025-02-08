@@ -21,12 +21,16 @@ const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
+const { setupWebSocket } = require("./websockets/websocket");
 require('./cron-jobs/syncHostaway');
+const http = require("http");
 
 dotenv.config();
 connectDB();
-
 const app = express();
+const server = http.createServer(app);
+
+setupWebSocket(server); // Attach WebSocket to server
 app.use(cors());
 
 // Middleware to parse JSON requests
@@ -53,7 +57,7 @@ app.post('/getSignUrlForUpload',
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 

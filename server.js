@@ -21,16 +21,53 @@ const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
-const { setupWebSocket } = require("./websockets/websocket");
 require('./cron-jobs/syncHostaway');
 const http = require("http");
+const { Server } = require("socket.io");
+
+const app = express();
+const server = http.createServer(app);
+const io = new Server(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
+app.set("io", io);
+
+
+// Store connected admin sockets
+var adminSockets = new Set();
+
+io.on("connection", (socket) => {
+    console.log("New client connected:", socket.id);
+
+    socket.on("admin_join", () => {
+        console.log("jatinder:", socket.id);
+        adminSockets.add(socket.id);
+
+    });
+
+    socket.on("message", (data) => {
+        if (data == "admin_join") {
+            adminSockets.add(socket.id);
+            console.log("Admin joined:", socket.id,adminSockets);
+        }
+    });
+
+    socket.onAny((event, ...args) => {
+        console.log("Received event:", event, args);
+    });
+
+    socket.on("disconnect", () => {
+        adminSockets.delete(socket.id);
+        console.log("Client disconnected:", socket.id);
+    });
+});
 
 dotenv.config();
 connectDB();
-const app = express();
-const server = http.createServer(app);
 
-setupWebSocket(server); // Attach WebSocket to server
 app.use(cors());
 
 // Middleware to parse JSON requests

@@ -25,10 +25,10 @@ router.post('/createTask', async (req, res) => {
         }
         // Check if all assigned users exist
         const foundUsers = await User.find({ _id: { $in: assignedUsers } });
-        const foundUserIds = foundUsers.map(user => user._id.toString());
+        const foundUserIds = foundUsers?.map(user => user._id.toString());
         const missingUsers = assignedUsers?.filter(id => !foundUserIds.includes(id));
 
-        if (missingUsers.length > 0) {
+        if (missingUsers?.length > 0) {
             return res.status(404).json({
                 message: ERROR_MESSAGES.ASSIGNED_USERS_NOT_FOUND,
                 missingUserIds: missingUsers
@@ -46,7 +46,7 @@ router.post('/createTask', async (req, res) => {
 
         await task.save();
         // Send email to assigned users
-        const emailPromises = foundUsers.map(user => {
+        const emailPromises = foundUsers?.map(user => {
             const subject = `${EMAIL_SUBJECTS.TASK_ASSIGNED} ${title}`;
             const text = `${EMAIL_MESSAGES.TASK_ASSIGNED} ${description}. ${EMAIL_MESSAGES.DUE_DATE} ${dueDate}`;
             return sendEmail(user?.email, subject, text);
@@ -149,10 +149,10 @@ router.put('/:id', async (req, res) => {
 
         // Check if all assigned users exist
         const foundUsers = await User.find({ _id: { $in: assignedUsers } });
-        const foundUserIds = foundUsers.map(user => user._id.toString());
+        const foundUserIds = foundUsers?.map(user => user._id.toString());
         const missingUsers = assignedUsers?.filter(id => !foundUserIds.includes(id));
-
-        if (missingUsers.length > 0) {
+        console.log(missingUsers);
+        if (missingUsers?.length > 0) {
             return res.status(404).json({
                 message: ERROR_MESSAGES.ASSIGNED_USERS_NOT_FOUND,
                 missingUserIds: missingUsers
@@ -181,7 +181,7 @@ router.put('/:id', async (req, res) => {
             return res.status(404).json({ message: ERROR_MESSAGES.TASK_NOT_FOUND });
         }
         // Send email to assigned users
-        const emailPromises = foundUsers.map(user => {
+        const emailPromises = foundUsers?.map(user => {
             const subject = `${EMAIL_SUBJECTS.TASK_UPDATED} ${title}`;
             const text = `${EMAIL_MESSAGES.TASK_UPDATED_USER} ${description}. ${EMAIL_MESSAGES.DUE_DATE} ${dueDate}`;
             return sendEmail(user?.email, subject, text);
@@ -220,11 +220,11 @@ router.delete('/:id', async (req, res) => {
 
         // Find the users assigned to the task
         const foundUsers = await User.find({ _id: { $in: assignedUsers } });
-        const foundUserIds = foundUsers.map(user => user._id.toString());
+        const foundUserIds = foundUsers?.map(user => user._id.toString());
         const missingUsers = assignedUsers?.filter(id => !foundUserIds.includes(id));
 
         // Check for any missing users
-        if (missingUsers.length > 0) {
+        if (missingUsers?.length > 0) {
             return res.status(404).json({
                 message: ERROR_MESSAGES.ASSIGNED_USERS_NOT_FOUND,
                 missingUserIds: missingUsers
@@ -232,7 +232,7 @@ router.delete('/:id', async (req, res) => {
         }
 
         // Prepare to send emails to assigned users
-        const emailPromises = foundUsers.map(user => {
+        const emailPromises = foundUsers?.map(user => {
             const subject = `${EMAIL_SUBJECTS.TASK_DELETED} ${task.title}`;
             const text = `${EMAIL_MESSAGES.TASK_DELETED} ${task.description}. ${EMAIL_MESSAGES.DUE_DATE} ${task.dueDate}`;
             return sendEmail(user.email, subject, text);

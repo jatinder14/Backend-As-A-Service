@@ -14,6 +14,7 @@ const taskRoutes = require('./routes/task');
 const salesRoutes = require('./routes/sales');
 const userRoutes = require('./routes/User');
 const salaryRoutes = require('./routes/salary');
+const zapierRoutes = require('./routes/zapier');
 const documentRoutes = require('./routes/Document');
 const bankRoutes = require('./routes/bankAccount');
 const dailyAttendanceRoutes = require('./routes/dailyAttendance');
@@ -98,3 +99,8 @@ app.use('/api/user/daily-attendance', dailyAttendanceRoutes);
 //     details: `Order has been Accepted with id: ${orderIds}`,
 //     name: userName,
 //   })
+
+
+
+// zapier
+app.use('/api/zapier', zapierRoutes);

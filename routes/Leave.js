@@ -9,9 +9,10 @@ router.use(verifyToken);
 
 router.post('/', async (req, res) => {
     try {
-        const { startDate, endDate } = req.body;
+        const { startDate, endDate, type } = req.body;
         const userId = req.user.id
-        console.log({ ...req.body, userId: userId });
+        const year = new Date().getFullYear();
+
         if (new Date(startDate) > new Date(endDate)) {
             return res.status(400).json({ error: 'Start date cannot be after end date' });
         }
@@ -20,21 +21,50 @@ router.post('/', async (req, res) => {
             startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
 
         });
-        console.log(await Leave.findOne({
-            userId,
-            // $or: [
-            //     { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
-            // ]
-            startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
+        // console.log(await Leave.findOne({
+        //     userId,
+        //     // $or: [
+        //     //     { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
+        //     // ]
+        //     startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
 
-        }));
+        // }));
 
         if (existingLeave) {
             return res.status(400).json({ error: 'A leave request already exists for these dates', existingLeave });
         }
-        const leave = new Leave({ ...req.body, userId: req.user.id });
+
+        const leaveDays = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1;
+
+        // Fetch last leave entry for the user to check balance
+        let lastLeave = await Leave.findOne({ userId, year }).sort({ createdAt: -1 });
+
+        let sickLeaveRemaining = lastLeave ? lastLeave.sickLeaveRemaining : 7;
+        let annualLeaveRemaining = lastLeave ? lastLeave.annualLeaveRemaining : 30;
+
+        // Check leave balance before approving
+        if (type === 'Sick' && sickLeaveRemaining < leaveDays) {
+            return res.status(400).json({ error: `Not enough Sick Leaves. Available: ${sickLeaveRemaining}` });
+        }
+        if (type === 'Annual' && annualLeaveRemaining < leaveDays) {
+            return res.status(400).json({ error: `Not enough Annual Leaves. Available: ${annualLeaveRemaining}` });
+        }
+
+        // Deduct Leave Balance
+        if (type === 'Sick') sickLeaveRemaining -= leaveDays;
+        if (type === 'Annual') annualLeaveRemaining -= leaveDays;
+        // console.log('leavedays-',leaveDays);
+
+        // Create Leave Entry
+        const leave = new Leave({
+            ...req.body,
+            userId: req.user.id,
+            year,
+            sickLeaveRemaining,
+            annualLeaveRemaining
+        });
         await leave.save();
-        res.status(201).json(leave);
+        res.status(201).json({ message: "Leave Created Successfully", leave });
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -51,7 +81,7 @@ router.get('/getAllLeaves', async (req, res) => {
             filter.endDate = { $gte: new Date(startDate) };
         }
 
-        console.log(filter);
+        // console.log(filter);
         const leaves = await Leave.find(filter)
             .limit(limit * 1) // Convert limit to a number
             .skip((page - 1) * limit)
@@ -60,6 +90,23 @@ router.get('/getAllLeaves', async (req, res) => {
             .exec()
 
         res.json(leaves);
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+router.get('/balance', async (req, res) => {
+    try {
+        console.log("fadfadsf");
+        const userId = req.user.id;
+        const year = new Date().getFullYear();
+
+        let lastLeave = await Leave.findOne({ userId, year }).sort({ createdAt: -1 });
+
+        const sickLeaveRemaining = lastLeave ? lastLeave.sickLeaveRemaining : 7;
+        const annualLeaveRemaining = lastLeave ? lastLeave.annualLeaveRemaining : 30;
+
+        res.json({ sickLeaveRemaining, annualLeaveRemaining });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
@@ -77,31 +124,79 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const { startDate, endDate } = req.body;
+        const { startDate, endDate, type } = req.body;
         const userId = req.user.id
-        if (startDate && endDate && new Date(startDate) > new Date(endDate)) {
-            return res.status(400).json({ error: 'Start date cannot be after end date' });
+        const year = new Date().getFullYear();
+
+        if (startDate && endDate) {
+            if (new Date(startDate) > new Date(endDate))
+                return res.status(400).json({ error: 'Start date cannot be after end date' });
+            else {
+                const existingLeave = await Leave.findOne({
+                    userId,
+                    startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
+
+                });
+                console.log(await Leave.findOne({
+                    userId,
+                    // $or: [
+                    //     { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
+                    // ]
+                    startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
+
+                }));
+
+                if (existingLeave) {
+                    return res.status(400).json({ error: 'A leave request already exists for these dates', existingLeave });
+                }
+            }
         }
-        const existingLeave = await Leave.findOne({
-            userId,
-            startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
 
-        });
-        console.log(await Leave.findOne({
-            userId,
-            // $or: [
-            //     { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
-            // ]
-            startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) }
-
-        }));
-
-        if (existingLeave) {
-            return res.status(400).json({ error: 'A leave request already exists for these dates', existingLeave });
-        }
-        const leave = await Leave.findByIdAndUpdate(req.params.id, req.body, { new: true });
+        let leave = await Leave.findById(req.params.id);
         if (!leave) return res.status(404).json({ error: 'Leave not found' });
-        res.json(leave);
+        if (startDate && endDate) {
+            // Calculate previous leave duration
+            const previousLeaveDays = (new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24) + 1;
+
+            // Fetch the latest leave balance before modification
+            let lastLeave = await Leave.findOne({ userId, year }).sort({ createdAt: -1 });
+
+            let sickLeaveRemaining = lastLeave ? lastLeave.sickLeaveRemaining : 7;
+            let annualLeaveRemaining = lastLeave ? lastLeave.annualLeaveRemaining : 30;
+
+            // Restore balance from the previous leave
+            if (leave.type === 'Sick') sickLeaveRemaining += previousLeaveDays;
+            if (leave.type === 'Annual') annualLeaveRemaining += previousLeaveDays;
+
+            // Calculate new leave duration
+            const newLeaveDays = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1;
+
+            // Check if new request is within available balance
+            if (type === 'Sick' && sickLeaveRemaining < newLeaveDays) {
+                return res.status(400).json({ error: `Not enough Sick Leaves. Available: ${sickLeaveRemaining}` });
+            }
+            if (type === 'Annual' && annualLeaveRemaining < newLeaveDays) {
+                return res.status(400).json({ error: `Not enough Annual Leaves. Available: ${annualLeaveRemaining}` });
+            }
+
+            // Deduct new leave from balance
+            if (type === 'Sick') sickLeaveRemaining -= newLeaveDays;
+            if (type === 'Annual') annualLeaveRemaining -= newLeaveDays;
+
+            // Update leave details
+            leave.startDate = startDate;
+            leave.endDate = endDate;
+            leave.type = type;
+            leave.sickLeaveRemaining = sickLeaveRemaining;
+            leave.annualLeaveRemaining = annualLeaveRemaining;
+            await leave.save();
+        } else {
+            Object.assign(leave, req.body);
+            await leave.save();
+        }
+
+        res.json({ message: 'Leave updated successfully', leave });
+
     } catch (err) {
         res.status(400).json({ error: err.message });
     }
@@ -109,12 +204,25 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
     try {
-        const leave = await Leave.findByIdAndDelete(req.params.id);
+        const leave = await Leave.findById(req.params.id);
         if (!leave) return res.status(404).json({ error: 'Leave not found' });
-        res.json({ message: 'Leave deleted successfully' });
+
+        const leaveDays = (new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24) + 1;
+
+        // Fetch latest leave entry for the user
+        let lastLeave = await Leave.findOne({ userId: leave.userId, year: leave.year }).sort({ createdAt: -1 });
+
+        if (leave.type === 'Sick') lastLeave.sickLeaveRemaining += leaveDays;
+        if (leave.type === 'Annual') lastLeave.annualLeaveRemaining += leaveDays;
+
+        await lastLeave.save();
+        await Leave.findByIdAndDelete(req.params.id);
+
+        res.json({ message: 'Leave deleted successfully and balance restored', lastLeave });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }
 });
+
 
 module.exports = router;

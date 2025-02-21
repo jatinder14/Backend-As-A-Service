@@ -12,6 +12,13 @@ const LeaveSchema = new mongoose.Schema({
         enum: ['Sick', 'Annual'],
         default: 'Annual'
     },
+    year: { type: Number, default: new Date().getFullYear() },
+
+    // Leave Balance
+    sickLeaveRemaining: { type: Number, default: 7 },  // Default 7 Sick Leaves per year
+    annualLeaveRemaining: { type: Number, default: 30 }, // Default 30 Annual Leaves per year
+
+    status: { type: String, enum: ['Pending', 'Approved', 'Rejected'], default: 'Pending' }
 }, { timestamps: true });
 
 const Leave = mongoose.model('Leave', LeaveSchema);

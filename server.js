@@ -17,7 +17,8 @@ const salaryRoutes = require('./routes/salary');
 const zapierRoutes = require('./routes/zapier');
 const documentRoutes = require('./routes/Document');
 const bankRoutes = require('./routes/bankAccount');
-const dailyAttendanceRoutes = require('./routes/dailyAttendance');
+const AttendanceRoutes = require('./routes/Attendance');
+const LeaveRoutes = require('./routes/Leave');
 const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
@@ -92,7 +93,8 @@ app.use('/api/hr/salary', salaryRoutes);
 app.use('/api/lead/bankdetails', bankRoutes);
 
 // Attendance
-app.use('/api/user/daily-attendance', dailyAttendanceRoutes);
+app.use('/api/user/attendance', AttendanceRoutes);
+app.use('/api/user/leave', LeaveRoutes);
 
 // Notification.create({
 //     event_type: "order_creation",

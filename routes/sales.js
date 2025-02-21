@@ -11,9 +11,6 @@ router.post('/lead', async (req, res) => {
         const leadData = req.body;
 
         const userId = req.user?.id; // Ensure req.user is populated through middleware
-        if (!userId) {
-            return res.status(400).json({ message: 'User ID is required' });
-        }
 
         leadData.createdBy = userId;
 

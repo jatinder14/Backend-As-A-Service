@@ -72,13 +72,15 @@ router.post('/', async (req, res) => {
 
 router.get('/getAllLeaves', async (req, res) => {
     try {
-        console.log("jatinder");
         const userId = req.user.id
-        const { page = 1, limit = 10, startDate, endDate } = req.query;
+        const { page = 1, limit = 10, startDate, endDate, status } = req.query;
         const filter = { userId }
         if (startDate && endDate) {
             filter.startDate = { $lte: new Date(endDate) };
             filter.endDate = { $gte: new Date(startDate) };
+        }
+        if (status) {
+            filter.status = status
         }
 
         // console.log(filter);
@@ -89,7 +91,7 @@ router.get('/getAllLeaves', async (req, res) => {
             .populate('userId')
             .exec()
 
-        res.json(leaves);
+        res.json({ message: "Leaves Fetched Successfully", leaves });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

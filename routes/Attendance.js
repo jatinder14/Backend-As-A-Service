@@ -7,120 +7,244 @@ const router = express.Router();
 
 router.use(verifyToken);
 
-// Create or Update Daily Attendance
-router.post('/', async (req, res) => {
+router.post("/checkin", async (req, res) => {
     try {
-        const userId = req.user?.id; // Ensure req.user is populated through middleware
+        const { checkInTime } = req.body;
+        const userId = req.user.id
 
-        const { date, checkInTime, checkOutTime } = req.body;
+        const checkInDate = new Date(checkInTime);
+        checkInDate.setHours(0, 0, 0, 0); // Normalize time to start of the day
+        console.log(new Date(checkInTime), checkInDate);
 
-        const attendanceDate = new Date(date);
-        const attendance = await Attendance.findOne({ userId, date: attendanceDate });
-        console.log("dfasdfasdf", attendance);
+        // Find attendance where any check-in time is within the same day
+        let attendance = await Attendance.findOne({
+            userId,
+            checkInTimes: {
+                $elemMatch: {
+                    $gte: checkInDate,  // Start of the day
+                    $lt: new Date(checkInDate.getTime() + 86400000) // Start of the next day
+                }
+            }
+        });
 
-        // Check for overlapping attendance records
+        console.log(attendance);
         if (attendance) {
-            const overlappingCheckIns = attendance.dailyRecords[0].checkInTimes.filter(checkIn => {
-                return new Date(checkIn) <= new Date(checkOutTime) && new Date(checkIn) >= new Date(checkInTime);
-            });
+            const lastCheckInIndex = attendance.checkInTimes.length - 1;
 
-            if (overlappingCheckIns.length > 0) {
-                return res.status(400).json({ message: 'Overlapping check-in record exists for this date.' });
+            if (attendance.checkOutTimes.length <= lastCheckInIndex) {
+                return res.status(400).json({
+                    success: false,
+                    message: "You must check out before checking in again."
+                });
+            }
+            attendance.checkInTimes.push(new Date(checkInTime));
+        } else {
+            attendance = new Attendance({
+                userId,
+                checkInTimes: [new Date(checkInTime)],
+                checkOutTimes: [],
+            });
+        }
+
+        await attendance.save();
+        res.status(201).json({ success: true, data: attendance });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+router.post("/checkout", async (req, res) => {
+    try {
+        const { checkOutTime } = req.body;
+        const userId = req.user.id;
+
+        // Normalize check-out date to start of the day
+        const checkOutDate = new Date(checkOutTime);
+        checkOutDate.setHours(0, 0, 0, 0);
+
+        // Find today's attendance entry
+        let attendance = await Attendance.findOne({
+            userId,
+            checkInTimes: {
+                $elemMatch: {
+                    $gte: checkOutDate,
+                    $lt: new Date(checkOutDate.getTime() + 86400000)
+                }
+            }
+        });
+
+        if (!attendance) {
+            return res.status(400).json({
+                success: false,
+                message: "No check-in found for today, please check in first."
+            });
+        }
+
+        // Find last check-in index
+        const lastCheckInIndex = attendance.checkInTimes.length - 1;
+
+        // Check if already checked out for the last check-in
+        if (attendance.checkOutTimes.length > lastCheckInIndex) {
+            return res.status(400).json({
+                success: false,
+                message: "You have already checked out for your last check-in."
+            });
+        }
+
+        // Add check-out time at the same index as last check-in
+        attendance.checkOutTimes[lastCheckInIndex] = new Date(checkOutTime);
+
+        // Save the updated attendance record
+        await attendance.save();
+
+        res.status(200).json({ success: true, data: attendance });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+router.get("/all", async (req, res) => {
+    try {
+        const userId = req.user.id;
+        let { startDate, endDate } = req.query;
+
+        let query = { userId };
+
+        if (startDate && endDate) {
+            startDate = new Date(startDate).setHours(0, 0, 0, 0);
+            endDate = new Date(endDate).setHours(23, 59, 59, 999);
+
+            if (startDate > endDate) {
+                return res.status(400).json({
+                    success: false,
+                    message: "startDate cannot be greater than endDate.",
+                });
             }
 
-            // Add the check-in and check-out times
-            attendance.dailyRecords[0].checkInTimes.push(new Date(checkInTime));
-            attendance.dailyRecords[0].checkOutTimes.push(new Date(checkOutTime));
-            await attendance.save();
+            query.checkInTimes = { $elemMatch: { $gte: new Date(startDate), $lte: new Date(endDate) } };
+        }
 
-            return res.status(200).json({ message: 'Attendance updated successfully', attendance });
-        } else {
-            // Create new attendance record if none exists
-            const newAttendance = new Attendance({
-                userId,
-                date: attendanceDate,
-                checkInTimes: [new Date(checkInTime)],
-                checkOutTimes: [new Date(checkOutTime)]
-                // month: attendanceDate.toLocaleString('default', { month: 'long' }),
-                // year: attendanceDate.getFullYear(),
-                // totalDays: 1,
-                // dailyRecords: [{
-                // }]
+        const attendanceRecords = await Attendance.find(query).sort({ "checkInTimes": -1 });
+
+        res.status(200).json({ success: true, data: attendanceRecords });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+
+router.get("/:date", async (req, res) => {
+    try {
+        const userId = req.user.id;
+        const queryDate = new Date(req.params.date);
+
+        // Normalize date to start of the day
+        queryDate.setHours(0, 0, 0, 0);
+
+        const attendance = await Attendance.findOne({
+            userId,
+            checkInTimes: {
+                $elemMatch: {
+                    $gte: queryDate,
+                    $lt: new Date(queryDate.getTime() + 86400000)
+                }
+            }
+        });
+
+        if (!attendance) {
+            return res.status(404).json({
+                success: false,
+                message: "No attendance found for this date."
             });
-            await newAttendance.save();
-
-            return res.status(201).json({ message: 'Attendance recorded successfully', newAttendance });
         }
-    } catch (err) {
-        console.error('Error creating/updating attendance:', err);
-        res.status(500).json({ message: 'Error recording attendance', error: err.message });
+
+        res.status(200).json({ success: true, data: attendance });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// Get Daily Attendance
-router.get('/:date', async (req, res) => {
-    const userId = req.user?.id;
-    const attendanceDate = new Date(req.params.date);
-
+router.put("/update-by-date", async (req, res) => {
     try {
-        const attendance = await Attendance.findOne({ userId, 'dailyRecords.date': attendanceDate });
+        const { date, checkInTimes, checkOutTimes } = req.body;
+        const userId = req.user.id;
+
+        if (!date) {
+            return res.status(400).json({ success: false, message: "Date is required." });
+        }
+
+        const checkInDate = new Date(date);
+        checkInDate.setHours(0, 0, 0, 0); // Normalize to start of the day
+        const nextDay = new Date(checkInDate.getTime() + 86400000); // Next day's start
+
+        let attendance = await Attendance.findOne({
+            userId,
+            checkInTimes: { $gte: checkInDate, $lt: nextDay }
+        });
 
         if (!attendance) {
-            return res.status(404).json({ message: 'No attendance record found for this date.' });
+            return res.status(404).json({ success: false, message: "No attendance found for this date." });
         }
 
-        res.status(200).json(attendance.dailyRecords.find(record => record.date.toISOString() === attendanceDate.toISOString()));
-    } catch (err) {
-        console.error('Error fetching daily attendance:', err);
-        res.status(500).json({ message: 'Error fetching daily attendance', error: err.message });
+        if (!Array.isArray(checkInTimes) || !Array.isArray(checkOutTimes)) {
+            return res.status(400).json({ success: false, message: "checkInTimes and checkOutTimes must be arrays." });
+        }
+
+        if (checkInTimes.length !== checkOutTimes.length) {
+            return res.status(400).json({ success: false, message: "Each check-in must have a corresponding check-out." });
+        }
+
+        // Validate that all check-in and check-out times are within the same day
+        for (let time of [...checkInTimes, ...checkOutTimes]) {
+            const timeDate = new Date(time);
+            if (timeDate < checkInDate || timeDate >= nextDay) {
+                return res.status(400).json({
+                    success: false,
+                    message: "All check-in and check-out times must belong to the same date as the record.",
+                    incorrectEntry: timeDate,
+                });
+            }
+        }
+
+        // Overwrite existing check-in and check-out times
+        attendance.checkInTimes = checkInTimes.map(time => new Date(time));
+        attendance.checkOutTimes = checkOutTimes.map(time => new Date(time));
+
+        await attendance.save();
+
+        res.status(200).json({ success: true, data: attendance });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
 
-// Get All Attendance Records for an Employee
-router.get('', async (req, res) => {
-    const userId = req.user?.id;
 
+router.delete("/:date", async (req, res) => {
     try {
-        const attendance = await Attendance.find({ userId }).populate('userId');
+        const date = req.params.date;
+        const userId = req.user.id;
 
-        if (!attendance.length) {
-            return res.status(404).json({ message: 'No attendance records found for this employee.' });
+        if (!date) {
+            return res.status(400).json({ success: false, message: "Date is required." });
         }
 
-        res.status(200).json(attendance);
-    } catch (err) {
-        console.error('Error fetching attendance records:', err);
-        res.status(500).json({ message: 'Error fetching attendance records', error: err.message });
-    }
-});
+        const deleteDate = new Date(date);
+        deleteDate.setHours(0, 0, 0, 0); // Normalize time to start of the day
 
-// Delete Daily Attendance Record
-router.delete('/:date', async (req, res) => {
-    const userId = req.user?.id;
-    const attendanceDate = new Date(req.params.date);
-
-    try {
-        const attendance = await Attendance.findOne({ userId, 'dailyRecords.date': attendanceDate });
+        const attendance = await Attendance.findOneAndDelete({
+            userId,
+            checkInTimes: { $gte: deleteDate, $lt: new Date(deleteDate.getTime() + 86400000) }
+        });
 
         if (!attendance) {
-            return res.status(404).json({ message: 'No attendance record found for this date.' });
+            return res.status(404).json({ success: false, message: "No attendance record found for this date." });
         }
 
-        // Remove the daily record
-        attendance.dailyRecords = attendance.dailyRecords.filter(record => record.date.toISOString() !== attendanceDate.toISOString());
-
-        // If no records remain, you may want to delete the entire attendance document
-        if (attendance.dailyRecords.length === 0) {
-            await Attendance.deleteOne({ _id: attendance._id });
-        } else {
-            await attendance.save();
-        }
-
-        res.status(200).json({ message: 'Daily attendance record deleted successfully', attendance });
-    } catch (err) {
-        console.error('Error deleting daily attendance:', err);
-        res.status(500).json({ message: 'Error deleting daily attendance', error: err.message });
+        res.status(200).json({ success: true, message: "Attendance record deleted successfully." });
+    } catch (error) {
+        res.status(500).json({ success: false, message: error.message });
     }
 });
+
 
 module.exports = router;

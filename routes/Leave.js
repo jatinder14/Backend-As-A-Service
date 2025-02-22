@@ -11,7 +11,7 @@ router.post('/', async (req, res) => {
     try {
         const { startDate, endDate, type } = req.body;
         const userId = req.user.id
-        const year = new Date().getFullYear();
+        const year = new Date(startDate).getFullYear();
 
         if (new Date(startDate) > new Date(endDate)) {
             return res.status(400).json({ error: 'Start date cannot be after end date' });
@@ -41,6 +41,7 @@ router.post('/', async (req, res) => {
 
         let sickLeaveRemaining = lastLeave ? lastLeave.sickLeaveRemaining : 7;
         let annualLeaveRemaining = lastLeave ? lastLeave.annualLeaveRemaining : 30;
+        console.log('leavedays-', leaveDays, lastLeave);
 
         // Check leave balance before approving
         if (type === 'Sick' && sickLeaveRemaining < leaveDays) {
@@ -53,7 +54,6 @@ router.post('/', async (req, res) => {
         // Deduct Leave Balance
         if (type === 'Sick') sickLeaveRemaining -= leaveDays;
         if (type === 'Annual') annualLeaveRemaining -= leaveDays;
-        // console.log('leavedays-',leaveDays);
 
         // Create Leave Entry
         const leave = new Leave({
@@ -128,7 +128,7 @@ router.put('/:id', async (req, res) => {
     try {
         const { startDate, endDate, type } = req.body;
         const userId = req.user.id
-        const year = new Date().getFullYear();
+        const year = new Date(startDate).getFullYear();
 
         if (startDate && endDate) {
             if (new Date(startDate) > new Date(endDate))

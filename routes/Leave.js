@@ -14,7 +14,7 @@ router.post('/', async (req, res) => {
         const year = new Date(startDate).getFullYear();
 
         if (new Date(startDate) > new Date(endDate)) {
-            return res.status(400).json({ error: 'Start date cannot be after end date' });
+            return res.status(400).json({ message: 'Start date cannot be after end date' });
         }
         const existingLeave = await Leave.findOne({
             userId,
@@ -31,7 +31,7 @@ router.post('/', async (req, res) => {
         // }));
 
         if (existingLeave) {
-            return res.status(400).json({ error: 'A leave request already exists for these dates', existingLeave });
+            return res.status(400).json({ message: 'A leave request already exists for these dates', existingLeave });
         }
 
         const leaveDays = (new Date(endDate) - new Date(startDate)) / (1000 * 60 * 60 * 24) + 1;
@@ -45,10 +45,10 @@ router.post('/', async (req, res) => {
 
         // Check leave balance before approving
         if (type === 'Sick' && sickLeaveRemaining < leaveDays) {
-            return res.status(400).json({ error: `Not enough Sick Leaves. Available: ${sickLeaveRemaining}` });
+            return res.status(400).json({ message: `Not enough Sick Leaves. Available: ${sickLeaveRemaining}` });
         }
         if (type === 'Annual' && annualLeaveRemaining < leaveDays) {
-            return res.status(400).json({ error: `Not enough Annual Leaves. Available: ${annualLeaveRemaining}` });
+            return res.status(400).json({ message: `Not enough Annual Leaves. Available: ${annualLeaveRemaining}` });
         }
 
         // Deduct Leave Balance
@@ -66,7 +66,7 @@ router.post('/', async (req, res) => {
         await leave.save();
         res.status(201).json({ message: "Leave Created Successfully", leave });
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ message: err.message });
     }
 });
 
@@ -93,7 +93,7 @@ router.get('/getAllLeaves', async (req, res) => {
 
         res.json({ message: "Leaves Fetched Successfully", leaves });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 });
 
@@ -110,17 +110,17 @@ router.get('/balance', async (req, res) => {
 
         res.json({ sickLeaveRemaining, annualLeaveRemaining });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 });
 
 router.get('/:id', async (req, res) => {
     try {
         const leave = await Leave.findById(req.params.id).populate('userId');
-        if (!leave) return res.status(404).json({ error: 'Leave not found' });
+        if (!leave) return res.status(404).json({ message: 'Leave not found' });
         res.json(leave);
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 });
 
@@ -132,7 +132,7 @@ router.put('/:id', async (req, res) => {
 
         if (startDate && endDate) {
             if (new Date(startDate) > new Date(endDate))
-                return res.status(400).json({ error: 'Start date cannot be after end date' });
+                return res.status(400).json({ message: 'Start date cannot be after end date' });
             else {
                 const existingLeave = await Leave.findOne({
                     userId,
@@ -149,13 +149,13 @@ router.put('/:id', async (req, res) => {
                 }));
 
                 if (existingLeave) {
-                    return res.status(400).json({ error: 'A leave request already exists for these dates', existingLeave });
+                    return res.status(400).json({ message: 'A leave request already exists for these dates', existingLeave });
                 }
             }
         }
 
         let leave = await Leave.findById(req.params.id);
-        if (!leave) return res.status(404).json({ error: 'Leave not found' });
+        if (!leave) return res.status(404).json({ message: 'Leave not found' });
         if (startDate && endDate) {
             // Calculate previous leave duration
             const previousLeaveDays = (new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24) + 1;
@@ -175,10 +175,10 @@ router.put('/:id', async (req, res) => {
 
             // Check if new request is within available balance
             if (type === 'Sick' && sickLeaveRemaining < newLeaveDays) {
-                return res.status(400).json({ error: `Not enough Sick Leaves. Available: ${sickLeaveRemaining}` });
+                return res.status(400).json({ message: `Not enough Sick Leaves. Available: ${sickLeaveRemaining}` });
             }
             if (type === 'Annual' && annualLeaveRemaining < newLeaveDays) {
-                return res.status(400).json({ error: `Not enough Annual Leaves. Available: ${annualLeaveRemaining}` });
+                return res.status(400).json({ message: `Not enough Annual Leaves. Available: ${annualLeaveRemaining}` });
             }
 
             // Deduct new leave from balance
@@ -200,14 +200,14 @@ router.put('/:id', async (req, res) => {
         res.json({ message: 'Leave updated successfully', leave });
 
     } catch (err) {
-        res.status(400).json({ error: err.message });
+        res.status(400).json({ message: err.message });
     }
 })
 
 router.delete('/:id', async (req, res) => {
     try {
         const leave = await Leave.findById(req.params.id);
-        if (!leave) return res.status(404).json({ error: 'Leave not found' });
+        if (!leave) return res.status(404).json({ message: 'Leave not found' });
 
         const leaveDays = (new Date(leave.endDate) - new Date(leave.startDate)) / (1000 * 60 * 60 * 24) + 1;
 
@@ -222,7 +222,7 @@ router.delete('/:id', async (req, res) => {
 
         res.json({ message: 'Leave deleted successfully and balance restored', lastLeave });
     } catch (err) {
-        res.status(500).json({ error: err.message });
+        res.status(500).json({ message: err.message });
     }
 });
 

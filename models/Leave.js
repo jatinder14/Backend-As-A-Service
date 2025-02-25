@@ -6,7 +6,8 @@ const LeaveSchema = new mongoose.Schema({
     startDate: { type: Date, required: true },
     endDate: { type: Date, required: true },
     reason: { type: String },
-    remark: { type: String },
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectedReason: { type: String }, remark: { type: String },
     type: {
         type: String,
         enum: ['Sick', 'Annual'],

@@ -19,6 +19,7 @@ const documentRoutes = require('./routes/Document');
 const bankRoutes = require('./routes/bankAccount');
 const AttendanceRoutes = require('./routes/Attendance');
 const LeaveRoutes = require('./routes/Leave');
+const DashboardRoutes = require('./routes/Dashboard');
 const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
@@ -95,6 +96,7 @@ app.use('/api/lead/bankdetails', bankRoutes);
 // Attendance
 app.use('/api/user/attendance', AttendanceRoutes);
 app.use('/api/user/leave', LeaveRoutes);
+app.use('/api/dashboard', DashboardRoutes);
 
 // Notification.create({
 //     event_type: "order_creation",

@@ -126,7 +126,7 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        const { startDate, endDate, type } = req.body;
+        const { startDate, endDate, type, status, rejectedReason, rejectedBy } = req.body;
         const userId = req.user.id
         const year = new Date(startDate).getFullYear();
 
@@ -191,11 +191,14 @@ router.put('/:id', async (req, res) => {
             leave.type = type;
             leave.sickLeaveRemaining = sickLeaveRemaining;
             leave.annualLeaveRemaining = annualLeaveRemaining;
-            await leave.save();
         } else {
             Object.assign(leave, req.body);
-            await leave.save();
         }
+
+        leave.status = req.body?.status
+        leave.rejectedBy = req?.user?.id
+        leave.rejectedReason = req.body?.rejectedReason
+        await leave.save();
 
         res.json({ message: 'Leave updated successfully', leave });
 

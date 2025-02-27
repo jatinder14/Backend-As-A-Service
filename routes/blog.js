@@ -6,11 +6,16 @@ const router = express.Router();
 // Get all blogs (with pagination, sorting, and filtering)
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, sortBy = 'date', order = 'desc' } = req.query;
+        const { page = 1, limit = 10, sortBy = 'date', order = 'desc', domain } = req.query;
         const sortOrder = order === 'asc' ? 1 : -1;
-        const totalBlogs = await Blog.countDocuments();
+        let filter = {}
 
-        const blogs = await Blog.find()
+        if (domain)
+            filter.domain = domain
+
+        const totalBlogs = await Blog.countDocuments(filter);
+
+        const blogs = await Blog.find(filter)
             .sort({ [sortBy]: sortOrder })
             .limit(limit * 1)
             .skip((page - 1) * limit);
@@ -51,7 +56,7 @@ router.get('/:id', async (req, res) => {
         if (!blog) {
             return res.status(404).json({ message: 'Blog not found' });
         }
-        
+
         const imagePromise = blog.image ? generateSignedUrl(getKey(blog.image)) : null;
         const videoPromise = blog.video ? generateSignedUrl(getKey(blog.video)) : null;
 
@@ -71,10 +76,10 @@ router.get('/:id', async (req, res) => {
 
 // Create a new blog
 router.post('/', async (req, res) => {
-    const { title, image, video, date, description } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData } = req.body;
 
     try {
-        const blog = new Blog({ title, image, video, date, description });
+        const blog = new Blog({ title, image, video, date, description, domain, SubTitleAndContent, metaData });
         await blog.save();
         res.status(201).json(blog);
     } catch (err) {
@@ -84,7 +89,7 @@ router.post('/', async (req, res) => {
 
 // Update a blog by ID
 router.put('/:id', async (req, res) => {
-    const { title, image, video, date, description } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData } = req.body;
 
     try {
         const blog = await Blog.findById(req.params.id);
@@ -97,6 +102,9 @@ router.put('/:id', async (req, res) => {
         blog.video = video || blog.video;
         blog.date = date || blog.date;
         blog.description = description || blog.description;
+        blog.SubTitleAndContent = SubTitleAndContent || blog.SubTitleAndContent;
+        blog.domain = domain || blog.domain;
+        blog.metaData = metaData || blog.metaData;
 
         await blog.save();
         res.json(blog);

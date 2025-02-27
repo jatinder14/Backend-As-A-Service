@@ -76,10 +76,10 @@ router.get('/:id', async (req, res) => {
 
 // Create a new blog
 router.post('/', async (req, res) => {
-    const { title, image, video, date, description, domain, SubTitleAndContent, metaData } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription } = req.body;
 
     try {
-        const blog = new Blog({ title, image, video, date, description, domain, SubTitleAndContent, metaData });
+        const blog = new Blog({ title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription });
         await blog.save();
         res.status(201).json(blog);
     } catch (err) {
@@ -89,7 +89,7 @@ router.post('/', async (req, res) => {
 
 // Update a blog by ID
 router.put('/:id', async (req, res) => {
-    const { title, image, video, date, description, domain, SubTitleAndContent, metaData } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription } = req.body;
 
     try {
         const blog = await Blog.findById(req.params.id);
@@ -105,6 +105,7 @@ router.put('/:id', async (req, res) => {
         blog.SubTitleAndContent = SubTitleAndContent || blog.SubTitleAndContent;
         blog.domain = domain || blog.domain;
         blog.metaData = metaData || blog.metaData;
+        blog.shortDescription = shortDescription || blog.shortDescription;
 
         await blog.save();
         res.json(blog);

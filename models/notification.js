@@ -1,14 +1,14 @@
-import mongoose from "mongoose";
+const mongoose = require('mongoose');
 
 const notificationSchema = new mongoose.Schema({
-  name:{
-   type:String,
-   required:true,
+  name: {
+    type: String,
+    required: true,
   },
   event_type: {
     type: String,
     required: true,
-    enum: ['order_creation', 'order_delivery', 'igm_status','issue_created','issue_closed','agent-assigned','out-for-delivery','order-picked-up','collector-recon'],
+    enum: ['LEAD_CREATED', 'LEAD_UPDATED', 'LEAVE_CREATED', 'LEAVE_UPDATED', 'TASK_CREATED', 'TASK_UPDATED'],
   },
   details: {
     type: String,
@@ -18,8 +18,7 @@ const notificationSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
+  notify_users: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }], // Reference to multiple users
 }, { timestamps: true });
 
-const Notification = mongoose.model('Notification', notificationSchema);
-
-export default Notification;
+module.exports = mongoose.model('Notification', notificationSchema);

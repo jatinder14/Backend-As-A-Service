@@ -2,7 +2,8 @@ const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
 const { verifyToken } = require('../middleware/auth');
-const { notifyAdmins } = require('../websockets/websocket');
+const { notifyUsers } = require('../websockets/websocket');
+const Notification = require('../models/notification');
 
 router.use(verifyToken);
 
@@ -10,14 +11,26 @@ router.post('/lead', async (req, res) => {
     try {
         const leadData = req.body;
 
-        const userId = req.user?.id; // Ensure req.user is populated through middleware
+        const userId = req.user?.id;
 
         leadData.createdBy = userId;
 
         const newLead = new Lead(leadData);
         await newLead.save();
 
-        notifyAdmins("lead created", "new lead");
+        const notify_users = [...new Set([newLead.createdBy?.toString(), newLead.updatedBy?.toString(), newLead.rejectedBy?.toString()].filter(Boolean))]
+
+        console.log(req.user);
+
+        await Notification.create({
+            name: "New Lead",
+            event_type: "LEAD_CREATED",
+            details: `${req.user.name} has created a new lead (Lead ID: ${newLead._id}).`,
+            is_seen: false,
+            notify_users: notify_users
+        });
+
+        notifyUsers(notify_users, "LEAD CREATED", `${req.user.name} has created a new lead (Lead ID: ${newLead._id}).`);
 
         res.status(201).json({ message: 'Lead created successfully', lead: newLead });
     } catch (err) {
@@ -101,32 +114,57 @@ router.patch('/lead/:id/status', async (req, res) => {
                 $set: {
                     status,
                     updatedBy: req?.user?.id,
-                    rejectedBy: req?.user?.id,
-                    rejectedReason
+                    ...(rejectedReason && { rejectedBy: req?.user?.id, rejectedReason }),
                 }
             },
             { new: true }
         );
-        console.log(req?.user?.id)
 
         if (!updatedLead) {
             return res.status(404).json({ message: 'Lead not found.' });
         }
+        console.log({ ...(rejectedReason && { rejectedBy: req?.user?.id, rejectedReason }) }, [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))])
+
+        notifyUsers("LEAD UPDATED", `${req.user.name} has updated the status of a lead (Lead ID: ${updatedLead._id}).`);
+
+        await Notification.create({
+            name: "LEAD UPDATED",
+            event_type: "LEAD_UPDATED",
+            details: `${req.user.name} has updated the status of a lead (Lead ID: ${updatedLead._id}).`,
+            is_seen: false,
+            notify_users: [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+        });
 
         res.status(200).json({
             message: 'Lead status updated successfully.',
             lead: updatedLead,
         });
+
     } catch (err) {
         res.status(500).json({ message: 'Error updating lead status.', error: err.message });
     }
 });
 
-router.patch('/leads/:id', async (req, res) => {
+router.put('/leads/:id', async (req, res) => {
     try {
         req.body.updatedBy = req.user.id;
+
         const updatedLead = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true });
+
         if (!updatedLead) return res.status(404).json({ message: 'Lead not found' });
+
+        notifyUsers("LEAD UPDATED", `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`);
+
+        await Notification.create({
+            name: "LEAD UPDATED",
+            event_type: "LEAD_UPDATED",
+            details: `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`,
+            is_seen: false,
+            notify_users: [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+        });
+
+        // console.log([...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]);
+
         res.status(200).json({ message: 'Lead updated successfully', lead: updatedLead });
     } catch (err) {
         res.status(400).json({ message: 'Error updating lead', error: err.message });

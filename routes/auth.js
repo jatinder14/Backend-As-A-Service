@@ -20,7 +20,7 @@ router.post('/register', async (req, res) => {
         await user.save();
 
         // Generate JWT token
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ id: user._id, role: user.role, name: user.name, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
         res.status(201).json({ token, user });
     } catch (err) {
         res.status(500).json({ message: 'Error registering user', error: err.message });
@@ -36,13 +36,13 @@ router.post('/login', async (req, res) => {
         if (!user) {
             return res.status(400).json({ message: 'User not found' });
         }
-        
+
         const isMatch = await bcrypt.compare(password, user.password);
         if (!isMatch) {
             return res.status(400).json({ message: 'Invalid credentials' });
         }
 
-        const token = jwt.sign({ id: user._id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '30d' });
+        const token = jwt.sign({ id: user._id, role: user.role, name: user.name, email: user.email }, process.env.JWT_SECRET, { expiresIn: '30d' });
 
         user.password = undefined;
 

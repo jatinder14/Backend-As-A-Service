@@ -1,39 +1,108 @@
 const WebSocket = require("ws");
+const jwt = require("jsonwebtoken");
+const User = require("../models/User");
 
-const adminSockets = new Set(); // Store admin connections
+const adminSockets = new Map();
+const userSockets = new Map();
 
-// Initialize WebSocket Server
 function setupWebSocket(server) {
-    const wss = new WebSocket.Server({ server });
+    const wss = new WebSocket.Server({ server, verifyClient });
 
-    wss.on("connection", (ws) => {
-        console.log("New WebSocket client connected.");
+    function verifyClient(info, done) {
+        const token = getTokenFromHeaders(info.req);
 
-        ws.on("message", (message) => {
-            const data = JSON.parse(message);
-            console.log("Data: ", data);
+        if (!token) {
+            console.log("❌ WebSocket connection rejected: No token provided.");
+            return done(false, 401, "Unauthorized");
+        }
 
-            if (data.event === "admin_join") {
-                adminSockets.add(ws);
-                console.log("Admin joined.");
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            console.log("✅ WebSocket authenticated:", decoded.id);
+            info.req.user = decoded;
+            done(true);
+        } catch (err) {
+            console.error("❌ WebSocket auth error:", err.message);
+            done(false, 401, "Unauthorized");
+        }
+    }
+
+    function getTokenFromHeaders(req) {
+        return req.headers["sec-websocket-protocol"] || null;
+    }
+
+    wss.on("connection", async (ws, req) => {
+        try {
+            const user = await User.findById(req.user.id);
+            if (!user) {
+                console.log("❌ User not found, closing WebSocket.");
+                ws.close(1008, "Unauthorized");
+                return;
             }
-        });
 
-        ws.on("close", () => {
-            adminSockets.delete(ws);
-            console.log("WebSocket client disconnected.");
-        });
+            ws.user = user;
+            console.log(`✅ WebSocket connection established for user: ${user.name} (${user.role})`);
+
+            // Store socket based on user role
+            if (user.role === "admin") {
+                adminSockets.set(user.id, ws);
+                console.log("👑 Admin added to WebSocket pool.");
+            } else {
+                userSockets.set(user.id, ws);
+                console.log("👤 User added to WebSocket pool.");
+            }
+
+            // Handle messages
+            ws.on("message", (message) => {
+                const data = JSON.parse(message);
+                console.log("📩 Received message:", data);
+
+                if (data.event === "admin_join") {
+                    notifyAdmins({ event: data.event, ws })
+                    console.log("Admin joined.");
+                }
+
+            });
+
+            // Handle disconnection
+            ws.on("close", () => {
+                if (user.role === "admin") {
+                    adminSockets.delete(user.id);
+                    console.log("❌ Admin disconnected.");
+                } else {
+                    userSockets.delete(user.id);
+                    console.log("❌ User disconnected.");
+                }
+            });
+
+        } catch (err) {
+            console.error("❌ WebSocket error:", err.message);
+            ws.close(1008, "Unauthorized");
+        }
     });
 
     return wss;
 }
 
-// Function to send messages to all admin clients
+// 🔔 Notify all admins
 function notifyAdmins(event, data) {
     adminSockets.forEach((socket) => {
-        console.log(socket, data, event);
         socket.send(JSON.stringify({ event, data }));
     });
 }
 
-module.exports = { setupWebSocket, notifyAdmins };
+// 🔔 Notify specific users
+function notifyUsers(notify_users, event, data) {
+    // console.log(userSockets)
+    notify_users.forEach((userId) => {
+        const socket = userSockets.get(userId);
+        if (socket) {
+            socket.send(JSON.stringify({ event, data }));
+        } else {
+            console.log(`❌ User ${userId} not connected.`);
+        }
+    });
+}
+
+
+module.exports = { setupWebSocket, notifyAdmins, notifyUsers };

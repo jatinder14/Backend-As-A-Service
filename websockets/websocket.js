@@ -57,10 +57,10 @@ function setupWebSocket(server) {
                 const data = JSON.parse(message);
                 console.log("📩 Received message:", data);
 
-                if (data.event === "admin_join") {
-                    notifyAdmins({ event: data.event, ws })
-                    console.log("Admin joined.");
-                }
+                // if (data.event === "admin_join") {
+                //     notifyAdmins({ event: data.event, ws })
+                //     console.log("Admin joined.");
+                // }
 
             });
 
@@ -95,7 +95,8 @@ function notifyAdmins(event, data) {
 function notifyUsers(notify_users, event, data) {
     // console.log(userSockets)
     notify_users.forEach((userId) => {
-        const socket = userSockets.get(userId);
+        const socket = userSockets.get(userId) || adminSockets.get(userId);
+        console.log(socket)
         if (socket) {
             socket.send(JSON.stringify({ event, data }));
         } else {

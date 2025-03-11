@@ -125,7 +125,8 @@ router.patch('/lead/:id/status', async (req, res) => {
         }
         console.log({ ...(rejectedReason && { rejectedBy: req?.user?.id, rejectedReason }) }, [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))])
 
-        notifyUsers("LEAD UPDATED", `${req.user.name} has updated the status of a lead (Lead ID: ${updatedLead._id}).`);
+        const notify_users = [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+
 
         await Notification.create({
             name: "LEAD UPDATED",
@@ -134,6 +135,8 @@ router.patch('/lead/:id/status', async (req, res) => {
             is_seen: false,
             notify_users: [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
         });
+
+        notifyUsers(notify_users, "LEAD UPDATED", `${req.user.name} has updated the status of a lead (Lead ID: ${updatedLead._id}).`);
 
         res.status(200).json({
             message: 'Lead status updated successfully.',
@@ -153,16 +156,17 @@ router.put('/leads/:id', async (req, res) => {
 
         if (!updatedLead) return res.status(404).json({ message: 'Lead not found' });
 
-        notifyUsers("LEAD UPDATED", `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`);
+        const notify_users = [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
 
         await Notification.create({
             name: "LEAD UPDATED",
             event_type: "LEAD_UPDATED",
             details: `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`,
             is_seen: false,
-            notify_users: [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+            notify_users: notify_users
         });
 
+        notifyUsers(notify_users, "LEAD UPDATED", `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`);
         // console.log([...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]);
 
         res.status(200).json({ message: 'Lead updated successfully', lead: updatedLead });

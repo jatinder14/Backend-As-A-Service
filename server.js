@@ -8,6 +8,7 @@ const customerRoutes = require('./routes/customers');
 const productRoutes = require('./routes/product');
 const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/project');
+const propertyRoutes = require('./routes/property');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
@@ -75,6 +76,15 @@ app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
 
 // end MVL
+
+// empire infratech
+
+app.use('/api/property', propertyRoutes);
+
+
+
+// end empire infratech
+
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/customers', customerRoutes);

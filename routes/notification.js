@@ -35,12 +35,29 @@ router.post('', async (req, res) => {
 router.get('', async (req, res) => {
     try {
         const userId = req.user.id;
+        const { page = 1, limit = 10, is_seen } = req.query;
+        let query = {};
+
+        if (is_seen) {
+            query.is_seen = is_seen
+        }
+        query.notify_users = { $in: [userId] }
+
+        const totalNotifications = await Notification.countDocuments(query);
 
         // Find notifications where userId exists in notify_users array
-        const notifications = await Notification.find({ notify_users: { $in: [userId] } })
+        const notifications = await Notification.find(query)
+            .limit(limit * 1)
+            .skip((page - 1) * limit)
+            .sort({ createdAt: -1 })
             .populate('notify_users', 'name email');
 
-        res.status(200).json(notifications);
+        res.status(200).json({
+            totalNotifications,
+            currentPage: page,
+            totalPages: Math.ceil(totalNotifications / limit),
+            notifications
+        });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -66,21 +83,25 @@ router.get('/:id', async (req, res) => {
  * @route   PATCH /:id
  * @desc    Update a notification (mark as seen)
  */
-router.patch('/:id', async (req, res) => {
+
+router.put("/", async (req, res) => {
     try {
-        const { is_seen } = req.body;
+        const { is_seen, list } = req.body; // `list` should be an array of notification IDs
 
-        const updatedNotification = await Notification.findByIdAndUpdate(
-            req.params.id,
-            { is_seen },
-            { new: true }
-        );
-
-        if (!updatedNotification) {
-            return res.status(404).json({ message: 'Notification not found' });
+        if (!list || !Array.isArray(list)) {
+            return res.status(400).json({ message: "Invalid notification list" });
         }
 
-        res.status(200).json(updatedNotification);
+        const updatedNotifications = await Notification.updateMany(
+            { _id: { $in: list } }, // Find notifications with IDs in `list`
+            { $set: { is_seen } } // Update the `is_seen` field
+        );
+
+        if (updatedNotifications.matchedCount === 0) {
+            return res.status(404).json({ message: "No notifications found", updatedNotifications });
+        }
+
+        res.status(200).json({ message: "Notifications updated", updatedNotifications });
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

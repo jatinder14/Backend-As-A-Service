@@ -14,7 +14,7 @@ const BankAccountSchema = new mongoose.Schema({
 
     ejari: { type: String },
     Addendum: { type: String },
-    gracePeriod: { type: Date },
+    // gracePeriod: { type: Date },
     startDate: { type: Date, required: true },
     endDate: {
         type: Date,
@@ -38,25 +38,25 @@ const BankAccountSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 // Pre-save hook to automatically calculate grace period
-BankAccountSchema.pre('save', async function (next) {
-    if (!this.gracePeriod) {
-        const lead = await mongoose.model('Lead').findById(this.leadId);
-        if (lead) {
-            let daysToAdd = 0;
+// BankAccountSchema.pre('save', async function (next) {
+//     if (!this.gracePeriod) {
+//         const lead = await mongoose.model('Lead').findById(this.leadId);
+//         if (lead) {
+//             let daysToAdd = 0;
 
-            if (lead.apartmentType === 'Furnished') {
-                daysToAdd = 5;
-            } else if (['Semi-Furnished', 'Unfurnished'].includes(lead.apartmentType)) {
-                daysToAdd = Math.floor(Math.random() * (15 - 10 + 1)) + 10; // Random between 10–15
-            }
-            console.log("===", this.endDate, lead, this.gracePeriod, this);
-            if (this.endDate) {
-                this.gracePeriod = new Date(this.endDate);
-                this.gracePeriod.setDate(this.gracePeriod.getDate() + daysToAdd);
-            }
-        }
-    }
-    next();
-});
+//             if (lead.apartmentType === 'Furnished') {
+//                 daysToAdd = 5;
+//             } else if (['Semi-Furnished', 'Unfurnished'].includes(lead.apartmentType)) {
+//                 daysToAdd = Math.floor(Math.random() * (15 - 10 + 1)) + 10; // Random between 10–15
+//             }
+//             console.log("===", this.endDate, lead, this.gracePeriod, this);
+//             if (this.endDate) {
+//                 this.gracePeriod = new Date(this.endDate);
+//                 this.gracePeriod.setDate(this.gracePeriod.getDate() + daysToAdd);
+//             }
+//         }
+//     }
+//     next();
+// });
 
 module.exports = mongoose.model('BankAccount', BankAccountSchema);

@@ -22,7 +22,7 @@ const PropertySchema = new mongoose.Schema(
             ],
             default: "none",
         },
-        status: { type: String, enum: ["Off Plan", "Sale", "Rent"], required: true },
+        status: { type: String, enum: ["OFF_PLAN", "SALE", "RENT"], required: true },
         location: {
             type: String,
             enum: [

@@ -15,12 +15,31 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, category } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title } = req.query;
         const query = {};
 
-        if (category) {
-            query.category = { $regex: category, $options: 'i' };
-        }
+        if (status) query.status = { $regex: status, $options: 'i' };
+        if (title) query.title = { $regex: title, $options: 'i' };
+
+        if (location) query.location = location
+
+        if (type) query.type = type
+
+        if (bathrooms)
+            query.bathrooms = {
+                $gte: bathrooms
+            }
+
+        if (bedrooms)
+            query.bedrooms = { $gte: bedrooms }
+
+        console.log(query);
+
+        // if (status) {
+        //     query.status = {
+        //         $or: { $in: status }
+        //     }
+        // }
 
         const totalPropertys = await Property.countDocuments(query);
         const properties = await Property.find(query)
@@ -29,22 +48,52 @@ router.get('/', async (req, res) => {
 
         // Generate signed URLs for logos and images in parallel for each Property
         const propertiesWithSignedUrls = await Promise.all(
-            properties.map(async (Property) => {
-                const dldPermitQrCodePromise = Property.logo ? generateSignedUrl(getKey(Property.logo)) : null;
-                const imagesPromises = Property.images && Array.isArray(Property.images)
-                    ? Property.images.map(image => generateSignedUrl(getKey(image)))
+
+            properties.map(async (property) => {
+                const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
+
+                const imagesPromises = property.images && Array.isArray(property.images)
+                    ? property.images.map(image => generateSignedUrl(getKey(image)))
                     : [];
 
-                const [dldPermitQrCodeSignedUrl, imagesSignedUrls] = await Promise.all([
+                const videoPromises = property.videos && Array.isArray(property.videos)
+                    ? property.videos.map(el => generateSignedUrl(getKey(el.url)))
+                    : [];
+
+                const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)
+                    ? property.floorPlans.map(el => generateSignedUrl(getKey(el.floorPlanImage)))
+                    : [];
+
+                // Await all promises concurrently
+                const [dldPermitQrCodeSignedUrl, imagesSignedUrls, videosSignedUrls, floorPlanImageSignedUrls] = await Promise.all([
                     dldPermitQrCodePromise,
-                    Promise.all(imagesPromises)
+                    Promise.all(imagesPromises),
+                    Promise.all(videoPromises),
+                    Promise.all(floorPlanImagePromises),
                 ]);
 
-                // Assign signed URLs back to the Property object
-                Property.logo = dldPermitQrCodeSignedUrl;
-                Property.images = imagesSignedUrls;
+                // Assign the results to Property fields
+                property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
+                property.images = imagesSignedUrls;
 
-                return Property;
+                // ✅ Map each signed URL to the correct video object
+
+                if (property.floorPlans?.length === floorPlanImageSignedUrls?.length) {
+                    property.floorPlans.forEach((el, index) => {
+                        // console.log(el, index);
+                        el.floorPlanImage = floorPlanImageSignedUrls[index];
+                    });
+                }
+                // console.log(property.floorPlans);
+
+                if (property.videos?.length === videosSignedUrls?.length) {
+                    property.videos.forEach((el, index) => {
+                        // console.log(el, index);
+                        el.url = videosSignedUrls[index];
+                    });
+                }
+
+                return property;
             })
         );
 
@@ -60,13 +109,11 @@ router.get('/', async (req, res) => {
     }
 });
 
-
 router.get('/:id', async (req, res) => {
     try {
-        const property = await Property.findById(req.params.id);
+        let property = await Property.findById(req.params.id);
         if (!property) return res.status(404).json({ message: 'Property not found' });
 
-        // Run logo and images transformations in parallel
         const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
 
         const imagesPromises = property.images && Array.isArray(property.images)
@@ -77,18 +124,39 @@ router.get('/:id', async (req, res) => {
             ? property.videos.map(el => generateSignedUrl(getKey(el.url)))
             : [];
 
+        const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)
+            ? property.floorPlans.map(el => generateSignedUrl(getKey(el.floorPlanImage)))
+            : [];
+
         // Await all promises concurrently
-        const [dldPermitQrCodeSignedUrl, imagesSignedUrls, videosSignedUrls] = await Promise.all([
+        const [dldPermitQrCodeSignedUrl, imagesSignedUrls, videosSignedUrls, floorPlanImageSignedUrls] = await Promise.all([
             dldPermitQrCodePromise,
             Promise.all(imagesPromises),
-            Promise.all(videoPromises)
+            Promise.all(videoPromises),
+            Promise.all(floorPlanImagePromises),
         ]);
 
         // Assign the results to Property fields
         property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
         property.images = imagesSignedUrls;
-        property.videos = "videosSignedUrls";
-        console.log("videosSignedUrls", videosSignedUrls);
+
+        // ✅ Map each signed URL to the correct video object
+
+        if (property.floorPlans?.length === floorPlanImageSignedUrls?.length) {
+            property.floorPlans.forEach((el, index) => {
+                // console.log(el, index);
+                el.floorPlanImage = floorPlanImageSignedUrls[index];
+            });
+        }
+        console.log(property.floorPlans);
+
+        if (property.videos?.length === videosSignedUrls?.length) {
+            property.videos.forEach((el, index) => {
+                // console.log(el, index);
+                el.url = videosSignedUrls[index];
+            });
+        }
+        // console.log("videosSignedUrls", videosSignedUrls, property.videos);
 
         res.status(200).json(property);
     } catch (err) {

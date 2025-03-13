@@ -23,7 +23,7 @@ router.get('/getAll', async (req, res) => {
 // Create Bank Account
 router.post('/:leadId', async (req, res) => {
     const { leadId } = req.params;
-    const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey } = req.body;
+    const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate } = req.body;
 
     try {
         const lead = await Lead.findById(leadId);
@@ -36,7 +36,7 @@ router.post('/:leadId', async (req, res) => {
             return res.status(400).json({ message: 'Bank account already exists for this lead' });
         }
 
-        const bankAccount = new BankAccount({ leadId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey });
+        const bankAccount = new BankAccount({ leadId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate });
         await bankAccount.save();
         lead.documentUploaded = true
         await lead.save();
@@ -69,7 +69,7 @@ router.get('/:leadId', async (req, res) => {
 // Update Bank Account
 router.put('/:leadId', async (req, res) => {
     const { leadId } = req.params;
-    const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey } = req.body;
+    const { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate } = req.body;
 
     try {
         const lead = await Lead.findById(leadId);
@@ -78,7 +78,7 @@ router.put('/:leadId', async (req, res) => {
         }
         const bankAccount = await BankAccount.findOneAndUpdate(
             { leadId },
-            { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey },
+            { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate },
             { new: true, runValidators: true }
         );
         if (!bankAccount) {
@@ -104,7 +104,7 @@ router.delete('/:leadId', async (req, res) => {
         if (!bankAccount) {
             return res.status(404).json({ message: 'Bank account not found for this lead' });
         }
-        
+
         lead.documentUploaded = false
         await lead.save();
         res.status(200).json({ message: 'Bank account deleted successfully' });

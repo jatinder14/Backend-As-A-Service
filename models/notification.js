@@ -11,7 +11,7 @@ const notificationSchema = new mongoose.Schema({
     enum: ['LEAD_CREATED', 'LEAD_UPDATED', 'LEAVE_CREATED', 'LEAVE_UPDATED', 'TASK_CREATED', 'TASK_UPDATED'],
   },
   details: {
-    type: String,
+    type: Object,
     required: true,
   },
   is_seen: {

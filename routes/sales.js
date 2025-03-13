@@ -22,15 +22,20 @@ router.post('/lead', async (req, res) => {
 
         console.log(req.user);
 
-        await Notification.create({
-            name: "New Lead",
+        let notification = await Notification.create({
+            name: "Lead Created",
             event_type: "LEAD_CREATED",
-            details: `${req.user.name} has created a new lead (Lead ID: ${newLead._id}).`,
+            details: {
+                "message": `${req.user.name} has created a new lead.`,
+                "leadId": newLead._id
+            },
             is_seen: false,
             notify_users: notify_users
         });
 
-        notifyUsers(notify_users, "LEAD CREATED", `${req.user.name} has created a new lead (Lead ID: ${newLead._id}).`);
+        // notifyUsers(notify_users, "LEAD_CREATED", `${req.user.name} has created a new lead (Lead ID: ${newLead._id}).`);
+
+        notifyUsers(notify_users, "LEAD_CREATED", notification);
 
         res.status(201).json({ message: 'Lead created successfully', lead: newLead });
     } catch (err) {
@@ -127,16 +132,18 @@ router.patch('/lead/:id/status', async (req, res) => {
 
         const notify_users = [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
 
-
-        await Notification.create({
-            name: "LEAD UPDATED",
+        let notification = await Notification.create({
+            name: "Lead Updated",
             event_type: "LEAD_UPDATED",
-            details: `${req.user.name} has updated the status of a lead (Lead ID: ${updatedLead._id}).`,
+            details: {
+                "message": `${req.user.name} has updated the status of a lead.`,
+                "leadId": updatedLead._id
+            },
             is_seen: false,
-            notify_users: [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+            notify_users: notify_users
         });
 
-        notifyUsers(notify_users, "LEAD UPDATED", `${req.user.name} has updated the status of a lead (Lead ID: ${updatedLead._id}).`);
+        notifyUsers(notify_users, "LEAD_UPDATED", notification);
 
         res.status(200).json({
             message: 'Lead status updated successfully.',
@@ -158,15 +165,21 @@ router.put('/leads/:id', async (req, res) => {
 
         const notify_users = [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
 
-        await Notification.create({
-            name: "LEAD UPDATED",
+        let notification = await Notification.create({
+            name: "Lead Updated",
             event_type: "LEAD_UPDATED",
-            details: `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`,
+            details: {
+                "message": `${req.user.name} has updated the details of a lead.`,
+                "leadId": updatedLead._id
+            },
             is_seen: false,
             notify_users: notify_users
         });
 
-        notifyUsers(notify_users, "LEAD UPDATED", `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`);
+        notifyUsers(notify_users, "LEAD_UPDATED", notification);
+
+        // notifyUsers(notify_users, "LEAD UPDATED", `${req.user.name} has updated the details of a lead (Lead ID: ${updatedLead._id}).`);
+
         // console.log([...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]);
 
         res.status(200).json({ message: 'Lead updated successfully', lead: updatedLead });

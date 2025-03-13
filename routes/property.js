@@ -33,7 +33,7 @@ router.get('/', async (req, res) => {
         if (bedrooms)
             query.bedrooms = { $gte: bedrooms }
 
-        console.log(query);
+        // console.log(query);
 
         // if (status) {
         //     query.status = {
@@ -148,7 +148,7 @@ router.get('/:id', async (req, res) => {
                 el.floorPlanImage = floorPlanImageSignedUrls[index];
             });
         }
-        console.log(property.floorPlans);
+        // console.log(property.floorPlans);
 
         if (property.videos?.length === videosSignedUrls?.length) {
             property.videos.forEach((el, index) => {

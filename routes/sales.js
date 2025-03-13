@@ -27,7 +27,8 @@ router.post('/lead', async (req, res) => {
             event_type: "LEAD_CREATED",
             details: {
                 "message": `${req.user.name} has created a new lead.`,
-                "leadId": newLead._id
+                "leadId": newLead._id,
+                "status": newLead.status
             },
             is_seen: false,
             notify_users: notify_users
@@ -137,7 +138,8 @@ router.patch('/lead/:id/status', async (req, res) => {
             event_type: "LEAD_UPDATED",
             details: {
                 "message": `${req.user.name} has updated the status of a lead.`,
-                "leadId": updatedLead._id
+                "leadId": updatedLead._id,
+                "status": updatedLead.status
             },
             is_seen: false,
             notify_users: notify_users
@@ -170,7 +172,8 @@ router.put('/leads/:id', async (req, res) => {
             event_type: "LEAD_UPDATED",
             details: {
                 "message": `${req.user.name} has updated the details of a lead.`,
-                "leadId": updatedLead._id
+                "leadId": updatedLead._id,
+                "status": updatedLead.status
             },
             is_seen: false,
             notify_users: notify_users

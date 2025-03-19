@@ -2,10 +2,12 @@ const mongoose = require("mongoose");
 
 const PropertySchema = new mongoose.Schema(
     {
-        title: { type: String, required: true },
-        address: { type: String, required: true },
+        title: { type: String },
+        address: { type: String },
+        latitude: { type: String },
+        longitude: { type: String },
         description: { type: String },
-        saleOrRentprice: { type: Number, required: true },
+        saleOrRentprice: { type: Number },
         pricePrefix: { type: String },
         pricePostfix: { type: String },
         type: {
@@ -22,7 +24,7 @@ const PropertySchema = new mongoose.Schema(
             ],
             default: "none",
         },
-        status: { type: String, enum: ["OFF_PLAN", "SALE", "RENT"], required: true },
+        status: { type: String, enum: ["OFF_PLAN", "SALE", "RENT"] },
         location: {
             type: String,
             enum: [
@@ -57,7 +59,7 @@ const PropertySchema = new mongoose.Schema(
         bedrooms: { type: Number, default: 0 }, // Number of Bedrooms
         bathrooms: { type: Number, default: 0 }, // Number of Bathrooms
         garagesOrParkingSpaces: { type: Number, default: 0 }, // Number of Garages or Parking Spaces
-        area: { type: Number, required: true }, // Property Area
+        area: { type: Number }, // Property Area
         areaPostfix: { type: String, default: "sq ft" }, // Unit of Area
         developer: {
             type: String,
@@ -94,7 +96,7 @@ const PropertySchema = new mongoose.Schema(
         handoverDate: { type: Date }, // Handover Date
         isFeatured: { type: Boolean, default: false }, // Mark as Featured
         images: [
-            { type: String, required: true },
+            { type: String },
         ],
         // dldPermitQrCode: [{ type: String }],
         dldPermitQrCode: { type: String },
@@ -113,9 +115,9 @@ const PropertySchema = new mongoose.Schema(
         floorPlans: [
             {
                 _id: false, // Prevents MongoDB from auto-generating _id for each video object
-                floorName: { type: String, required: true },
-                description: { type: String, required: true },
-                floorPlanImage: { type: String, required: true },
+                floorName: { type: String },
+                description: { type: String },
+                floorPlanImage: { type: String },
                 floorPrice: { type: Number },
                 pricePostfix: { type: String },
                 floorSize: { type: Number },
@@ -127,7 +129,7 @@ const PropertySchema = new mongoose.Schema(
         videos: [
             {
                 _id: false, // Prevents MongoDB from auto-generating _id for each video object
-                title: { type: String, required: true },
+                title: { type: String },
                 url: {
                     type: String,
                     required: true,
@@ -139,8 +141,8 @@ const PropertySchema = new mongoose.Schema(
         additionalDetails: [
             {
                 _id: false, // Prevents MongoDB from auto-generating _id for each video object
-                title: { type: String, required: true },
-                value: { type: String, required: true },
+                title: { type: String },
+                value: { type: String },
             },
         ],
 

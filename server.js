@@ -28,12 +28,15 @@ const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
 const { setupWebSocket } = require("./websockets/websocket");
 require('./cron-jobs/syncHostaway');
+require('./cron-jobs/ejari-expirattion');
+// const seedUsers = require('./seeders/seedUsers');
 const http = require("http");
 
 dotenv.config();
 connectDB();
 const app = express();
 const server = http.createServer(app);
+// seedUsers();
 
 setupWebSocket(server); // Attach WebSocket to server
 app.use(cors());

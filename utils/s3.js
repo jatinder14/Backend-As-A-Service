@@ -36,7 +36,7 @@ async function generateSignedUrl(fileKey) {
         Bucket: process.env.S3_BUCKET,
         Key: fileKey,
     });
-
+    console.log("--------------", fileKey);
     try {
         const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
         return url;
@@ -96,10 +96,14 @@ async function getSignedUrlForUpload(data) {
 // module.exports = { getSignedUrlForUpload, downloadResourceFromS3 };
 
 function getKey(url) {
+    console.log("-------url-------", url);
+
     const lastSlashIndex = url.lastIndexOf('/');
 
     const queryIndex = url.indexOf('?');
     const endIndex = queryIndex !== -1 ? queryIndex : url.length;
+    console.log("-------url-end------", url);
+
     return url.substring(lastSlashIndex + 1, endIndex);
 };
 

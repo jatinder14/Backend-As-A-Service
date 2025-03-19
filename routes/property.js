@@ -61,7 +61,10 @@ router.get('/', async (req, res) => {
                     : [];
 
                 const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)
-                    ? property.floorPlans.map(el => generateSignedUrl(getKey(el.floorPlanImage)))
+                    ? property.floorPlans.map(el => {
+                        if (el.floorPlanImage)
+                            generateSignedUrl(getKey(el?.floorPlanImage))
+                    })
                     : [];
 
                 // Await all promises concurrently

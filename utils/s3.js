@@ -32,6 +32,10 @@ async function uploadImageToS3(imagePath, bucketName, keyName) {
 }
 
 async function generateSignedUrl(fileKey) {
+    if (!fileKey) {
+        console.log("Please Provide filekey---", fileKey);
+        return
+    }
     const command = new GetObjectCommand({
         Bucket: process.env.S3_BUCKET,
         Key: fileKey,
@@ -96,13 +100,14 @@ async function getSignedUrlForUpload(data) {
 // module.exports = { getSignedUrlForUpload, downloadResourceFromS3 };
 
 function getKey(url) {
-    console.log("-------url-------", url);
-
+    if (!url) {
+        console.log("Please Provide url---", url);
+        return
+    }
     const lastSlashIndex = url.lastIndexOf('/');
 
     const queryIndex = url.indexOf('?');
     const endIndex = queryIndex !== -1 ? queryIndex : url.length;
-    console.log("-------url-end------", url);
 
     return url.substring(lastSlashIndex + 1, endIndex);
 };

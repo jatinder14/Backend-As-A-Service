@@ -37,7 +37,7 @@ router.post('/', async (req, res) => {
 
     try {
         await newContact.save();
-        await sendEmail(newContact);
+        // await sendEmail(newContact);
         res.status(200).json({ message: 'Message sent successfully' });
     } catch (error) {
         console.error(error);

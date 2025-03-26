@@ -40,7 +40,7 @@ async function generateSignedUrl(fileKey) {
         Bucket: process.env.S3_BUCKET,
         Key: fileKey,
     });
-    console.log("--------------", fileKey);
+    console.log("------fileKey--------", fileKey);
     try {
         const url = await getSignedUrl(s3, command, { expiresIn: 3600 }); // URL expires in 1 hour
         return url;

@@ -9,6 +9,7 @@ const productRoutes = require('./routes/product');
 const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/project');
 const propertyRoutes = require('./routes/property');
+const careerRoutes = require('./routes/career');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
 const taskRoutes = require('./routes/task');
@@ -83,6 +84,7 @@ app.use('/api/projects', projectRoutes);
 // empire infratech
 
 app.use('/api/property', propertyRoutes);
+app.use('/api/careers/application', careerRoutes);
 
 
 

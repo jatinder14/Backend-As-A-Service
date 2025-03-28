@@ -9,6 +9,7 @@ const productRoutes = require('./routes/product');
 const blogRoutes = require('./routes/blog');
 const projectRoutes = require('./routes/project');
 const propertyRoutes = require('./routes/property');
+const enquiryRoutes = require('./routes/enquiry');
 const careerRoutes = require('./routes/career');
 const bookingRoutes = require('./routes/bookings');
 const paymentRoutes = require('./routes/payments');
@@ -48,7 +49,7 @@ app.use(express.json());
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: {
-        fileSize: 100 * 1024 * 1024, // limit file size to 5MB
+        fileSize: 1000 * 1024 * 1024, // limit file size to 1000MB
     },
 });
 
@@ -84,6 +85,7 @@ app.use('/api/projects', projectRoutes);
 // empire infratech
 
 app.use('/api/property', propertyRoutes);
+app.use('/api/property/enquiry', enquiryRoutes);
 app.use('/api/careers/application', careerRoutes);
 
 

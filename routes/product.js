@@ -30,19 +30,27 @@ router.get('/', async (req, res) => {
 
         // Generate signed URLs for logos and images in parallel for each Product
         const productsWithSignedUrls = await Promise.all(
-            products.map(async (Product) => {
-                const imagesPromises = Product.images && Array.isArray(Product.images)
-                    ? Product.images.map(image => generateSignedUrl(getKey(image)))
+            products.map(async (product) => {
+                // Run logo and images transformations in parallel
+                const imagesPromises = product.images && Array.isArray(product.images)
+                    ? product.images.map(image => generateSignedUrl(getKey(image)))
                     : [];
 
-                const [imagesSignedUrls] = await Promise.all([
-                    Promise.all(imagesPromises)
+                const pdfPromises = product.pdf && Array.isArray(product.pdf)
+                    ? product.pdf.map(pdf => generateSignedUrl(getKey(pdf)))
+                    : [];
+
+                // Await all promises concurrently
+                const [imagesSignedUrls, pdfSignedUrls] = await Promise.all([
+                    Promise.all(imagesPromises),
+                    Promise.all(pdfPromises)
                 ]);
 
-                // Assign signed URLs back to the Product object
-                Product.images = imagesSignedUrls;
+                // Assign the results to Product fields
+                product.images = imagesSignedUrls;
+                product.pdf = pdfSignedUrls;
 
-                return Product;
+                return product;
             })
         );
 
@@ -69,13 +77,19 @@ router.get('/:id', async (req, res) => {
             ? product.images.map(image => generateSignedUrl(getKey(image)))
             : [];
 
+        const pdfPromises = product.pdf && Array.isArray(product.pdf)
+            ? product.pdf.map(pdf => generateSignedUrl(getKey(pdf)))
+            : [];
+
         // Await all promises concurrently
-        const [imagesSignedUrls] = await Promise.all([
-            Promise.all(imagesPromises)
+        const [imagesSignedUrls, pdfSignedUrls] = await Promise.all([
+            Promise.all(imagesPromises),
+            Promise.all(pdfPromises)
         ]);
 
         // Assign the results to Product fields
         product.images = imagesSignedUrls;
+        product.pdf = pdfSignedUrls;
 
         res.status(200).json(product);
     } catch (err) {

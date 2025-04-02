@@ -10,7 +10,7 @@ const productSchema = new mongoose.Schema({
     featuresImages: [
         { type: String }
     ],          //  This is simple a key not an image 
-
+    pdf: [{ type: String }],
     logo: [{ type: String }],
     images: [{ type: String }],
 

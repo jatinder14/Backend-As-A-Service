@@ -74,9 +74,9 @@ server.listen(PORT, () => {
 // MVL
 
 // Auth Routes
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
 app.use('/api/products', productRoutes);
-app.use('/api/contact', contactUsRoutes);
+// app.use('/api/contact', contactUsRoutes);
 app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
 
@@ -84,10 +84,11 @@ app.use('/api/projects', projectRoutes);
 
 // empire infratech
 
+app.use('/api/auth', authRoutes);
 app.use('/api/property', propertyRoutes);
 app.use('/api/property/enquiry', enquiryRoutes);
 app.use('/api/careers/application', careerRoutes);
-
+app.use('/api/contact', contactUsRoutes);
 
 
 // end empire infratech

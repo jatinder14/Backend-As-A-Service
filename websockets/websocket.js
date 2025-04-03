@@ -5,6 +5,7 @@ const User = require("../models/User");
 const adminSockets = new Map();
 const userSockets = new Map();
 const OMSockets = new Map();
+const CEOSockets = new Map();
 
 function setupWebSocket(server) {
     const wss = new WebSocket.Server({ server, verifyClient });
@@ -48,10 +49,16 @@ function setupWebSocket(server) {
             if (user.role === "admin") {
                 adminSockets.set(user.id, ws);
                 console.log("👑 Admin added to WebSocket pool.");
-            } else if (user.role === "operations_manager") {
+            }
+            else if (user.role === "operations_manager") {
                 OMSockets.set(user.id, ws);
                 console.log("👑 Operation Manager added to WebSocket pool.");
-            } else {
+            }
+            else if (user.role === "ceo") {
+                CEOSockets.set(user.id, ws);
+                console.log("👑 Ceo added to WebSocket pool.");
+            }
+            else {
                 userSockets.set(user.id, ws);
                 console.log("👤 User added to WebSocket pool.");
             }
@@ -73,7 +80,16 @@ function setupWebSocket(server) {
                 if (user.role === "admin") {
                     adminSockets.delete(user.id);
                     console.log("❌ Admin disconnected.");
-                } else {
+                }
+                else if (user.role === "ceo") {
+                    CEOSockets.delete(user.id);
+                    console.log("❌ CEO disconnected.");
+                }
+                else if (user.role === "operations_manager") {
+                    OMSockets.delete(user.id);
+                    console.log("❌ Operation Manager disconnected.");
+                }
+                else {
                     userSockets.delete(user.id);
                     console.log("❌ User disconnected.");
                 }
@@ -101,11 +117,17 @@ function notifyOMs(event, data) {
     });
 }
 
+function notifyCEOs(event, data) {
+    CEOSockets.forEach((socket) => {
+        socket.send(JSON.stringify({ event, data }));
+    });
+}
+
 // 🔔 Notify specific users
 function notifyUsers(notify_users, event, data) {
     // console.log(userSockets)
     notify_users.forEach((userId) => {
-        const socket = userSockets.get(userId) || adminSockets.get(userId) || OMSockets.get(userId);
+        const socket = userSockets.get(userId) || adminSockets.get(userId) || OMSockets.get(userId) || CEOSockets.get(userId);
         console.log(socket)
         if (socket) {
             socket.send(JSON.stringify({ event, data }));
@@ -116,4 +138,4 @@ function notifyUsers(notify_users, event, data) {
 }
 
 
-module.exports = { setupWebSocket, notifyAdmins, notifyUsers, notifyOMs };
+module.exports = { setupWebSocket, notifyAdmins, notifyUsers, notifyOMs, notifyCEOs };

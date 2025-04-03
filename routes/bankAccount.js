@@ -37,15 +37,20 @@ router.post('/:leadId', async (req, res) => {
             return res.status(404).json({ message: 'Lead is not accepted yet!' });
         }
 
+
         const existingAccount = await BankAccount.findOne({ leadId });
         if (existingAccount) {
             return res.status(400).json({ message: 'Bank account already exists for this lead' });
         }
 
+        if (lead?.createdAt != req.user.id) {
+            return res.status(403).json({ message: 'Only the sales manager of the lead can upload the documents.' });
+        }
+
         const bankAccount = new BankAccount({ leadId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate });
         await bankAccount.save();
         lead.documentUploaded = true
-
+        lead.status = "Documents-Added"
         await lead.save();
 
         let notification = await Notification.create({
@@ -99,11 +104,16 @@ router.put('/:leadId', async (req, res) => {
             return res.status(404).json({ message: 'Lead not found' });
         }
 
+        if (lead?.createdAt != req.user.id) {
+            return res.status(403).json({ message: 'Only the sales manager of the lead can update the documents.' });
+        }
+
         const bankAccount = await BankAccount.findOne({ leadId: req.params.leadId });
 
         if (!bankAccount) {
             return res.status(404).json({ message: 'Bank account not found for this lead' });
         }
+
 
         // Update the fields
         bankAccount.accountNumber = req.body.accountNumber || bankAccount.accountNumber;
@@ -129,11 +139,20 @@ router.put('/:leadId', async (req, res) => {
         // Save the updated document
         await bankAccount.save();
 
+        let message = ''
+
+        if (ejari) {
+            lead.EjariUploaded = true
+            lead.status = 'Ejari-Uploaded'
+            message = `${req.user.name} has uploaded the singing tenancy contract.`
+            await lead.save();
+        }
+
         let notification = await Notification.create({
             name: "Documents Updated",
             event_type: "DOCUMENTS_UPDATED",
             details: {
-                "message": `${req.user.name} has updated the documents for the lead.`,
+                "message": message || `${req.user.name} has updated the documents for the lead.`,
                 "leadId": lead._id,
                 "bankAccountId": bankAccount._id
             },
@@ -165,6 +184,7 @@ router.delete('/:leadId', async (req, res) => {
         }
 
         lead.documentUploaded = false
+        lead.EjariUploaded = false
         await lead.save();
         res.status(200).json({ message: 'Bank account deleted successfully' });
     } catch (err) {

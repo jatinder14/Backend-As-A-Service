@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Lead = require('../models/Lead');
 const { verifyToken } = require('../middleware/auth');
-const { notifyUsers } = require('../websockets/websocket');
+const { notifyUsers, notifyOMs, notifyCEOs } = require('../websockets/websocket');
 const Notification = require('../models/notification');
 
 router.use(verifyToken);
@@ -18,7 +18,7 @@ router.post('/lead', async (req, res) => {
         const newLead = new Lead(leadData);
         await newLead.save();
 
-        const notify_users = [...new Set([newLead.createdBy?.toString(), newLead.updatedBy?.toString(), newLead.rejectedBy?.toString()].filter(Boolean))]
+        // const notify_users = [...new Set([newLead.createdBy?.toString(), newLead.updatedBy?.toString(), newLead.rejectedBy?.toString()].filter(Boolean))]
 
         console.log(req.user);
 
@@ -31,12 +31,14 @@ router.post('/lead', async (req, res) => {
                 "status": newLead.status
             },
             is_seen: false,
-            notify_users: notify_users
+            // notify_users: notify_users
         });
 
         // notifyUsers(notify_users, "LEAD_CREATED", `${req.user.name} has created a new lead (Lead ID: ${newLead._id}).`);
 
-        notifyUsers(notify_users, "LEAD_CREATED", notification);
+        // notifyUsers(notify_users, "LEAD_CREATED", notification);
+
+        notifyOMs("LEAD_CREATED", notification);
 
         res.status(201).json({ message: 'Lead created successfully', lead: newLead });
     } catch (err) {
@@ -103,6 +105,15 @@ router.patch('/lead/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status, rejectedReason } = req.body;
 
+    const lead = await Lead.findById(req.params.id)
+    if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+    if (lead?.type == 'PROPERTY') {
+        return res.status(400).json({
+            message: `Lead is already converted to property.`,
+        });
+    }
+
     let validStatuses = [];
 
     if (req.user.role == "ceo") {
@@ -146,7 +157,8 @@ router.patch('/lead/:id/status', async (req, res) => {
         // console.log("---------", status == 'Ejari-Verified-By-OM', { ...(status == 'Ejari-Verified-By-OM' && { type: 'PROPERTY' }) })
         console.log("updatedLead", updatedLead);
 
-        const notify_users = [...new Set([updatedLead.createdBy?._id?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+        // const notify_users = [...new Set([updatedLead.createdBy?._id?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+        const notify_users = [...new Set([updatedLead.createdBy?._id?.toString()].filter(Boolean))]
 
         let notification = await Notification.create({
             name: "Lead Updated",
@@ -162,6 +174,22 @@ router.patch('/lead/:id/status', async (req, res) => {
 
         notifyUsers(notify_users, "LEAD_UPDATED", notification);
 
+        if (status == 'OM-Approval') {
+            let pendingApprovalNotification = await Notification.create({
+                name: "Approval Pending",
+                event_type: "APPROVAL_PENDING",
+                details: {
+                    "message": `The lead is pending for approval.`,
+                    "leadId": updatedLead._id,
+                    "status": updatedLead.status
+                },
+                is_seen: false,
+                // notify_users: notify_users
+            });
+
+            notifyCEOs("APPROVAL_PENDING", pendingApprovalNotification);
+        }
+
         if (status == 'Ejari-Verified-By-OM') {
             let propertyCreatedNotification = await Notification.create({
                 name: "Property Created",
@@ -176,6 +204,7 @@ router.patch('/lead/:id/status', async (req, res) => {
             });
 
             notifyUsers(notify_users, "PROPERTY_CREATED", propertyCreatedNotification);
+            notifyCEOs("PROPERTY_CREATED", propertyCreatedNotification);
         }
 
         res.status(200).json({
@@ -192,10 +221,20 @@ router.put('/leads/:id', async (req, res) => {
     try {
         req.body.updatedBy = req.user.id;
 
+        const lead = await Lead.findById(req.params.id)
+        if (!lead) return res.status(404).json({ message: 'Lead not found' });
+
+        if (lead?.type == 'PROPERTY') {
+            return res.status(400).json({
+                message: `Lead is already converted to property.`,
+            });
+        }
+
         const updatedLead = await Lead.findByIdAndUpdate(req.params.id, req.body, { new: true });
 
         if (!updatedLead) return res.status(404).json({ message: 'Lead not found' });
 
+        // sending this notification to all the associated users of the lead because the sales manager might updating the lead details based on the rejectedBy reason.
         const notify_users = [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
 
         let notification = await Notification.create({

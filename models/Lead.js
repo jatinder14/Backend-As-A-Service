@@ -24,13 +24,19 @@ const LeadSchema = new mongoose.Schema({
     },
     status: {
         type: String,
-        enum: ['Pending', 'OM-Approval', 'Accepted', 'Documents-Verified-By-OM', 'Ejari-Verified-By-OM', 'Rejected', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
+        enum: ['Pending', 'OM-Approval', 'Accepted', 'Documents-Added', 'Documents-Verified-By-OM', 'Ejari-Uploaded', 'Ejari-Verified-By-OM', 'Rejected'], // List of possible statuses
         default: 'Pending', // Default status
     },
     documentUploaded: {
         type: Boolean,
         default: false, // Default status
     },
+    EjariUploaded: {
+        type: Boolean,
+        default: false, // Default status
+    },
+    userName: { type: String },
+    password: { type: String },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     updatedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },

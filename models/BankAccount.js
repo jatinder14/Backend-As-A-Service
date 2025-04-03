@@ -21,6 +21,7 @@ const BankAccountSchema = new mongoose.Schema({
         required: true,
         validate: {
             validator: function (value) {
+                // console.log("------------fadf", this.startDate, this.endDate)
                 return value >= this.startDate;
             },
             message: 'End date must be greater than or equal to start date'

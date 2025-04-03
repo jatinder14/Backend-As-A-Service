@@ -16,9 +16,15 @@ const LeadSchema = new mongoose.Schema({
         required: true
     },
     leadName: { type: String },
+    type: {
+        type: String,
+        enum: ['LEAD', 'PROPERTY'], // List of possible statuses
+        default: 'LEAD', // Default status
+        required: true
+    },
     status: {
         type: String,
-        enum: ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
+        enum: ['Pending', 'OM-Approval', 'Accepted', 'Documents-Verified-By-OM', 'Ejari-Verified-By-OM', 'Rejected', 'Contacted', 'Converted', 'Lost'], // List of possible statuses
         default: 'Pending', // Default status
     },
     documentUploaded: {

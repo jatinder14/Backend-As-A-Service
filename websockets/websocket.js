@@ -4,6 +4,7 @@ const User = require("../models/User");
 
 const adminSockets = new Map();
 const userSockets = new Map();
+const OMSockets = new Map();
 
 function setupWebSocket(server) {
     const wss = new WebSocket.Server({ server, verifyClient });
@@ -47,6 +48,9 @@ function setupWebSocket(server) {
             if (user.role === "admin") {
                 adminSockets.set(user.id, ws);
                 console.log("👑 Admin added to WebSocket pool.");
+            } else if (user.role === "operations_manager") {
+                OMSockets.set(user.id, ws);
+                console.log("👑 Operation Manager added to WebSocket pool.");
             } else {
                 userSockets.set(user.id, ws);
                 console.log("👤 User added to WebSocket pool.");
@@ -91,11 +95,17 @@ function notifyAdmins(event, data) {
     });
 }
 
+function notifyOMs(event, data) {
+    OMSockets.forEach((socket) => {
+        socket.send(JSON.stringify({ event, data }));
+    });
+}
+
 // 🔔 Notify specific users
 function notifyUsers(notify_users, event, data) {
     // console.log(userSockets)
     notify_users.forEach((userId) => {
-        const socket = userSockets.get(userId) || adminSockets.get(userId);
+        const socket = userSockets.get(userId) || adminSockets.get(userId) || OMSockets.get(userId);
         console.log(socket)
         if (socket) {
             socket.send(JSON.stringify({ event, data }));
@@ -106,4 +116,4 @@ function notifyUsers(notify_users, event, data) {
 }
 
 
-module.exports = { setupWebSocket, notifyAdmins, notifyUsers };
+module.exports = { setupWebSocket, notifyAdmins, notifyUsers, notifyOMs };

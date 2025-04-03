@@ -2,6 +2,8 @@ const express = require('express');
 const BankAccount = require('../models/BankAccount');
 const Lead = require('../models/Lead');
 const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { notifyOMs } = require('../websockets/websocket');
+const Notification = require('../models/notification');
 
 const router = express.Router();
 
@@ -31,6 +33,10 @@ router.post('/:leadId', async (req, res) => {
             return res.status(404).json({ message: 'Lead not found' });
         }
 
+        if (lead?.status != 'Accepted') {
+            return res.status(404).json({ message: 'Lead is not accepted yet!' });
+        }
+
         const existingAccount = await BankAccount.findOne({ leadId });
         if (existingAccount) {
             return res.status(400).json({ message: 'Bank account already exists for this lead' });
@@ -39,7 +45,23 @@ router.post('/:leadId', async (req, res) => {
         const bankAccount = new BankAccount({ leadId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate });
         await bankAccount.save();
         lead.documentUploaded = true
+
         await lead.save();
+
+        let notification = await Notification.create({
+            name: "Documents Added",
+            event_type: "DOCUMENTS_ADDED",
+            details: {
+                "message": `${req.user.name} has Added the documents for the lead.`,
+                "leadId": lead._id,
+                "bankAccountId": bankAccount._id
+            },
+            is_seen: false,
+            // notify_users: notify_users
+        });
+
+        notifyOMs("DOCUMENTS_ADDED", notification);
+
         res.status(201).json({ message: 'Bank account created successfully', bankAccount });
     } catch (err) {
         res.status(500).json({ message: 'Error creating bank account', error: err.message });
@@ -76,14 +98,51 @@ router.put('/:leadId', async (req, res) => {
         if (!lead) {
             return res.status(404).json({ message: 'Lead not found' });
         }
-        const bankAccount = await BankAccount.findOneAndUpdate(
-            { leadId },
-            { accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate },
-            { new: true, runValidators: true }
-        );
+
+        const bankAccount = await BankAccount.findOne({ leadId: req.params.leadId });
+
         if (!bankAccount) {
             return res.status(404).json({ message: 'Bank account not found for this lead' });
         }
+
+        // Update the fields
+        bankAccount.accountNumber = req.body.accountNumber || bankAccount.accountNumber;
+        bankAccount.accountName = req.body.accountName || bankAccount.accountName;
+        bankAccount.iban = req.body.iban || bankAccount.iban;
+        bankAccount.branchName = req.body.branchName || bankAccount.branchName;
+        bankAccount.startDate = req.body.startDate || bankAccount.startDate;
+        bankAccount.endDate = req.body.endDate || bankAccount.endDate;
+        bankAccount.emiratesIdFront = req.body.emiratesIdFront || bankAccount.emiratesIdFront;
+        bankAccount.emiratesIdBack = req.body.emiratesIdBack || bankAccount.emiratesIdBack;
+        bankAccount.passport = req.body.passport || bankAccount.passport;
+        bankAccount.ejari = req.body.ejari || bankAccount.ejari;
+        bankAccount.Addendum = req.body.Addendum || bankAccount.Addendum;
+        bankAccount.maintenanceKey = req.body.maintenanceKey ?? bankAccount.maintenanceKey;
+        bankAccount.accessCard = req.body.accessCard ?? bankAccount.accessCard;
+        bankAccount.parkingKey = req.body.parkingKey ?? bankAccount.parkingKey;
+
+        // Validate endDate again before saving
+        if (bankAccount.endDate < bankAccount.startDate) {
+            return res.status(400).json({ error: "End date must be greater than or equal to start date" });
+        }
+
+        // Save the updated document
+        await bankAccount.save();
+
+        let notification = await Notification.create({
+            name: "Documents Updated",
+            event_type: "DOCUMENTS_UPDATED",
+            details: {
+                "message": `${req.user.name} has updated the documents for the lead.`,
+                "leadId": lead._id,
+                "bankAccountId": bankAccount._id
+            },
+            is_seen: false,
+            // notify_users: notify_users
+        });
+
+        notifyOMs("DOCUMENTS_UPDATED", notification);
+
         res.status(200).json({ message: 'Bank account updated successfully', bankAccount });
     } catch (err) {
         res.status(500).json({ message: 'Error updating bank account', error: err.message });

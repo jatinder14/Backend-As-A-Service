@@ -8,7 +8,7 @@ const notificationSchema = new mongoose.Schema({
   event_type: {
     type: String,
     required: true,
-    enum: ['LEAD_CREATED', 'LEAD_UPDATED', 'LEAVE_CREATED', 'LEAVE_UPDATED', 'TASK_CREATED', 'TASK_UPDATED'],
+    // enum: ['LEAD_CREATED', 'LEAD_UPDATED', 'LEAVE_CREATED', 'LEAVE_UPDATED', 'TASK_CREATED', 'TASK_UPDATED'],
   },
   details: {
     type: Object,

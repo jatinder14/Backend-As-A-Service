@@ -47,7 +47,7 @@ router.post('/lead', async (req, res) => {
 router.get('/leads', async (req, res) => {
     try {
         console.log(req.user);
-        const { page = 1, limit = 10, status } = req.query;
+        const { page = 1, limit = 10, status, type } = req.query;
 
         let query = {};
         if (req.user.role == "sales") {
@@ -61,6 +61,11 @@ router.get('/leads', async (req, res) => {
         if (status) {
             query.status = status
         }
+
+        if (type) {
+            query.type = type
+        }
+
         const totalLeads = await Lead.countDocuments(query);
 
         const leads = await Lead.find(query)
@@ -98,15 +103,21 @@ router.patch('/lead/:id/status', async (req, res) => {
     const { id } = req.params;
     const { status, rejectedReason } = req.body;
 
-    let validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'];
+    let validStatuses = [];
 
     if (req.user.role == "ceo") {
-        validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Rejected', 'Contacted', 'Converted', 'Lost'];
+        // validStatuses = ['Pending', 'OM-Approval', 'Accepted', 'Documents-Verified-By-OM', 'Ejari-Verified-By-OM', 'Rejected', 'Contacted', 'Converted', 'Lost'];
+        validStatuses = ['Pending', 'Accepted', 'Rejected'];
     }
     else if (req.user.role == "operations_manager") {
-        validStatuses = ['Pending', 'OM-Approval', 'Rejected'];
+        validStatuses = ['Pending', 'OM-Approval', 'Rejected', 'Documents-Verified-By-OM', 'Ejari-Verified-By-OM'];
     }
 
+    if (!validStatuses.length) {
+        return res.status(400).json({
+            message: `You are not allowed to update the status of the lead.`,
+        });
+    }
     if (!validStatuses.includes(status)) {
         return res.status(400).json({
             message: `Invalid status. Allowed statuses are: ${validStatuses.join(', ')}.`,
@@ -121,17 +132,21 @@ router.patch('/lead/:id/status', async (req, res) => {
                     status,
                     updatedBy: req?.user?.id,
                     ...(rejectedReason && { rejectedBy: req?.user?.id, rejectedReason }),
+                    ...(status == 'Ejari-Verified-By-OM' && { type: 'PROPERTY' }),
                 }
             },
             { new: true }
-        );
+        ).populate('createdBy');
 
         if (!updatedLead) {
             return res.status(404).json({ message: 'Lead not found.' });
         }
-        console.log({ ...(rejectedReason && { rejectedBy: req?.user?.id, rejectedReason }) }, [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))])
+        // console.log({ ...(rejectedReason && { rejectedBy: req?.user?.id, rejectedReason }) }, [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))])
 
-        const notify_users = [...new Set([updatedLead.createdBy?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
+        // console.log("---------", status == 'Ejari-Verified-By-OM', { ...(status == 'Ejari-Verified-By-OM' && { type: 'PROPERTY' }) })
+        console.log("updatedLead", updatedLead);
+
+        const notify_users = [...new Set([updatedLead.createdBy?._id?.toString(), updatedLead.updatedBy?.toString(), updatedLead.rejectedBy?.toString()].filter(Boolean))]
 
         let notification = await Notification.create({
             name: "Lead Updated",
@@ -146,6 +161,22 @@ router.patch('/lead/:id/status', async (req, res) => {
         });
 
         notifyUsers(notify_users, "LEAD_UPDATED", notification);
+
+        if (status == 'Ejari-Verified-By-OM') {
+            let propertyCreatedNotification = await Notification.create({
+                name: "Property Created",
+                event_type: "PROPERTY_CREATED",
+                details: {
+                    "message": `Congratulations ${updatedLead?.createdBy?.name}!! the lead has been successfully converted to property.`,
+                    "leadId": updatedLead._id,
+                    "status": updatedLead.status
+                },
+                is_seen: false,
+                notify_users: notify_users
+            });
+
+            notifyUsers(notify_users, "PROPERTY_CREATED", propertyCreatedNotification);
+        }
 
         res.status(200).json({
             message: 'Lead status updated successfully.',

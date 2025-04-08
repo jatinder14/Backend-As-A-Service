@@ -11,6 +11,7 @@ const PropertySchema = new mongoose.Schema(
         saleOrRentprice: { type: Number },
         pricePrefix: { type: String },
         pricePostfix: { type: String },
+        soldOut : { type: Boolean, default: false },
         type: {
             type: String,
             enum: [

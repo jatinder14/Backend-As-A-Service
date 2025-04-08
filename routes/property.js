@@ -15,13 +15,14 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut } = req.query;
         const query = {};
 
         if (status) query.status = { $regex: status, $options: 'i' };
         if (title) query.title = { $regex: title, $options: 'i' };
 
         if (location) query.location = location
+        if (soldOut) query.soldOut = soldOut
 
         if (type) query.type = type
 

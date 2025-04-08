@@ -29,6 +29,7 @@ const PropertySchema = new mongoose.Schema(
         location: {
             type: String,
             enum: [
+                "",
                 "Al Safa",
                 "City Walk",
                 "Damac Hills",

@@ -55,7 +55,7 @@ const PropertySchema = new mongoose.Schema(
                 "none"
             ],
             default: "none",
-            required: true,
+            // required: true,
         },
         bedrooms: { type: Number, default: 0 }, // Number of Bedrooms
         bathrooms: { type: Number, default: 0 }, // Number of Bathrooms
@@ -133,7 +133,7 @@ const PropertySchema = new mongoose.Schema(
                 title: { type: String },
                 url: {
                     type: String,
-                    required: true,
+                    // required: true,
                     // match: /^(https?:\/\/)?(www\.)?(youtube\.com|vimeo\.com|.*\.(swf|mov))/, // Ensures only supported formats
                 },
             },
@@ -224,7 +224,7 @@ const PropertySchema = new mongoose.Schema(
 
         acceptTermsAndConditions: {
             type: Boolean,
-            required: true,
+            // required: true,
             default: false, // Ensures the user must accept before submitting
         },
 

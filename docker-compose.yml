@@ -1,12 +1,12 @@
 version: '1'
 services:
-  duomo:
+  empire-infratech:
     build: .
-    container_name: duomo
+    container_name: empire-infratech
     ports:
-      - "80:80"
+      - "8000:8000"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/duomo
+      - MONGO_URI=mongodb://mongo:27017/empire-infratech
     depends_on:
       - mongo
     volumes:

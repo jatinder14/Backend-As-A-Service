@@ -104,8 +104,8 @@ router.put('/:leadId', async (req, res) => {
             return res.status(404).json({ message: 'Lead not found' });
         }
 
-        if (lead?.createdAt != req.user.id) {
-            return res.status(403).json({ message: 'Only the sales manager of the lead can update the documents.' });
+        if (lead?.createdBy != req.user.id) {
+            return res.status(403).json({ message: 'Only the sales manager or the person who has created the lead can update the documents.' });
         }
 
         const bankAccount = await BankAccount.findOne({ leadId: req.params.leadId });

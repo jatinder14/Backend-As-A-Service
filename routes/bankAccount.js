@@ -43,8 +43,8 @@ router.post('/:leadId', async (req, res) => {
             return res.status(400).json({ message: 'Bank account already exists for this lead' });
         }
 
-        if (lead?.createdAt != req.user.id) {
-            return res.status(403).json({ message: 'Only the sales manager of the lead can upload the documents.' });
+        if (lead?.createdBy != req.user.id) {
+            return res.status(403).json({ message: 'Only the sales manager or the person who has created the lead can update the documents.' });
         }
 
         const bankAccount = new BankAccount({ leadId, accountNumber, accountName, iban, branchName, emiratesIdFront, emiratesIdBack, passport, ejari, maintenanceKey, accessCard, parkingKey, Addendum, startDate, endDate });
@@ -109,6 +109,7 @@ router.put('/:leadId', async (req, res) => {
         }
 
         const bankAccount = await BankAccount.findOne({ leadId: req.params.leadId });
+        console.log("-------bak---------", bankAccount, req.params.leadId);
 
         if (!bankAccount) {
             return res.status(404).json({ message: 'Bank account not found for this lead' });

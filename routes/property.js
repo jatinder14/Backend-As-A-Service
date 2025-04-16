@@ -19,7 +19,12 @@ router.get('/', async (req, res) => {
         const query = {};
 
         if (status) query.status = { $regex: status, $options: 'i' };
+
+        if (status === 'SALES_ALL')
+            query.status = { $in: ['SALE', 'SALE_OFF_PLAN'] };
+
         if (title) query.title = { $regex: title, $options: 'i' };
+
 
         if (location) query.location = location
         if (soldOut) query.soldOut = soldOut

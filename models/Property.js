@@ -11,7 +11,7 @@ const PropertySchema = new mongoose.Schema(
         saleOrRentprice: { type: Number },
         pricePrefix: { type: String },
         pricePostfix: { type: String },
-        soldOut : { type: Boolean, default: false },
+        soldOut: { type: Boolean, default: false },
         type: {
             type: String,
             enum: [
@@ -26,7 +26,8 @@ const PropertySchema = new mongoose.Schema(
             ],
             default: "none",
         },
-        status: { type: String, enum: ["OFF_PLAN", "SALE", "RENT"] },
+        // status: { type: String, enum: ["OFF_PLAN", "SALE", "RENT"] },
+        status: { type: String, enum: ["OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT"] },
         location: {
             type: String,
             enum: [

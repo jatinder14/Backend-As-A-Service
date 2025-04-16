@@ -56,7 +56,6 @@ server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
 
-// MVL
 
 // Auth Routes
 // app.use('/api/auth', authRoutes);
@@ -67,8 +66,6 @@ app.use('/api/products', productRoutes);
 
 app.use('/api/blogs', blogRoutes);
 app.use('/api/projects', projectRoutes);
-
-// end MVL
 
 // empire infratech
 

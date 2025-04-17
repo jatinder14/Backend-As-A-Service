@@ -42,7 +42,7 @@ const uploadController = new UploadController();
 
 // Server health check
 app.get('/', (req, res) => {
-    res.send('Empire Infratech Admin Portal Backend');
+    res.send('Empire Infratech Backend Server is healthy');
 });
 
 // s3 routes

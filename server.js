@@ -57,7 +57,7 @@ const uploadController = new UploadController();
 
 // Server health check
 app.get('/', (req, res) => {
-    res.send('Duomo Admin Portal Backend');
+    res.send('Duomo Backend is healthy!');
 });
 
 // s3 routes

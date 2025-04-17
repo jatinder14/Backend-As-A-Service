@@ -2,6 +2,7 @@ const express = require('express');
 const Property = require('../models/Property');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 const router = express.Router();
+const getExchangeRates = require('../utils/currency');
 
 router.post('/', async (req, res) => {
     try {
@@ -52,10 +53,24 @@ router.get('/', async (req, res) => {
             .limit(limit * 1)
             .skip((page - 1) * limit);
 
+        const fromCurrency = 'AED';
+        const toCurrency = req.query?.toCurrency?.toUpperCase()
+
+        let conversionRate = 1
+        if (fromCurrency !== toCurrency)
+            conversionRate = await getExchangeRates(fromCurrency, toCurrency);
+
         // Generate signed URLs for logos and images in parallel for each Property
         const propertiesWithSignedUrls = await Promise.all(
 
             properties.map(async (property) => {
+
+                if (fromCurrency !== toCurrency) {
+                    if (property.saleOrRentprice && conversionRate) {
+                        property.saleOrRentprice = (property.saleOrRentprice * conversionRate).toFixed(2);
+                    }
+                }
+
                 const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
 
                 const imagesPromises = property.images && Array.isArray(property.images)
@@ -123,6 +138,18 @@ router.get('/:id', async (req, res) => {
         let property = await Property.findById(req.params.id);
         if (!property) return res.status(404).json({ message: 'Property not found' });
 
+        const fromCurrency = 'AED';
+        const toCurrency = req.query?.toCurrency?.toUpperCase()
+        if (fromCurrency !== toCurrency) {
+            const conversionRate = await getExchangeRates(property?.baseCurrency || fromCurrency, toCurrency || fromCurrency);
+
+            // Convert sale or rent price
+            if (property.saleOrRentprice && conversionRate) {
+                property.saleOrRentprice = (property.saleOrRentprice * conversionRate).toFixed(2);  // Convert and format to 2 decimal places
+                // console.log(conversionRate, property?.baseCurrency, toCurrency, (property.saleOrRentprice * conversionRate).toFixed(2), property.saleOrRentprice)
+                // property.baseCurrency = toCurrency;  // Update the currency field to the target currency
+            }
+        }
         const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
 
         const imagesPromises = property.images && Array.isArray(property.images)

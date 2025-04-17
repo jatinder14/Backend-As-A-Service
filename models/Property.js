@@ -26,6 +26,12 @@ const PropertySchema = new mongoose.Schema(
             ],
             default: "none",
         },
+        baseCurrency: {
+            type: String,
+            enum: ["INR", "USD", "GBP", "YEN", "EURO", "AED", "RUB"],
+            default: "AED",
+        },
+
         // status: { type: String, enum: ["OFF_PLAN", "SALE", "RENT"] },
         status: { type: String, enum: ["OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT"] },
         location: {

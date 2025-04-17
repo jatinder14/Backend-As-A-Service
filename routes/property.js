@@ -1,8 +1,8 @@
 const express = require('express');
 const Property = require('../models/Property');
 const { generateSignedUrl, getKey } = require('../utils/s3');
-const router = express.Router();
 const getExchangeRates = require('../utils/currency');
+const router = express.Router();
 
 router.post('/', async (req, res) => {
     try {
@@ -141,7 +141,7 @@ router.get('/:id', async (req, res) => {
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
         if (fromCurrency !== toCurrency) {
-            const conversionRate = await getExchangeRates(property?.baseCurrency || fromCurrency, toCurrency || fromCurrency);
+            const conversionRate = await getExchangeRates(property?.baseCurrency || fromCurrency, toCurrency);
 
             // Convert sale or rent price
             if (property.saleOrRentprice && conversionRate) {
@@ -192,9 +192,11 @@ router.get('/:id', async (req, res) => {
                 el.url = videosSignedUrls[index];
             });
         }
+
         // console.log("videosSignedUrls", videosSignedUrls, property.videos);
 
         res.status(200).json(property);
+
     } catch (err) {
         res.status(500).json({ message: err.message });
     }

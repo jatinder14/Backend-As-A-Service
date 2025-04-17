@@ -16,7 +16,7 @@ const getExchangeRates = async (from, to) => {
     }
 };
 
-getExchangeRates("AED", "USD");
+// getExchangeRates("AED", "USD");
 
 module.exports = getExchangeRates;
 

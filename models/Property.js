@@ -67,9 +67,9 @@ const PropertySchema = new mongoose.Schema(
             default: "none",
             // required: true,
         },
-        bedrooms: { type: Number, default: 0 }, // Number of Bedrooms
-        bathrooms: { type: Number, default: 0 }, // Number of Bathrooms
-        garagesOrParkingSpaces: { type: Number, default: 0 }, // Number of Garages or Parking Spaces
+        bedrooms: { type: String, default: 0 }, // Number of Bedrooms
+        bathrooms: { type: String, default: 0 }, // Number of Bathrooms
+        garagesOrParkingSpaces: { type: String, default: 0 }, // Number of Garages or Parking Spaces
         area: { type: Number }, // Property Area
         areaPostfix: { type: String, default: "sq ft" }, // Unit of Area
         developer: {
@@ -133,7 +133,7 @@ const PropertySchema = new mongoose.Schema(
                 pricePostfix: { type: String },
                 floorSize: { type: Number },
                 sizePostfix: { type: String },
-                bedrooms: { type: Number },
+                bedrooms: { type: String },
                 bathrooms: { type: Number },
             },
         ],

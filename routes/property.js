@@ -18,6 +18,7 @@ router.get('/', async (req, res) => {
     try {
         const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut } = req.query;
         const query = {};
+        let mapLocations = [];
 
         if (status) query.status = { $regex: status, $options: 'i' };
 
@@ -48,7 +49,7 @@ router.get('/', async (req, res) => {
         //     }
         // }
 
-        const totalPropertys = await Property.countDocuments(query);
+        const totalPropertys = await Property.find(query);
         const properties = await Property.find(query)
             .limit(limit * 1)
             .skip((page - 1) * limit);
@@ -121,11 +122,44 @@ router.get('/', async (req, res) => {
             })
         );
 
+        await Promise.all(totalPropertys.map(async (property) => {
+            const imagesPromises = property.images && Array.isArray(property.images)
+                ? generateSignedUrl(getKey(property?.images?.[0]))
+                // ? property.images.map(image => generateSignedUrl(getKey(image)))
+                : [];
+
+            // console.log("------jatinder", imagesPromises)
+            // Await all promises concurrently
+            const imagesSignedUrls = await imagesPromises
+            // console.log("------mahajan", imagesSignedUrls)
+
+            // const [imagesSignedUrls] = await Promise.all([
+            //     Promise.all(imagesPromises),
+            // ]);
+
+            // Assign the results to Property fields
+            property.images = imagesSignedUrls;
+
+            mapLocations.push({
+                id: property?.id,
+                latitude: property?.latitude,
+                longitude: property?.longitude,
+                title: property?.title,
+                description: property?.description,
+                images: property?.images,
+                saleOrRentprice: property?.saleOrRentprice,
+            })
+        })
+        )
+
         res.json({
-            totalPropertys,
+            totalPropertys: totalPropertys.length,
             currentPage: page,
-            totalPages: Math.ceil(totalPropertys / limit),
-            properties: propertiesWithSignedUrls
+            currentPageCount: limit,
+            totalPages: Math.ceil(totalPropertys.length / limit),
+            properties: propertiesWithSignedUrls,
+            mapLocationsCount: mapLocations.length,
+            mapLocations
         });
 
     } catch (err) {

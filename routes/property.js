@@ -17,13 +17,20 @@ router.post('/', async (req, res) => {
 router.get('/', async (req, res) => {
     try {
         const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut } = req.query;
-        const query = {};
         let mapLocations = [];
+        const query = {};
 
-        if (status) query.status = { $regex: status, $options: 'i' };
+        if (status) {
+            if (status === 'SALES_ALL') {
+                query.status = { $in: ['SALE', 'SALE_OFF_PLAN'] };
+            } else {
+                query.status = { $regex: status, $options: 'i' };
+            }
+        } else {
+            // Exclude DRAFT if no status is provided
+            query.status = { $ne: 'DRAFT' };
+        }
 
-        if (status === 'SALES_ALL')
-            query.status = { $in: ['SALE', 'SALE_OFF_PLAN'] };
 
         if (title) query.title = { $regex: title, $options: 'i' };
 

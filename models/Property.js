@@ -1,9 +1,11 @@
 //Empire Infratech 
 const mongoose = require("mongoose");
+const slugify = require('slugify');
 
 const PropertySchema = new mongoose.Schema(
     {
-        title: { type: String },
+        title: { type: String, required: true },
+        slug: { type: String, unique: true },
         address: { type: String },
         latitude: { type: String },
         longitude: { type: String },
@@ -14,6 +16,9 @@ const PropertySchema = new mongoose.Schema(
         soldOut: { type: Boolean, default: false },
         propertyStatusMessage: { type: String },
         referenceNumber: [{ type: String }],
+        meta_title: [{ type: String }],
+        meta_keyword: [{ type: String }],
+        meta_description: [{ type: String }],
         type: {
             type: String,
             // enum: [
@@ -246,5 +251,41 @@ const PropertySchema = new mongoose.Schema(
     },
     { timestamps: true }
 );
+
+// Pre-save hook to auto-generate slug
+PropertySchema.pre('save', function (next) {
+    if (this.isModified('title')) {
+        this.slug = slugify(this.title, {
+            lower: true,
+            strict: true,
+            trim: true
+        });
+    }
+    next();
+})
+
+// For update (findOneAndUpdate, findByIdAndUpdate)
+PropertySchema.pre('findOneAndUpdate', async function (next) {
+    const update = this.getUpdate();
+
+    if (update?.title) {
+        const slug = slugify(update.title, {
+            lower: true,
+            strict: true,
+            trim: true
+        });
+
+        // Ensure you're modifying the correct object, even with `$set`
+        if (update.$set) {
+            update.$set.slug = slug;
+        } else {
+            update.slug = slug;
+        }
+
+        this.setUpdate(update);
+    }
+
+    next();
+});
 
 module.exports = mongoose.model("Property", PropertySchema);

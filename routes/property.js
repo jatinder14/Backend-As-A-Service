@@ -3,6 +3,8 @@ const Property = require('../models/Property');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 const getExchangeRates = require('../utils/currency');
 const router = express.Router();
+const mongoose = require("mongoose");
+const isValidObjectId = mongoose.Types.ObjectId.isValid;
 
 router.post('/', async (req, res) => {
     try {
@@ -174,10 +176,24 @@ router.get('/', async (req, res) => {
     }
 });
 
-router.get('/:id', async (req, res) => {
+router.get('/:idOrSlug', async (req, res) => {
     try {
-        let property = await Property.findById(req.params.id);
-        if (!property) return res.status(404).json({ message: 'Property not found' });
+
+        const { idOrSlug } = req.params;
+        let property;
+
+        if (isValidObjectId(idOrSlug)) {
+            property = await Property.findById(idOrSlug);
+        }
+
+        // If not found by ID or if not a valid ObjectId, try slug
+        if (!property) {
+            property = await Property.findOne({ slug: idOrSlug });
+        }
+
+        if (!property) {
+            return res.status(404).json({ message: 'Property not found' });
+        }
 
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
@@ -246,6 +262,8 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
+        if (req.body.slug) delete req.body.slug
+
         const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!property) return res.status(404).json({ message: 'Property not found' });
         res.status(200).json({ message: 'property updated successfully', property });

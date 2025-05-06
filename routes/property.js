@@ -151,6 +151,7 @@ router.get('/', async (req, res) => {
 
             mapLocations.push({
                 id: property?.id,
+                slug: property?.slug,
                 latitude: property?.latitude,
                 longitude: property?.longitude,
                 title: property?.title,
@@ -178,7 +179,6 @@ router.get('/', async (req, res) => {
 
 router.get('/:idOrSlug', async (req, res) => {
     try {
-
         const { idOrSlug } = req.params;
         let property;
 
@@ -282,6 +282,19 @@ router.delete('/:id', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+
+// async function backfillSlugs() {
+
+//     const docs = await Property.find({ slug: { $exists: false } });
+//     for (const doc of docs) {
+//         // re‑assign title to itself to trip your pre('save') logic:
+//         doc.title = doc.title;
+//         await doc.save();
+//     }
+//     console.log(`✅ Backfilled ${docs.length} slugs`);
+// }
+
+// backfillSlugs()
 
 module.exports = router;
 

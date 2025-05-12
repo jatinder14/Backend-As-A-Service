@@ -42,7 +42,7 @@ router.get('/', async (req, res) => {
 
         if (type) query.type = type
 
-        if (saleOrRentprice) query.saleOrRentprice = { $gte: saleOrRentprice }
+        if (saleOrRentprice) query.saleOrRentprice = { $lte: saleOrRentprice }
 
         if (bathrooms)
             query.bathrooms = {

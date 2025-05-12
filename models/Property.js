@@ -10,7 +10,7 @@ const PropertySchema = new mongoose.Schema(
         latitude: { type: String },
         longitude: { type: String },
         description: { type: String },
-        saleOrRentprice: { type: String },
+        saleOrRentprice: { type: Number },
         pricePrefix: { type: String },
         pricePostfix: { type: String },
         soldOut: { type: Boolean, default: false },

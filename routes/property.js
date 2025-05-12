@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -41,6 +41,8 @@ router.get('/', async (req, res) => {
         if (soldOut) query.soldOut = soldOut
 
         if (type) query.type = type
+
+        if (saleOrRentprice) query.saleOrRentprice = { $gte: saleOrRentprice }
 
         if (bathrooms)
             query.bathrooms = {

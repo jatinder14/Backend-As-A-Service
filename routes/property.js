@@ -1,10 +1,12 @@
 const express = require('express');
 const Property = require('../models/Property');
 const { generateSignedUrl, getKey } = require('../utils/s3');
-const getExchangeRates = require('../utils/currency');
+const { getExchangeRates, getCryptoExchangeRates } = require('../utils/currencyExchange');
 const router = express.Router();
 const mongoose = require("mongoose");
 const isValidObjectId = mongoose.Types.ObjectId.isValid;
+
+let supportedCryptoCurrencies = ["BTC", "ETH", "BNB", "USDT"]
 
 router.post('/', async (req, res) => {
     try {
@@ -197,16 +199,33 @@ router.get('/:idOrSlug', async (req, res) => {
 
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
-        if (fromCurrency !== toCurrency) {
-            const conversionRate = await getExchangeRates(property?.baseCurrency || fromCurrency, toCurrency);
 
-            // Convert sale or rent price
-            if (property.saleOrRentprice && conversionRate) {
-                property.saleOrRentprice = (property.saleOrRentprice * conversionRate).toFixed(2);  // Convert and format to 2 decimal places
-                // console.log(conversionRate, property?.baseCurrency, toCurrency, (property.saleOrRentprice * conversionRate).toFixed(2), property.saleOrRentprice)
-                // property.baseCurrency = toCurrency;  // Update the currency field to the target currency
+        if (fromCurrency !== toCurrency) {
+            if (supportedCryptoCurrencies.includes(toCurrency)) {
+
+                const conversionRate = await getCryptoExchangeRates(property?.baseCurrency || fromCurrency, toCurrency);
+                console.log("if gupta*",conversionRate, property?.saleOrRentprice)
+
+                // Convert sale or rent price
+                if (property.saleOrRentprice && conversionRate) {
+                    property.saleOrRentprice = property.saleOrRentprice / conversionRate;
+
+                }
+                console.log("🚀 ~ file: property.js:151 ~ router.get ~ conversionRate:", conversionRate, (property.saleOrRentprice / conversionRate), property.saleOrRentprice / conversionRate)
+            }
+            else {
+                console.log("else jatinder")
+                const conversionRate = await getExchangeRates(property?.baseCurrency || fromCurrency, toCurrency);
+
+                // Convert sale or rent price
+                if (property.saleOrRentprice && conversionRate) {
+                    property.saleOrRentprice = (property.saleOrRentprice * conversionRate).toFixed(2);  // Convert and format to 2 decimal places
+                    // console.log(conversionRate, property?.baseCurrency, toCurrency, (property.saleOrRentprice * conversionRate).toFixed(2), property.saleOrRentprice)
+                    // property.baseCurrency = toCurrency;  // Update the currency field to the target currency
+                }
             }
         }
+
         const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
 
         const imagesPromises = property.images && Array.isArray(property.images)

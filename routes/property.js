@@ -18,7 +18,7 @@ router.post('/', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -61,7 +61,13 @@ router.get('/', async (req, res) => {
         // }
 
         const totalPropertys = await Property.find(query);
+
+        // Default sort field and order
+        const sortField = sortBy || 'createdAt'; // fallback field
+        const sortOrder = orderBy === 'asc' ? 1 : -1; // ascending or descending
+
         const properties = await Property.find(query)
+            .sort({ [sortField]: sortOrder })
             .limit(limit * 1)
             .skip((page - 1) * limit);
 

@@ -14,6 +14,7 @@ const PropertySchema = new mongoose.Schema(
         pricePrefix: { type: String },
         pricePostfix: { type: String },
         soldOut: { type: Boolean, default: false },
+        importedFromCrm: { type: Boolean, default: false },
         propertyStatusMessage: { type: String },
         referenceNumber: [{ type: String }],
         meta_title: [{ type: String }],

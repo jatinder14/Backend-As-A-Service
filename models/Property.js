@@ -5,7 +5,7 @@ const slugify = require('slugify');
 const PropertySchema = new mongoose.Schema(
     {
         title: { type: String, required: true },
-        slug: { type: String, unique: true },
+        slug: { type: String, unique: true, default: null },
         address: { type: String },
         latitude: { type: String },
         longitude: { type: String },
@@ -16,7 +16,7 @@ const PropertySchema = new mongoose.Schema(
         soldOut: { type: Boolean, default: false },
         importedFromCrm: { type: Boolean, default: false },
         propertyStatusMessage: { type: String },
-        referenceNumber: [{ type: String }],
+        referenceNumber: { type: String },
         meta_title: [{ type: String }],
         meta_keyword: [{ type: String }],
         meta_description: [{ type: String }],
@@ -242,6 +242,17 @@ const PropertySchema = new mongoose.Schema(
                 // default: "None",
             }
         ],
+        // selectedAgents: [
+        //     {
+        //         type: String,
+        //         // enum: [
+        //         //     "None", // Agent information box will not be displayed
+        //         //     "Arshia Shaukat", // Uses the user's profile info
+        //         //     "Empire Infratech", // Displays selected agent(s)
+        //         // ],  
+        //         // default: "None",
+        //     }
+        // ],
 
         acceptTermsAndConditions: {
             type: Boolean,
@@ -253,39 +264,76 @@ const PropertySchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-// Pre-save hook to auto-generate slug
-PropertySchema.pre('save', function (next) {
-    if (this.isModified('title')) {
-        this.slug = slugify(this.title, {
-            lower: true,
-            strict: true,
-            trim: true
-        });
-    }
-    next();
-})
+// // Pre-save hook to auto-generate slug
 
-// For update (findOneAndUpdate, findByIdAndUpdate)
+PropertySchema.pre('save', async function (next) {
+    if (!this.isModified('title')) return next();
+
+    let baseSlug = slugify(this.title, { lower: true, strict: true, trim: true });
+    let slug = baseSlug;
+
+    // Check if slug already exists
+    const exists = await mongoose.models.Property.findOne({ slug });
+
+    if (exists) {
+        slug = `${baseSlug}-${this.status}`;
+    }
+
+    this.slug = slug;
+    next();
+});
+
+// // Manually pre-process slugs before bulk insert
+// PropertySchema.pre('insertMany', async function (next, docs) {
+//     try {
+//         for (const doc of docs) {
+//             if (!doc.title) continue;
+
+//             let baseSlug = slugify(doc.title, { lower: true, strict: true, trim: true });
+//             let slug = baseSlug;
+
+//             // Check if slug already exists
+// bug because everything is created at once
+//             const exists = await mongoose.models.Property.findOne({ slug });
+//             if (exists) {
+//                 slug = `${baseSlug}-${doc.status}`;
+//             }
+//             console.log(exists,slug)
+
+//             doc.slug = slug;
+//         }
+
+
+//         next();
+//     } catch (err) {
+//         next(err);
+//     }
+// });
+
 PropertySchema.pre('findOneAndUpdate', async function (next) {
     const update = this.getUpdate();
+    const title = update?.title || update?.$set?.title;
+    const status = update?.status || update?.$set?.status;
 
-    if (update?.title) {
-        const slug = slugify(update.title, {
-            lower: true,
-            strict: true,
-            trim: true
-        });
+    if (!title) return next();
 
-        // Ensure you're modifying the correct object, even with `$set`
-        if (update.$set) {
-            update.$set.slug = slug;
-        } else {
-            update.slug = slug;
-        }
+    let baseSlug = slugify(title, { lower: true, strict: true, trim: true });
+    let slug = baseSlug;
 
-        this.setUpdate(update);
+    // Check if base slug already exists
+    const exists = await mongoose.models.Property.findOne({ slug });
+
+    if (exists) {
+        slug = `${baseSlug}-${(status || 'unknown').toLowerCase()}`;
     }
 
+    if (update.$set) {
+        update.$set.slug = slug;
+    } else {
+        update.slug = slug;
+    }
+
+    this.setUpdate(update);
     next();
 });
 

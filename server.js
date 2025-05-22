@@ -14,6 +14,7 @@ const zapierRoutes = require('./routes/zapier');
 const contactUsRoutes = require('./routes/contactUs');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
+const syncProperties = require('./cron-jobs/syncCRM')
 // const { setupWebSocket } = require("./websockets/websocket");
 
 // const seedUsers = require('./seeders/seedUsers');

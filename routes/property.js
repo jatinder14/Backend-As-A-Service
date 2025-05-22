@@ -22,6 +22,44 @@ router.post('/', async (req, res) => {
     }
 });
 
+router.post('/bulkAdd', async (req, res) => {
+    try {
+        const properties = req.body.properties;
+        const addedProperties = [];
+
+        if (!Array.isArray(properties)) {
+            return res.status(400).json({ message: 'Expected an array of properties' });
+        }
+
+        const referenceNumbers = properties.map(p => p.referenceNumber);
+
+        // Find all existing referenceNumbers
+        const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
+        const existingRefs = new Set(existing.map(p => p.referenceNumber));
+
+        // Filter only new properties
+        const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
+
+        if (newProperties.length === 0) {
+            return res.status(409).json({ message: 'All properties already exist' });
+        }
+
+        for (const propertyData of newProperties) {
+            const property = new Property(propertyData);
+            await property.save(); // triggers pre('save')
+            addedProperties.push(property);
+        }
+
+        res.status(201).json({
+            message: `${addedProperties.length} properties added successfully`,
+            addedProperties
+        });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+
 router.get('/', async (req, res) => {
     try {
         const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy } = req.query;

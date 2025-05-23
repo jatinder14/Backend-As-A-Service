@@ -7,12 +7,17 @@ const PropertySchema = new mongoose.Schema(
         title: { type: String, required: true },
         slug: { type: String, unique: true, default: null },
         address: { type: String },
+        country: { type: String },
+        completion_status: { type: String },
+        property_purpose: { type: String },  //same as status field
+        property_type: { type: String },
         latitude: { type: String },
         longitude: { type: String },
         description: { type: String },
         saleOrRentprice: { type: Number },
         pricePrefix: { type: String },
         pricePostfix: { type: String },
+        price_freq: { type: String },
         soldOut: { type: Boolean, default: false },
         importedFromCrm: { type: Boolean, default: false },
         propertyStatusMessage: { type: String },
@@ -45,6 +50,9 @@ const PropertySchema = new mongoose.Schema(
             type: String,
             // enum: ["OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT"]
         },
+        tower: { type: String },
+        city: { type: String },
+        sub_location: { type: String },
         location: {
             type: String,
             // enum: [
@@ -81,6 +89,7 @@ const PropertySchema = new mongoose.Schema(
         bathrooms: { type: String, default: 0 }, // Number of Bathrooms
         garagesOrParkingSpaces: { type: String, default: 0 }, // Number of Garages or Parking Spaces
         area: { type: String }, // Property Area
+        plot: { type: String }, // Property Area
         areaPostfix: { type: String, default: "sq ft" }, // Unit of Area
         developer: {
             type: String,
@@ -221,6 +230,7 @@ const PropertySchema = new mongoose.Schema(
 
         propertyLabel: { type: String }, // Allows adding a property label for display
         labelBackgroundColor: { type: String }, // Allows adding a property label for display
+        permit_no: { type: String }, 
         agentInformationDisplay: {
             type: String,
             // enum: [

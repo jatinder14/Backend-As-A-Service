@@ -38,6 +38,11 @@ async function syncProperties() {
         // Store or update properties in MongoDB
         for (const property of properties) {
             property.selectedAgents = property.selectedAgents.name
+            property.features = [...property?.features, ...property?.amenities]
+            property.status = property.property_purpose
+
+            // console.log(property.features);
+
             await Property.findOneAndUpdate(
                 { referenceNumber: property.referenceNumber }, // Unique field
                 property,

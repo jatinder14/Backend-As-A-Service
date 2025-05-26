@@ -8,10 +8,12 @@ const isValidObjectId = mongoose.Types.ObjectId.isValid;
 
 router.post('/', async (req, res) => {
     try {
-        const existingProperty = await Property.findOne({ referenceNumber: req.body?.referenceNumber });
+        if (req.body?.referenceNumber) {
+            const existingProperty = await Property.findOne({ referenceNumber: req.body?.referenceNumber });
 
-        if (existingProperty) {
-            return res.status(409).json({ message: 'Property With Reference Number already exists' }); // 409 Conflict
+            if (existingProperty)
+                return res.status(409).json({ message: 'Property With Reference Number already exists', referenceNumber: req.body?.referenceNumber, existingProperty }); // 409 Conflict
+
         }
 
         const property = new Property(req.body);

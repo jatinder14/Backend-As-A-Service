@@ -61,6 +61,52 @@ router.post('/bulkAdd', async (req, res) => {
     }
 });
 
+router.patch('/bulkUpdateByStatus', async (req, res) => {
+    try {
+        const { oldStatus, newStatus } = req.body;
+
+        if (!oldStatus || !newStatus) {
+            return res.status(400).json({ message: 'Both oldStatus and newStatus are required' });
+        }
+
+        const result = await Property.updateMany(
+            { status: oldStatus },
+            { $set: { status: newStatus } },
+            { runValidators: true }
+        );
+
+        res.status(200).json({
+            message: `Status updated from '${oldStatus}' to '${newStatus}'`,
+            matchedCount: result.matchedCount,
+            modifiedCount: result.modifiedCount
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.put('/bulkUpdate', async (req, res) => {
+    try {
+        const properties = req.body.properties;
+
+        if (!Array.isArray(properties)) {
+            return res.status(400).json({ message: 'Expected an array of properties' });
+        }
+
+        const results = await Promise.all(
+            properties.map(async ({ id, ...data }) => {
+                if (data?.slug) delete data.slug;
+                return Property.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+            })
+        );
+
+        res.status(200).json({ message: 'Bulk update completed', results });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
+
 
 router.get('/', async (req, res) => {
     try {

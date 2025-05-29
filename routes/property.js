@@ -94,9 +94,9 @@ router.put('/bulkUpdate', async (req, res) => {
         }
 
         const results = await Promise.all(
-            properties.map(async ({ id, ...data }) => {
+            properties.map(async ({ _id, ...data }) => {
                 if (data?.slug) delete data.slug;
-                return Property.findByIdAndUpdate(id, data, { new: true, runValidators: true });
+                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
             })
         );
 
@@ -122,7 +122,7 @@ router.get('/', async (req, res) => {
             }
         } else {
             // Exclude DRAFT if no status is provided
-            query.status = { $ne: 'DRAFT' };
+            query.status = { $nin: ['DRAFT', 'UNPUBLISHED', 'unpublished'] };
         }
 
 

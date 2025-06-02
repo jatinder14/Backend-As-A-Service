@@ -110,7 +110,7 @@ router.put('/bulkUpdate', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -130,6 +130,9 @@ router.get('/', async (req, res) => {
 
 
         if (location) query.location = location
+
+        if (referenceNumber) query.referenceNumber = referenceNumber
+
         if (soldOut) query.soldOut = soldOut
 
         if (type) query.type = type
@@ -151,7 +154,7 @@ router.get('/', async (req, res) => {
         //         $or: { $in: status }
         //     }
         // }
-
+        console.log("query---",query);
         const totalPropertys = await Property.find(query);
 
         // Default sort field and order

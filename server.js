@@ -6,6 +6,7 @@ const multer = require('multer');
 const authRoutes = require('./routes/auth');
 const productRoutes = require('./routes/product');
 const blogRoutes = require('./routes/blog');
+const seoTagRoutes = require('./routes/seoTag');
 const projectRoutes = require('./routes/project');
 const propertyRoutes = require('./routes/property');
 const enquiryRoutes = require('./routes/enquiry');
@@ -66,6 +67,7 @@ app.use('/api/products', productRoutes);
 // app.use('/api/contact', contactUsRoutes);
 
 app.use('/api/blogs', blogRoutes);
+app.use('/api/seoTags', seoTagRoutes);
 app.use('/api/projects', projectRoutes);
 
 // empire infratech

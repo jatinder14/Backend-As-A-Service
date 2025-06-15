@@ -1,6 +1,7 @@
 const express = require('express');
 const Blog = require('../models/Blog');
 const { generateSignedUrl, getKey } = require('../utils/s3');
+const { isValidObjectId } = require('mongoose');
 const router = express.Router();
 
 // Get all blogs (with pagination, sorting, and filtering)
@@ -50,9 +51,20 @@ router.get('/', async (req, res) => {
 });
 
 // Get a single blog by ID (with error handling for non-existent ID)
-router.get('/:id', async (req, res) => {
+router.get('/:idOrSlug', async (req, res) => {
     try {
-        const blog = await Blog.findById(req.params.id);
+        const { idOrSlug } = req.params;
+        let blog;
+
+        if (isValidObjectId(idOrSlug)) {
+            blog = await Blog.findById(idOrSlug);
+        }
+
+        // If not found by ID or if not a valid ObjectId, try slug
+        if (!blog) {
+            blog = await Blog.findOne({ slug: idOrSlug });
+        }
+
         if (!blog) {
             return res.status(404).json({ message: 'Blog not found' });
         }
@@ -70,16 +82,16 @@ router.get('/:id', async (req, res) => {
         blog.image = imagesSignedUrl;
         res.json(blog);
     } catch (err) {
-        res.status(500).json({ message: 'Invalid blog ID' });
+        res.status(500).json({ message: 'Invalid blog ID',error: err.message });
     }
 });
 
 // Create a new blog
 router.post('/', async (req, res) => {
-    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author } = req.body;
 
     try {
-        const blog = new Blog({ title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription });
+        const blog = new Blog({ title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author });
         await blog.save();
         res.status(201).json(blog);
     } catch (err) {
@@ -89,7 +101,7 @@ router.post('/', async (req, res) => {
 
 // Update a blog by ID
 router.put('/:id', async (req, res) => {
-    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author } = req.body;
 
     try {
         const blog = await Blog.findById(req.params.id);
@@ -106,6 +118,7 @@ router.put('/:id', async (req, res) => {
         blog.domain = domain || blog.domain;
         blog.metaData = metaData || blog.metaData;
         blog.shortDescription = shortDescription || blog.shortDescription;
+        blog.author = author || blog.author;
 
         await blog.save();
         res.json(blog);

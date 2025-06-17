@@ -77,13 +77,13 @@ const PropertySchema = new mongoose.Schema(
             },
         ],
         videos: [
-            {
-                _id: false, // Prevents MongoDB from auto-generating _id for each video object
-                title: { type: String },
-                url: {
-                    type: String,
-                },
-            },
+            // {
+            //     _id: false, // Prevents MongoDB from auto-generating _id for each video object
+            //     title: { type: String },
+            //     url: {
+            //         type: String,
+            //     },
+            // },
         ],
 
         additionalDetails: [

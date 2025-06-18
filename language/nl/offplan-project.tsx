@@ -1,0 +1,16 @@
+export const OffPlanProjects = [
+  "OFF-PLAN PROJECTEN",
+  "AED",
+  "Overdrachtsdatum",
+  "Beschikbaarheid:",
+  "vierkante voet",
+  "Ontwikkelaar:",
+  "Details",
+  "Bed",
+  "Bad",
+  "Geen gegevens gevonden",
+  "Slaapkamer",
+  "Vanafprijs:",
+  "Vorig",
+  "Volgende",
+];

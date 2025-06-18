@@ -4,7 +4,6 @@ const qs = require('qs');
 
 dotenv.config();
 
-
 let accessToken = null;
 let data = qs.stringify({
     grant_type: process.env.GRANT_TYPE,

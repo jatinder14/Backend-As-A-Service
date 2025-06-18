@@ -1,0 +1,18 @@
+export const Contact = [
+  "Contact",
+  "Thuis",
+  "Neem contact op",
+  "Onze contactgegevens",
+  "Adres",
+  "Suite 104, Rawdat Al Wasl, naast Villa Rotana, Sheikh Zayed Road, Dubai, VAE",
+  "Telefoonnummer",
+  "+971 54 233 7500",
+  "E-mailadres",
+  "info@empireinfratech.ae",
+  "Laten we contact opnemen",
+  "Jouw naam*",
+  "Uw e-mailadres*",
+  "Jouw telefoon*",
+  "Typ uw bericht",
+  "Bericht verzenden",
+];

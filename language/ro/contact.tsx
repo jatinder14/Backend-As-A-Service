@@ -1,0 +1,18 @@
+export const Contact = [
+  "Contact",
+  "Acasă",
+  "Luați legătura",
+  "Informațiile noastre de contact",
+  "Adresa",
+  "Suită 104, Rawdat Al Wasl, lângă Villa Rotana, Sheikh Zayed Road, Dubai, Emiratele Arabe Unite",
+  "Număr de telefon",
+  "+971 54 233 7500",
+  "Adresa de e-mail",
+  "info@empireinfratech.ae",
+  "Să ne conectăm",
+  "Numele dumneavoastră*",
+  "E-mailul dvs.*",
+  "Telefonul dvs.*",
+  "Introduceți mesajul dvs",
+  "Trimiteți mesajul",
+];

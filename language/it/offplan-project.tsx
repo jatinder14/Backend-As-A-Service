@@ -1,0 +1,16 @@
+export const OffPlanProjects = [
+  "PROGETTI FUORI PIANO",
+  "DAE",
+  "Data di consegna",
+  "Disponibilità:",
+  "piedi quadrati",
+  "Sviluppatore:",
+  "Dettagli",
+  "Letto",
+  "Bagno",
+  "Nessun record trovato",
+  "Camera da letto",
+  "Prezzo di partenza:",
+  "Precedente",
+  "Prossimo",
+];

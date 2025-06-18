@@ -11,6 +11,7 @@ const projectRoutes = require('./routes/project');
 const propertyRoutes = require('./routes/property');
 const enquiryRoutes = require('./routes/enquiry');
 const careerRoutes = require('./routes/career');
+const pageLayoutRoutes = require('./routes/pageLayout');
 const zapierRoutes = require('./routes/zapier');
 const contactUsRoutes = require('./routes/contactUs');
 const UploadController = require('./controllers/uploadController');
@@ -66,16 +67,22 @@ app.use('/api/products', productRoutes);
 
 // app.use('/api/contact', contactUsRoutes);
 
-app.use('/api/blogs', blogRoutes);
-app.use('/api/seoTags', seoTagRoutes);
 app.use('/api/projects', projectRoutes);
 
 // empire infratech
 
 app.use('/api/auth', authRoutes);
+
 app.use('/api/property', propertyRoutes);
 app.use('/api/property/enquiry', enquiryRoutes);
+
 app.use('/api/careers/application', careerRoutes);
+
+app.use('/api/blogs', blogRoutes);
+app.use('/api/seoTags', seoTagRoutes);
+
+app.use('/api/page-layouts', pageLayoutRoutes);
+
 
 app.use('/api/contact', contactUsRoutes);
 

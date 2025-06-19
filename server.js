@@ -28,6 +28,7 @@ const contactUsRoutes = require('./routes/contactUs');
 const hostawayRoutes = require('./routes/hostaway');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
+const { generateSignedUrl, getKey } = require('./utils/s3');
 const { setupWebSocket } = require("./websockets/websocket");
 require('./cron-jobs/syncHostaway');
 require('./cron-jobs/ejari-expirattion');
@@ -64,6 +65,11 @@ app.get('/', (req, res) => {
 app.post('/getSignUrlForUpload',
     upload.single('file'),
     uploadController.upload);
+
+app.get('/getSignUrlForUpload', async (req, res) => {
+    let url = await generateSignedUrl(getKey(req.body.fileName))
+    res.send({ url });
+});
 
 // Start server
 const PORT = process.env.PORT || 3000;

@@ -116,4 +116,4 @@ function getKey(url) {
     return url.substring(lastSlashIndex + 1, endIndex);
 };
 
-module.exports = { getSignedUrlForUpload, generateSignedUrl, getKey };
+module.exports = { getSignedUrlForUpload, generateSignedUrl, getKey, generateSignedUrl };

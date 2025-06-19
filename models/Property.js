@@ -56,7 +56,7 @@ const PropertySchema = new mongoose.Schema(
         },
         handoverDate: { type: String }, // Handover Date
         isFeatured: { type: Boolean, default: false }, // Mark as Featured
-        // images: [mediaSchema],
+        images: [mediaSchema],
         dldPermitQrCode: { type: String },
         galleryType: {
             type: String,
@@ -75,15 +75,8 @@ const PropertySchema = new mongoose.Schema(
                 bathrooms: { type: String },
             },
         ],
-        videos: [
-            // {
-            //     _id: false, // Prevents MongoDB from auto-generating _id for each video object
-            //     title: { type: String },
-            //     url: {
-            //         type: String,
-            //     },
-            // },
-        ],
+
+        videos: [mediaSchema],
 
         additionalDetails: [
             {

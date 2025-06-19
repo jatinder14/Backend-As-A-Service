@@ -21,7 +21,16 @@ jobs:
       run: |
         ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
           cd ${{ secrets.EC2_APP_DIR }}
-          git pull origin Empire-Infratech
+
+          # Delete local branch if it exists
+          if git rev-parse --verify Empire-Infratech >/dev/null 2>&1; then
+            git branch -D Empire-Infratech || true
+          fi
+
+          # Fetch and checkout the latest from origin
+          git fetch origin Empire-Infratech
+          git checkout -b Empire-Infratech origin/Empire-Infratech
+
           npm install
           pm2 restart all
         EOF

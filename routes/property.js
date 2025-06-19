@@ -154,7 +154,7 @@ router.get('/', async (req, res) => {
         //         $or: { $in: status }
         //     }
         // }
-        console.log("query---",query);
+        console.log("query---", query);
         const totalPropertys = await Property.find(query);
 
         // Default sort field and order

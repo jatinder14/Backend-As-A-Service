@@ -1,13 +1,6 @@
 const mongoose = require('mongoose');
 const { default: slugify } = require('slugify');
-
-const metaDataSchema = new mongoose.Schema({
-    title: { type: String },
-    description: { type: String },
-    keywords: { type: String }
-},
-    { _id: false } // Exclude the `_id` field from this sub-schema
-);
+const metaDataSchema = require('../schemas/metaData.schema');
 
 const SubTitleAndContentSchema = new mongoose.Schema({
     title: { type: String },
@@ -29,7 +22,8 @@ const blogSchema = new mongoose.Schema({
     date: { type: String },
     shortDescription: { type: String },
     description: { type: String },
-    metaData: metaDataSchema
+    metaData: metaDataSchema,
+    isActive: { type: Boolean, default: true },
 }, { timestamps: true });
 
 // // Pre-save hook to auto-generate slug

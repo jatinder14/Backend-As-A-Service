@@ -1,6 +1,7 @@
 //Empire Infratech 
 const mongoose = require("mongoose");
 const slugify = require('slugify');
+const mediaSchema = require('../schemas/media.schema');
 
 const PropertySchema = new mongoose.Schema(
     {
@@ -55,9 +56,7 @@ const PropertySchema = new mongoose.Schema(
         },
         handoverDate: { type: String }, // Handover Date
         isFeatured: { type: Boolean, default: false }, // Mark as Featured
-        images: [
-            { type: String },
-        ],
+        // images: [mediaSchema],
         dldPermitQrCode: { type: String },
         galleryType: {
             type: String,

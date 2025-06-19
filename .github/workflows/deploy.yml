@@ -28,7 +28,6 @@ jobs:
           fi
 
           # Fetch and checkout the latest from origin
-          git fetch origin Empire-Infratech
           git checkout -b Empire-Infratech origin/Empire-Infratech
 
           npm install

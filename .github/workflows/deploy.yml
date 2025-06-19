@@ -22,14 +22,19 @@ jobs:
         ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
           cd ${{ secrets.EC2_APP_DIR }}
 
-          # Delete local branch if it exists
-          if git rev-parse --verify Empire-Infratech >/dev/null 2>&1; then
-            git branch -D Empire-Infratech || true
+          # Step 1: Switch to a safe detached HEAD to allow deletion
+          git checkout --detach
+
+          # Step 2: Delete the local branch if it exists
+          if git show-ref --quiet refs/heads/Empire-Infratech; then
+            git branch -D Empire-Infratech
           fi
 
-          # Fetch and checkout the latest from origin
+          # Step 3: Fetch and checkout a fresh copy of the branch
+          git fetch origin Empire-Infratech
           git checkout -b Empire-Infratech origin/Empire-Infratech
 
+          # Step 4: Install and restart
           npm install
           pm2 restart all
         EOF

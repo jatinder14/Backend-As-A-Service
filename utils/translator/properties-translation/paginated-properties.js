@@ -30,7 +30,7 @@ const convertResponseArrayObject = async (data) => {
 };
 
 /* to convert array od object data into translated atring array structure */
-const convertToStringArray = async (data, globalState) => {
+const convertToStringArray = async (data) => {
   let convertedArray = [];
   await data?.forEach((item) => {
     const soldStatusLabel = getSoldStatusLabel(item);
@@ -39,10 +39,11 @@ const convertToStringArray = async (data, globalState) => {
       item?.address ? item?.address : "-",
       item?.bedrooms ? item?.bedrooms : "-",
       item?.bathrooms ? item?.bathrooms : "-",
-      item?.developer !== "none" ? item?.developer : "-",
+      ['none', 'null', null].includes(item?.developer) ? "-" : item?.developer,
       item?.area ? item?.area : "-",
-      globalState?.selectedCurrency,
-      soldStatusLabel,
+      item?.baseCurrency ? item?.baseCurrency : "-",
+      item?.status ? item?.status : "-",
+      // soldStatusLabel,
       item?.propertyLabel ? item.propertyLabel : "-",
       item?.description ? item?.description : "-"
     );
@@ -55,7 +56,7 @@ const convertArrayObject = async (data) => {
   let convertedArray = [];
   const response = await convertResponseArrayObject(data);
   const keysPerObject = 10; // Each object will have 8 keys: title, address, currency
-  console.log("response-------", response);
+  // console.log("response----------", response);
   // Loop through the data in chunks of 3
   for (let i = 0; i < response.length; i += keysPerObject) {
     // Take a slice of the array for each chunk (3 elements)
@@ -88,7 +89,7 @@ const translateDynamicText = async (
 ) => {
   const url = process.env.TRANSLATION_API_URL;
   // console.log("convertToString", dynamicText);
-  const convertToString = await convertToStringArray(dynamicText, targetLanguage);
+  const convertToString = await convertToStringArray(dynamicText);
   // console.log("convertToString", convertToString);
 
   const headers = {
@@ -111,7 +112,7 @@ const translateDynamicText = async (
       response.data.data.translations
     );
 
-    // console.log("convertedArray-------", convertedArray);
+    // console.log("convertedArray-------", convertedArray, payload);
     dynamicText.forEach((item, index) => {
       const translated = convertedArray[index];
       if (translated) {
@@ -122,10 +123,10 @@ const translateDynamicText = async (
           bathrooms: translated.bathrooms ?? item.bathrooms,
           developer: translated.developer ?? item.developer,
           area: translated.area ?? item.area,
-          currency: translated.currency ?? item.currency ?? "",
+          baseCurrency: translated.currency ?? item.currency ?? "",
           propertyStatusMessage: translated.propertyStatusMessage ?? item.propertyStatusMessage ?? "",
           propertyLabel: translated.propertyLabel ?? item.propertyLabel ?? "",
-          description: translated.description ?? item.description,
+          description: translated.description ?? item.description ?? "",
         });
       }
     });

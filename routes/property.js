@@ -371,10 +371,11 @@ router.get('/:idOrSlug', async (req, res) => {
             // console.log("videosSignedUrls", videosSignedUrls, property.videos);
         }
         if (lang && lang != 'en') {
-            property = await translateDynamicText([property], lang)
+            let translatedPropertyList = await translateDynamicText([property], lang)
+            property = translatedPropertyList[0];
         }
 
-        res.status(200).json({ property: property[0] });
+        res.status(200).json({ property: property });
 
     } catch (err) {
         res.status(500).json({ message: err.message });

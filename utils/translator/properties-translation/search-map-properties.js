@@ -1,7 +1,7 @@
 import axios from "axios";
 
-const convertResponseArrayObject = async (data: any[]) => {
-  let convertedArray: string[] = [];
+const convertResponseArrayObject = async (data) => {
+  let convertedArray = [];
 
   // Extract the 'translatedText' from each object and add to the convertedArray
   await data.forEach((item) => {
@@ -14,9 +14,9 @@ const convertResponseArrayObject = async (data: any[]) => {
 };
 
 /* to convert string data into array of object */
-const convertArrayObject = async (data: string[]) => {
-  let convertedArray: any[] = [];
-  const response: any = await convertResponseArrayObject(data);
+const convertArrayObject = async (data) => {
+  let convertedArray = [];
+  const response = await convertResponseArrayObject(data);
   const keysPerObject = 1; // Each object will have 1 keys: title
 
   // Loop through the data in chunks of 3
@@ -25,7 +25,7 @@ const convertArrayObject = async (data: string[]) => {
     const chunk = response.slice(i, i + keysPerObject);
 
     // Create an object for each chunk with title, address, and currency
-    const obj: any = {
+    const obj = {
       title: chunk[0],
     };
 
@@ -37,19 +37,19 @@ const convertArrayObject = async (data: string[]) => {
 };
 
 /* to convert array od object data into translated atring array structure */
-const convertToStringArray = async (data: any) => {
-  let convertedArray: any = [];
-  await data?.forEach((item: any) => {
+const convertToStringArray = async (data) => {
+  let convertedArray = [];
+  await data?.forEach((item) => {
     convertedArray.push(item?.title);
   });
   return convertedArray;
 };
 
 export const translateMapCardText = async (
-  dynamicText: any,
-  globalState: any
+  dynamicText,
+  globalState
 ) => {
-  const url: any = process.env.TRANSLATION_API_URL;
+  const url = process.env.TRANSLATION_API_URL;
 
   const convertToString = await convertToStringArray(dynamicText);
 
@@ -67,17 +67,17 @@ export const translateMapCardText = async (
 
   try {
     const response = await axios.post(url, payload, { headers });
-    const convertedArray: any = await convertArrayObject(
+    const convertedArray = await convertArrayObject(
       response.data.data.translations
     );
 
-    dynamicText = dynamicText.map((item: any, index: any) => {
+    dynamicText = dynamicText.map((item, index) => {
       const translated = convertedArray[index];
       return translated
         ? {
-            ...item,
-            title: translated.title || item.title,
-          }
+          ...item,
+          title: translated.title || item.title,
+        }
         : item;
     });
   } catch (error) {

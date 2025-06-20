@@ -49,12 +49,12 @@ export const translateMapCardText = async (
   dynamicText: any,
   globalState: any
 ) => {
-  const url: any = process.env.NEXT_PUBLIC_TRANSLATED_KEY_URL;
+  const url: any = process.env.TRANSLATION_API_URL;
 
   const convertToString = await convertToStringArray(dynamicText);
 
   const headers = {
-    "x-goog-api-key": process.env.NEXT_PUBLIC_TRANSLATED_SECRET_KEY_EMPIRE,
+    "x-goog-api-key": process.env.TRANSLATION_API_SECRET,
     "Content-Type": "application/json",
   };
 

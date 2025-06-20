@@ -4,6 +4,7 @@ const { generateSignedUrl, getKey } = require('../utils/s3');
 const getExchangeRates = require('../utils/currency');
 const router = express.Router();
 const mongoose = require("mongoose");
+const { translateDynamicText } = require('../utils/translator/properties-translation/paginated-properties');
 const isValidObjectId = mongoose.Types.ObjectId.isValid;
 
 router.post('/', async (req, res) => {
@@ -110,7 +111,7 @@ router.put('/bulkUpdate', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -155,7 +156,7 @@ router.get('/', async (req, res) => {
         //     }
         // }
         console.log("query---", query);
-        const totalPropertys = await Property.find(query);
+        let totalPropertys = await Property.find(query).limit(10);
 
         // Default sort field and order
         const sortField = sortBy || 'createdAt'; // fallback field
@@ -174,7 +175,7 @@ router.get('/', async (req, res) => {
             conversionRate = await getExchangeRates(fromCurrency, toCurrency);
 
         // Generate signed URLs for logos and images in parallel for each Property
-        const propertiesWithSignedUrls = await Promise.all(
+        let propertiesWithSignedUrls = await Promise.all(
 
             properties.map(async (property) => {
 
@@ -236,6 +237,11 @@ router.get('/', async (req, res) => {
             })
         );
 
+        if (lang && lang != 'en') {
+            propertiesWithSignedUrls = await translateDynamicText(propertiesWithSignedUrls, lang)
+            totalPropertys = await translateDynamicText(totalPropertys, lang)
+        }
+        // console.log("totalPropertys------", totalPropertys);
         await Promise.all(totalPropertys.map(async (property) => {
             if (!property?.importedFromCrm) {
 
@@ -255,6 +261,7 @@ router.get('/', async (req, res) => {
                 // Assign the results to Property fields
                 property.images = imagesSignedUrls;
             }
+
             mapLocations.push({
                 id: property?.id,
                 slug: property?.slug,
@@ -287,6 +294,8 @@ router.get('/', async (req, res) => {
 router.get('/:idOrSlug', async (req, res) => {
     try {
         const { idOrSlug } = req.params;
+        const { lang } = req.query;
+
         let property;
 
         if (isValidObjectId(idOrSlug)) {
@@ -361,7 +370,11 @@ router.get('/:idOrSlug', async (req, res) => {
 
             // console.log("videosSignedUrls", videosSignedUrls, property.videos);
         }
-        res.status(200).json(property);
+        if (lang && lang != 'en') {
+            property = await translateDynamicText([property], lang)
+        }
+
+        res.status(200).json({ property: property[0] });
 
     } catch (err) {
         res.status(500).json({ message: err.message });

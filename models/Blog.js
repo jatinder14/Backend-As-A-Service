@@ -28,6 +28,8 @@ const blogSchema = new mongoose.Schema({
     video: { type: String },
     date: { type: String },
     shortDescription: { type: String },
+    isHomePage: { type: Boolean, default: false },
+    isActive: { type: Boolean, default: false },
     description: { type: String },
     metaData: metaDataSchema
 }, { timestamps: true });

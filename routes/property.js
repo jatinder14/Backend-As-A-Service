@@ -156,7 +156,8 @@ router.get('/', async (req, res) => {
         //     }
         // }
         console.log("query---", query);
-        let totalPropertys = await Property.find(query).limit(10);
+        // let totalPropertys = await Property.find(query).limit(10);
+        let totalPropertys = await Property.find(query);
 
         // Default sort field and order
         const sortField = sortBy || 'createdAt'; // fallback field
@@ -239,7 +240,7 @@ router.get('/', async (req, res) => {
 
         if (lang && lang != 'en') {
             propertiesWithSignedUrls = await translateDynamicText(propertiesWithSignedUrls, lang)
-            totalPropertys = await translateDynamicText(totalPropertys, lang)
+            // totalPropertys = await translateDynamicText(totalPropertys, lang)
         }
         // console.log("totalPropertys------", totalPropertys);
         await Promise.all(totalPropertys.map(async (property) => {

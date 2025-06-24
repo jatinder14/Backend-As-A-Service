@@ -111,7 +111,7 @@ router.put('/bulkUpdate', async (req, res) => {
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang, isPropertyUnPublished } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -131,6 +131,8 @@ router.get('/', async (req, res) => {
 
 
         if (location) query.location = location
+
+        if (isPropertyUnPublished) query.isPropertyUnPublished = isPropertyUnPublished
 
         if (referenceNumber) query.referenceNumber = referenceNumber
 

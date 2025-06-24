@@ -61,7 +61,6 @@ server.listen(PORT, () => {
 
 
 // Auth Routes
-// app.use('/api/auth', authRoutes);
 
 app.use('/api/products', productRoutes);
 

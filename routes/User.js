@@ -7,10 +7,16 @@ const router = express.Router();
 router.use(verifyToken, hrOrAdmin);
 
 router.get('/getAllUsers', async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, role } = req.query;
+
+    let query = {};
+
+    if (role) {
+        query.role = role;
+    }
 
     try {
-        const users = await User.find()
+        const users = await User.find(query)
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();

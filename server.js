@@ -16,6 +16,7 @@ const zapierRoutes = require('./routes/zapier');
 const contactUsRoutes = require('./routes/contactUs');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
+const userRoutes = require('./routes/User');
 // const syncProperties = require('./cron-jobs/syncCRM')
 // const { setupWebSocket } = require("./websockets/websocket");
 
@@ -71,6 +72,8 @@ app.use('/api/projects', projectRoutes);
 // empire infratech
 
 app.use('/api/auth', authRoutes);
+
+app.use('/api/user', userRoutes);
 
 app.use('/api/property', propertyRoutes);
 app.use('/api/property/enquiry', enquiryRoutes);

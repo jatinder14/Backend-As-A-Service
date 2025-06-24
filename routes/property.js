@@ -12,7 +12,7 @@ const isValidObjectId = mongoose.Types.ObjectId.isValid;
 // const Notification = require('../models/notification');
 
 
-router.use(verifyToken, adminRole);
+// router.use(verifyToken, adminRole);
 
 router.post('/', async (req, res) => {
     try {

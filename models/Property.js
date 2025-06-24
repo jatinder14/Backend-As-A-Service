@@ -119,6 +119,11 @@ const PropertySchema = new mongoose.Schema(
             default: false, // Ensures the user must accept before submitting
         },
 
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+        updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        rejectedReason: { type: String },
+
     },
     { timestamps: true }
 );

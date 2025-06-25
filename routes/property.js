@@ -71,7 +71,9 @@ router.get('/', async (req, res) => {
         const properties = await Property.find(query)
             .sort({ [sortField]: sortOrder })
             .limit(limit * 1)
-            .skip((page - 1) * limit);
+            .skip((page - 1) * limit)
+            .populate('createdBy')
+            .populate('updatedBy');
 
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
@@ -217,6 +219,9 @@ router.get('/:idOrSlug', async (req, res) => {
             return res.status(404).json({ message: 'Property not found' });
         }
 
+        await property.populate('createdBy');
+        await property.populate('updatedBy');
+
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
         if (fromCurrency !== toCurrency) {
@@ -299,9 +304,14 @@ router.post('/', async (req, res) => {
                 return res.status(409).json({ message: 'Property With Reference Number already exists', referenceNumber: req.body?.referenceNumber, existingProperty }); // 409 Conflict
 
         }
+        const userId = req.user?.id;
 
         const property = new Property(req.body);
+
+        property.createdBy = userId;
         await property.save();
+        await property.populate('createdBy');
+
         res.status(201).json({ message: 'Property created successfully', property }); // 201 Created
     } catch (err) {
         res.status(400).json({ message: err.message }); // 400 Bad Request (can be customized further)
@@ -332,7 +342,11 @@ router.post('/bulkAdd', async (req, res) => {
 
         for (const propertyData of newProperties) {
             const property = new Property(propertyData);
+            property.createdBy = userId;
+
             await property.save(); // triggers pre('save')
+            await property.populate('createdBy');
+
             addedProperties.push(property);
         }
 
@@ -355,14 +369,19 @@ router.patch('/bulkUpdateByStatus', async (req, res) => {
 
         const result = await Property.updateMany(
             { status: oldStatus },
-            { $set: { status: newStatus } },
+            {
+                $set: {
+                    status: newStatus, updatedBy: req.user?.id
+                }
+            },
             { runValidators: true }
         );
 
         res.status(200).json({
             message: `Status updated from '${oldStatus}' to '${newStatus}'`,
             matchedCount: result.matchedCount,
-            modifiedCount: result.modifiedCount
+            modifiedCount: result.modifiedCount,
+            result
         });
     } catch (err) {
         res.status(500).json({ message: err.message });
@@ -380,7 +399,8 @@ router.put('/bulkUpdate', async (req, res) => {
         const results = await Promise.all(
             properties.map(async ({ _id, ...data }) => {
                 // if (data?.slug) delete data.slug;
-                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
+                data.updatedBy = req.user?.id
+                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true }).populate('createdBy').populate('updatedBy');
             })
         );
 
@@ -394,8 +414,11 @@ router.put('/bulkUpdate', async (req, res) => {
 router.put('/:id', async (req, res) => {
     try {
         // if (req.body.slug) delete req.body.slug
+        req.body.updatedBy = req.user?.id;
 
-        const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+            .populate('updatedBy')
+            .populate('createdBy');
         if (!property) return res.status(404).json({ message: 'Property not found' });
         res.status(200).json({ message: 'property updated successfully', property });
 

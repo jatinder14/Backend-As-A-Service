@@ -31,7 +31,9 @@ const blogSchema = new mongoose.Schema({
     isHomePage: { type: Boolean, default: false },
     isActive: { type: Boolean, default: false },
     description: { type: String },
-    metaData: metaDataSchema
+    metaData: metaDataSchema,
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });
 
 // // Pre-save hook to auto-generate slug

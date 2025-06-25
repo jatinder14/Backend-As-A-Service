@@ -12,110 +12,6 @@ const isValidObjectId = mongoose.Types.ObjectId.isValid;
 // const Notification = require('../models/notification');
 
 
-// router.use(verifyToken, adminRole);
-
-router.post('/', async (req, res) => {
-    try {
-        if (req.body?.referenceNumber) {
-            const existingProperty = await Property.findOne({ referenceNumber: req.body?.referenceNumber });
-
-            if (existingProperty)
-                return res.status(409).json({ message: 'Property With Reference Number already exists', referenceNumber: req.body?.referenceNumber, existingProperty }); // 409 Conflict
-
-        }
-
-        const property = new Property(req.body);
-        await property.save();
-        res.status(201).json({ message: 'Property created successfully', property }); // 201 Created
-    } catch (err) {
-        res.status(400).json({ message: err.message }); // 400 Bad Request (can be customized further)
-    }
-});
-
-router.post('/bulkAdd', async (req, res) => {
-    try {
-        const properties = req.body.properties;
-        const addedProperties = [];
-
-        if (!Array.isArray(properties)) {
-            return res.status(400).json({ message: 'Expected an array of properties' });
-        }
-
-        const referenceNumbers = properties.map(p => p.referenceNumber);
-
-        // Find all existing referenceNumbers
-        const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
-        const existingRefs = new Set(existing.map(p => p.referenceNumber));
-
-        // Filter only new properties
-        const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
-
-        if (newProperties.length === 0) {
-            return res.status(409).json({ message: 'All properties already exist' });
-        }
-
-        for (const propertyData of newProperties) {
-            const property = new Property(propertyData);
-            await property.save(); // triggers pre('save')
-            addedProperties.push(property);
-        }
-
-        res.status(201).json({
-            message: `${addedProperties.length} properties added successfully`,
-            addedProperties
-        });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.patch('/bulkUpdateByStatus', async (req, res) => {
-    try {
-        const { oldStatus, newStatus } = req.body;
-
-        if (!oldStatus || !newStatus) {
-            return res.status(400).json({ message: 'Both oldStatus and newStatus are required' });
-        }
-
-        const result = await Property.updateMany(
-            { status: oldStatus },
-            { $set: { status: newStatus } },
-            { runValidators: true }
-        );
-
-        res.status(200).json({
-            message: `Status updated from '${oldStatus}' to '${newStatus}'`,
-            matchedCount: result.matchedCount,
-            modifiedCount: result.modifiedCount
-        });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-router.put('/bulkUpdate', async (req, res) => {
-    try {
-        const properties = req.body.properties;
-
-        if (!Array.isArray(properties)) {
-            return res.status(400).json({ message: 'Expected an array of properties' });
-        }
-
-        const results = await Promise.all(
-            properties.map(async ({ _id, ...data }) => {
-                if (data?.slug) delete data.slug;
-                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
-            })
-        );
-
-        res.status(200).json({ message: 'Bulk update completed', results });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: err.message });
-    }
-});
-
-
 router.get('/', async (req, res) => {
     try {
         const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang, isPropertyUnPublished } = req.query;
@@ -392,6 +288,108 @@ router.get('/:idOrSlug', async (req, res) => {
     }
 });
 
+router.use(verifyToken, adminRole);
+
+router.post('/', async (req, res) => {
+    try {
+        if (req.body?.referenceNumber) {
+            const existingProperty = await Property.findOne({ referenceNumber: req.body?.referenceNumber });
+
+            if (existingProperty)
+                return res.status(409).json({ message: 'Property With Reference Number already exists', referenceNumber: req.body?.referenceNumber, existingProperty }); // 409 Conflict
+
+        }
+
+        const property = new Property(req.body);
+        await property.save();
+        res.status(201).json({ message: 'Property created successfully', property }); // 201 Created
+    } catch (err) {
+        res.status(400).json({ message: err.message }); // 400 Bad Request (can be customized further)
+    }
+});
+
+router.post('/bulkAdd', async (req, res) => {
+    try {
+        const properties = req.body.properties;
+        const addedProperties = [];
+
+        if (!Array.isArray(properties)) {
+            return res.status(400).json({ message: 'Expected an array of properties' });
+        }
+
+        const referenceNumbers = properties.map(p => p.referenceNumber);
+
+        // Find all existing referenceNumbers
+        const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
+        const existingRefs = new Set(existing.map(p => p.referenceNumber));
+
+        // Filter only new properties
+        const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
+
+        if (newProperties.length === 0) {
+            return res.status(409).json({ message: 'All properties already exist' });
+        }
+
+        for (const propertyData of newProperties) {
+            const property = new Property(propertyData);
+            await property.save(); // triggers pre('save')
+            addedProperties.push(property);
+        }
+
+        res.status(201).json({
+            message: `${addedProperties.length} properties added successfully`,
+            addedProperties
+        });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+router.patch('/bulkUpdateByStatus', async (req, res) => {
+    try {
+        const { oldStatus, newStatus } = req.body;
+
+        if (!oldStatus || !newStatus) {
+            return res.status(400).json({ message: 'Both oldStatus and newStatus are required' });
+        }
+
+        const result = await Property.updateMany(
+            { status: oldStatus },
+            { $set: { status: newStatus } },
+            { runValidators: true }
+        );
+
+        res.status(200).json({
+            message: `Status updated from '${oldStatus}' to '${newStatus}'`,
+            matchedCount: result.matchedCount,
+            modifiedCount: result.modifiedCount
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.put('/bulkUpdate', async (req, res) => {
+    try {
+        const properties = req.body.properties;
+
+        if (!Array.isArray(properties)) {
+            return res.status(400).json({ message: 'Expected an array of properties' });
+        }
+
+        const results = await Promise.all(
+            properties.map(async ({ _id, ...data }) => {
+                if (data?.slug) delete data.slug;
+                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
+            })
+        );
+
+        res.status(200).json({ message: 'Bulk update completed', results });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
 
 router.put('/:id', async (req, res) => {
     try {

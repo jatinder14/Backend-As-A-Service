@@ -379,7 +379,7 @@ router.put('/bulkUpdate', async (req, res) => {
 
         const results = await Promise.all(
             properties.map(async ({ _id, ...data }) => {
-                if (data?.slug) delete data.slug;
+                // if (data?.slug) delete data.slug;
                 return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
             })
         );
@@ -393,7 +393,7 @@ router.put('/bulkUpdate', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
     try {
-        if (req.body.slug) delete req.body.slug
+        // if (req.body.slug) delete req.body.slug
 
         const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
         if (!property) return res.status(404).json({ message: 'Property not found' });

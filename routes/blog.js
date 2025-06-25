@@ -82,7 +82,7 @@ router.get('/:idOrSlug', async (req, res) => {
         blog.image = imagesSignedUrl;
         res.json(blog);
     } catch (err) {
-        res.status(500).json({ message: 'Invalid blog ID',error: err.message });
+        res.status(500).json({ message: 'Invalid blog ID', error: err.message });
     }
 });
 
@@ -101,7 +101,7 @@ router.post('/', async (req, res) => {
 
 // Update a blog by ID
 router.put('/:id', async (req, res) => {
-    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author, slug } = req.body;
 
     try {
         const blog = await Blog.findById(req.params.id);
@@ -110,6 +110,7 @@ router.put('/:id', async (req, res) => {
         }
 
         blog.title = title || blog.title;
+        blog.slug = slug || blog.slug;
         blog.image = image || blog.image;
         blog.video = video || blog.video;
         blog.date = date || blog.date;

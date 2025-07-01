@@ -65,8 +65,11 @@ router.post('/refreshToken', async (req, res) => {
     const { token: oldToken } = req.body;
 
     try {
-        const decoded = jwt.verify(oldToken, process.env.JWT_SECRET);
+        // const decoded = jwt.verify(oldToken, process.env.JWT_SECRET);
+        const decoded = jwt.decode(oldToken, process.env.JWT_SECRET);
+        console.log("Decoded token:", decoded, oldToken);
         const user = await User.findById(decoded.id);
+
         if (!user) {
             return res.status(400).json({ message: 'User not found' });
         }

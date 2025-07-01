@@ -14,6 +14,7 @@ const careerRoutes = require('./routes/career');
 const pageLayoutRoutes = require('./routes/pageLayout');
 const zapierRoutes = require('./routes/zapier');
 const contactUsRoutes = require('./routes/contactUs');
+const dashboardRoutes = require('./routes/dashboard');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
 const userRoutes = require('./routes/User');
@@ -76,6 +77,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/user', userRoutes);
 
 app.use('/api/property', propertyRoutes);
+
+app.use('/api/dashboard', dashboardRoutes);
+
 app.use('/api/property/enquiry', enquiryRoutes);
 
 app.use('/api/careers/application', careerRoutes);

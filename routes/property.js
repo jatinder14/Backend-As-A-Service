@@ -145,11 +145,12 @@ router.get('/', async (req, res) => {
             })
         );
 
-        if (lang && lang != 'en') {
-            propertiesWithSignedUrls = await translateDynamicText(propertiesWithSignedUrls, lang)
-            // totalPropertys = await translateDynamicText(totalPropertys, lang)
-        }
+        // if (lang && lang != 'en') {
+        //     propertiesWithSignedUrls = await translateDynamicText(propertiesWithSignedUrls, lang)
+        //     // totalPropertys = await translateDynamicText(totalPropertys, lang)
+        // }
         // console.log("totalPropertys------", totalPropertys);
+
         await Promise.all(totalPropertys.map(async (property) => {
             if (!property?.importedFromCrm) {
 
@@ -202,7 +203,7 @@ router.get('/', async (req, res) => {
 router.get('/:idOrSlug', async (req, res) => {
     try {
         const { idOrSlug } = req.params;
-        const { lang } = req.query;
+        // const { lang } = req.query;
 
         let property;
 
@@ -281,10 +282,11 @@ router.get('/:idOrSlug', async (req, res) => {
 
             // console.log("videosSignedUrls", videosSignedUrls, property.videos);
         }
-        if (lang && lang != 'en') {
-            let translatedPropertyList = await translateDynamicText([property], lang)
-            property = translatedPropertyList[0];
-        }
+
+        // if (lang && lang != 'en') {
+        //     let translatedPropertyList = await translateDynamicText([property], lang)
+        //     property = translatedPropertyList[0];
+        // }
 
         res.status(200).json({ property: property });
 

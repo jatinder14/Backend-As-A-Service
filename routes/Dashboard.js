@@ -5,6 +5,7 @@ const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 const Task = require('../models/Task');
 const Lead = require('../models/Lead');
 const Property = require('../models/Property');
+const { generateSignedUrl, getKey } = require('../utils/s3');
 
 const router = express.Router();
 
@@ -18,10 +19,66 @@ router.get('/count', async (req, res) => {
         // const totalDraft = await Property.countDocuments({ status: 'DRAFT' });
         const totalProperties = await Property.countDocuments();
 
-        const latestProperties = await Property.find()
+        const properties = await Property.find()
             .sort({ createdAt: -1 })
-            .limit(5)
+            .limit(8)
             .populate('createdBy');
+
+        let propertiesWithSignedUrls = await Promise.all(
+
+            properties.map(async (property) => {
+
+                if (!property?.importedFromCrm) {
+
+                    const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
+
+                    const imagesPromises = property.images && Array.isArray(property.images)
+                        ? property.images.map(image => generateSignedUrl(getKey(image)))
+                        : [];
+
+                    const videoPromises = property.videos && Array.isArray(property.videos)
+                        ? property.videos.map(el => generateSignedUrl(getKey(el.url)))
+                        : [];
+
+                    const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)
+                        ? property.floorPlans.map(el => {
+                            if (el.floorPlanImage)
+                                generateSignedUrl(getKey(el?.floorPlanImage))
+                        })
+                        : [];
+
+                    // Await all promises concurrently
+                    const [dldPermitQrCodeSignedUrl, imagesSignedUrls, videosSignedUrls, floorPlanImageSignedUrls] = await Promise.all([
+                        dldPermitQrCodePromise,
+                        Promise.all(imagesPromises),
+                        Promise.all(videoPromises),
+                        Promise.all(floorPlanImagePromises),
+                    ]);
+
+                    // Assign the results to Property fields
+                    property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
+                    property.images = imagesSignedUrls;
+
+                    // ✅ Map each signed URL to the correct video object
+
+                    if (property.floorPlans?.length === floorPlanImageSignedUrls?.length) {
+                        property.floorPlans.forEach((el, index) => {
+                            // console.log(el, index);
+                            el.floorPlanImage = floorPlanImageSignedUrls[index];
+                        });
+                    }
+                    // console.log(property.floorPlans);
+
+                    if (property.videos?.length === videosSignedUrls?.length) {
+                        property.videos.forEach((el, index) => {
+                            // console.log(el, index);
+                            el.url = videosSignedUrls[index];
+                        });
+                    }
+                }
+                return property;
+            })
+        );
 
         res.json({
             totalOffplan,
@@ -29,7 +86,7 @@ router.get('/count', async (req, res) => {
             totalRent,
             // totalDraft,
             totalProperties,
-            latestProperties
+            propertiesWithSignedUrls
         });
     } catch (err) {
         res.status(500).json({ message: err.message });

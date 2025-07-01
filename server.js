@@ -18,6 +18,7 @@ const dashboardRoutes = require('./routes/Dashboard');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
 const userRoutes = require('./routes/User');
+const { verifyToken } = require('./middleware/auth');
 // const syncProperties = require('./cron-jobs/syncCRM')
 // const { setupWebSocket } = require("./websockets/websocket");
 
@@ -51,7 +52,7 @@ app.get('/', (req, res) => {
 });
 
 // s3 routes
-app.post('/getSignUrlForUpload',
+app.post('/getSignUrlForUpload', verifyToken,
     upload.single('file'),
     uploadController.upload);
 

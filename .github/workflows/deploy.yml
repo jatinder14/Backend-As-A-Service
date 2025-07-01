@@ -35,6 +35,6 @@ jobs:
           git checkout -b mvl-backend origin/mvl-backend
 
           # Step 4: Install and restart
-          npm install
-          pm2 restart all
+          sudo npm install
+          sudo pm2 restart all
         EOF

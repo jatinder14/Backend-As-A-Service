@@ -1,7 +1,7 @@
 import axios from "axios";
 
 /* status */
-const getStatusLabel = (value: any) => {
+const getStatusLabel = (value) => {
   switch (value) {
     case "OFF_PLAN":
       return "For Off-Plan";
@@ -16,7 +16,7 @@ const getStatusLabel = (value: any) => {
 };
 
 // Returns the appropriate status label based on soldOut flag, status type, and optional custom message
-const getSoldStatusLabel = (data: any) => {
+const getSoldStatusLabel = (data) => {
   if (data?.soldOut && data?.propertyStatusMessage) {
     return data?.propertyStatusMessage;
   } else if (
@@ -32,12 +32,12 @@ const getSoldStatusLabel = (data: any) => {
 };
 
 /* To convert the obeject to create a payload */
-const toConvertFloorPlanToArray = (data: any) => {
-  let convertedArray: string[] = [];
+const toConvertFloorPlanToArray = (data) => {
+  let convertedArray = [];
 
   // Extract the 'translatedText' from each object and add to the convertedArray
   data?.floorPlans?.length > 0 &&
-    data?.floorPlans?.forEach((item: any) => {
+    data?.floorPlans?.forEach((item) => {
       if (item?.floorName) {
         convertedArray.push(item.floorName);
       }
@@ -47,8 +47,8 @@ const toConvertFloorPlanToArray = (data: any) => {
 };
 
 /* To reconvert it back to string array from API response strucure */
-const convertResponseArrayObject = async (data: any[]) => {
-  let convertedArray: string[] = [];
+const convertResponseArrayObject = async(data) => {
+  let convertedArray[] = [];
 
   // Extract the 'translatedText' from each object and add to the convertedArray
   await data.forEach((item) => {
@@ -61,18 +61,18 @@ const convertResponseArrayObject = async (data: any[]) => {
 };
 
 // Returns the stringified features array if it exists and has items; otherwise, returns an empty string
-const getFeaturesString = (features: any) => {
+const getFeaturesString = (features) => {
   return features?.length > 0 ? JSON.stringify(features) : "-";
 };
 
 /* to convert string data into array of object */
-const convertArrayObject = async (data: string[]) => {
-  const response: any = await convertResponseArrayObject(data);
+const convertArrayObject = async(data) => {
+  const response = await convertResponseArrayObject(data);
   return response;
 };
 
 /* to convert array od object data into translated atring array structure */
-const convertToStringArray = async (data: any) => {
+const convertToStringArray = async (data) => {
   const status = getStatusLabel(data?.status);
   const soldStatusLabel = getSoldStatusLabel(data);
   const features = getFeaturesString(data?.features);
@@ -94,14 +94,14 @@ const convertToStringArray = async (data: any) => {
 };
 
 // Helper to decode HTML entities
-const decodeHtml = (htmlString: any) => {
+const decodeHtml = (htmlString) => {
   const txt = document.createElement("textarea");
   txt.innerHTML = htmlString;
   return txt.value;
 };
 
 // stripOuterQuotes
-const stripOuterQuotes = (str: string): string => {
+const stripOuterQuotes = (str) => {
   return str
     .replace(/^"(.*)"$/, "$1")
     .replace(/^"(.*)"$/, "$1")
@@ -109,7 +109,7 @@ const stripOuterQuotes = (str: string): string => {
 };
 
 // getLanguageDelimiter
-const getLanguageDelimiter = (langCode: string): string => {
+const getLanguageDelimiter = (langCode) => {
   switch (langCode.toUpperCase()) {
     case "EN":
       return ",";
@@ -140,7 +140,7 @@ const getLanguageDelimiter = (langCode: string): string => {
   }
 };
 
-const parseTranslatedArray = (input: any, language: string): string[] => {
+const parseTranslatedArray = (input, language) => {
   try {
     const decoded = decodeHtml(
       typeof input === "string" ? input : JSON.stringify(input)
@@ -174,15 +174,15 @@ const parseTranslatedArray = (input: any, language: string): string[] => {
 };
 
 export const translatePropertyDetails = async (
-  dynamicText: any,
-  globalState: any
+  dynamicText,
+  globalState
 ) => {
   let updatedObject = {};
-  const url: any = process.env.NEXT_PUBLIC_TRANSLATED_KEY_URL;
+  const url = process.env.TRANSLATION_API_URL;
   const convertToString = await convertToStringArray(dynamicText);
   // Header Configuration
   const headers = {
-    "x-goog-api-key": process.env.NEXT_PUBLIC_TRANSLATED_SECRET_KEY_EMPIRE,
+    "x-goog-api-key": process.env.TRANSLATION_API_SECRET,
     "Content-Type": "application/json",
   };
 
@@ -196,7 +196,7 @@ export const translatePropertyDetails = async (
 
   try {
     const response = await axios.post(url, payload, { headers });
-    const convertedArray: any = await convertArrayObject(
+    const convertedArray = await convertArrayObject(
       response.data.data.translations
     );
     // let features = [];
@@ -209,17 +209,17 @@ export const translatePropertyDetails = async (
     const floorPlans = convertedArray?.splice(9);
     const floorPlanUpdatedArray =
       dynamicText?.floorPlans?.length > 0
-        ? dynamicText?.floorPlans?.map((item: any, index: any) => {
-            if (floorPlans[index] !== "-") {
-              const translated = floorPlans[index];
-              return (
-                translated && {
-                  ...item,
-                  floorName: translated,
-                }
-              );
-            } else return {};
-          })
+        ? dynamicText?.floorPlans?.map((item, index) => {
+          if (floorPlans[index] !== "-") {
+            const translated = floorPlans[index];
+            return (
+              translated && {
+                ...item,
+                floorName: translated,
+              }
+            );
+          } else return {};
+        })
         : [];
     // to update the object
     updatedObject = {

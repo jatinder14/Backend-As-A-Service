@@ -1,11 +1,11 @@
-const cron = require('node-cron');
-const { syncProperties } = require('../utils/crm');
+// const cron = require('node-cron');
+// const { syncProperties } = require('../utils/crm');
 
-// syncProperties();
+// // syncProperties();
 
-// // Schedule the task to run every 15 minutes
-cron.schedule('*/15 * * * *', () => {
-    console.log('Running syncProperties every 15 minutes...');
-    syncProperties();
-});
+// // // Schedule the task to run every 15 minutes
+// cron.schedule('*/15 * * * *', () => {
+//     console.log('Running syncProperties every 15 minutes...');
+//     syncProperties();
+// });
 

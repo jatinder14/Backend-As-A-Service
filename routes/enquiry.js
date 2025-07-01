@@ -1,17 +1,7 @@
 const express = require('express');
 const Enquiry = require('../models/Enquiry');
-const { generateSignedUrl, getKey } = require('../utils/s3');
 const router = express.Router();
-
-router.post('/', async (req, res) => {
-    try {
-        const enquiry = await new Enquiry(req.body).populate('propertyId');
-        await enquiry.save();
-        res.status(201).json({ message: 'enquiry created successfully', enquiry });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
+const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 
 router.get('/getEnquiries', async (req, res) => {
     try {
@@ -42,7 +32,7 @@ router.get('/getEnquiries', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         let enquiry = await Enquiry.findById(req.params.id).populate('propertyId')
-            
+
         if (!enquiry) return res.status(404).json({ message: 'Enquiry not found' });
 
         res.status(200).json(enquiry);
@@ -50,13 +40,25 @@ router.get('/:id', async (req, res) => {
         res.status(500).json({ message: err.message });
     }
 });
+router.post('/', async (req, res) => {
+    try {
+        const enquiry = await new Enquiry(req.body).populate('propertyId');
+        await enquiry.save();
+        res.status(201).json({ message: 'enquiry created successfully', enquiry });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
 
-// blue green rollback
-// even
+router.use(verifyToken, adminRole);
 
 router.put('/:id', async (req, res) => {
     try {
-        const enquiry = await Enquiry.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true }).populate('propertyId')
+        req.body.updatedBy = req.user?.id;
+        const enquiry = await Enquiry.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+            .populate('propertyId')
+            .populate('updatedBy')
+            .populate('createdBy');
 
         if (!enquiry) return res.status(404).json({ message: 'Enquiry not found' });
         res.status(200).json({ message: 'enquiry updated successfully', enquiry });

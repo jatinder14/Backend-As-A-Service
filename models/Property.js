@@ -7,6 +7,7 @@ const PropertySchema = new mongoose.Schema(
     {
         title: { type: String, required: true },
         slug: { type: String, unique: true, default: null },
+        isPropertyUnPublished: { type: Boolean, default: false },
         address: { type: String },
         country: { type: String },
         completion_status: { type: String },
@@ -37,7 +38,7 @@ const PropertySchema = new mongoose.Schema(
 
         status: {
             type: String,
-            // enum: ["OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT"]
+            enum: ["OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT"]
         },
         tower: { type: String },
         city: { type: String },
@@ -110,54 +111,59 @@ const PropertySchema = new mongoose.Schema(
             default: false, // Ensures the user must accept before submitting
         },
 
+        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+        rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+        rejectedReason: { type: String },
+
     },
     { timestamps: true }
 );
 
 // // Pre-save hook to auto-generate slug
 
-PropertySchema.pre('save', async function (next) {
-    if (!this.isModified('title')) return next();
+// PropertySchema.pre('save', async function (next) {
+//     if (!this.isModified('title')) return next();
 
-    let baseSlug = slugify(this.title, { lower: true, strict: true, trim: true });
-    let slug = baseSlug;
+//     let baseSlug = slugify(this.title, { lower: true, strict: true, trim: true });
+//     let slug = baseSlug;
 
-    // Check if slug already exists
-    const exists = await mongoose.models.Property.findOne({ slug });
+//     // Check if slug already exists
+//     const exists = await mongoose.models.Property.findOne({ slug });
 
-    if (exists) {
-        slug = `${baseSlug}-${this.status}`;
-    }
+//     if (exists) {
+//         slug = `${baseSlug}-${this.status}`;
+//     }
 
-    this.slug = slug;
-    next();
-});
+//     this.slug = slug;
+//     next();
+// });
 
-PropertySchema.pre('findOneAndUpdate', async function (next) {
-    const update = this.getUpdate();
-    const title = update?.title || update?.$set?.title;
-    const status = update?.status || update?.$set?.status;
+// PropertySchema.pre('findOneAndUpdate', async function (next) {
+//     const update = this.getUpdate();
+//     const title = update?.title || update?.$set?.title;
+//     const status = update?.status || update?.$set?.status;
 
-    if (!title) return next();
+//     if (!title) return next();
 
-    let baseSlug = slugify(title, { lower: true, strict: true, trim: true });
-    let slug = baseSlug;
+//     let baseSlug = slugify(title, { lower: true, strict: true, trim: true });
+//     let slug = baseSlug;
 
-    // Check if base slug already exists
-    const exists = await mongoose.models.Property.findOne({ slug });
+//     // Check if base slug already exists
+//     const exists = await mongoose.models.Property.findOne({ slug });
 
-    if (exists) {
-        slug = `${baseSlug}-${(status || 'unknown').toLowerCase()}`;
-    }
+//     if (exists) {
+//         slug = `${baseSlug}-${(status || 'unknown').toLowerCase()}`;
+//     }
 
-    if (update.$set) {
-        update.$set.slug = slug;
-    } else {
-        update.slug = slug;
-    }
+//     if (update.$set) {
+//         update.$set.slug = slug;
+//     } else {
+//         update.slug = slug;
+//     }
 
-    this.setUpdate(update);
-    next();
-});
+//     this.setUpdate(update);
+//     next();
+// });
 
 module.exports = mongoose.model("Property", PropertySchema);

@@ -39,7 +39,7 @@ app.listen(PORT, () => {
 
 // Server health check
 app.get('/', (req, res) => {
-    res.send('MVL Admin Portal Backend');
+    res.send('MVL Admin Portal Backend is healthy');
 });
 
 // Auth Routes

@@ -1,0 +1,40 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches: [ mvl-backend ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up SSH key
+      run: |
+        echo "${{ secrets.EC2_SSH_KEY }}" > key.pem
+        chmod 600 key.pem
+
+    - name: Deploy via SSH
+      run: |
+        ssh -o StrictHostKeyChecking=no -i key.pem ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF'
+          cd ${{ secrets.EC2_APP_DIR }}
+
+          # Step 1: Switch to a safe detached HEAD to allow deletion
+          git checkout --detach
+
+          # Step 2: Delete the local branch if it exists
+          if git show-ref --quiet refs/heads/mvl-backend; then
+            git branch -D mvl-backend
+          fi
+
+          # Step 3: Fetch and checkout a fresh copy of the branch
+          git fetch origin mvl-backend
+          git checkout -b mvl-backend origin/mvl-backend
+
+          # Step 4: Install and restart
+          npm install
+          pm2 restart all
+        EOF

@@ -4,13 +4,19 @@ const bcrypt = require('bcryptjs');
 const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 const router = express.Router();
 
-router.use(verifyToken, hrOrAdmin);
+router.use(verifyToken, adminRole);
 
 router.get('/getAllUsers', async (req, res) => {
-    const { page = 1, limit = 10 } = req.query;
+    const { page = 1, limit = 10, role } = req.query;
+
+    let query = {};
+
+    if (role) {
+        query.role = role;
+    }
 
     try {
-        const users = await User.find()
+        const users = await User.find(query)
             .limit(limit * 1)
             .skip((page - 1) * limit)
             .exec();
@@ -90,7 +96,7 @@ router.get('/:id', async (req, res) => {
 });
 
 router.put('/:id', async (req, res) => {
-    const { name, email, role, position, dateOfJoining, phone, emergencyContact, address, employmentType } = req.body;
+    const { name, email, role, position, dateOfJoining, phone, emergencyContact, address, employmentType, password } = req.body;
 
     try {
         const user = await User.findById(req.params.id);
@@ -108,6 +114,7 @@ router.put('/:id', async (req, res) => {
         user.emergencyContact = emergencyContact || user.emergencyContact;
         user.address = address || user.address;
         user.employmentType = employmentType || user.employmentType;
+        user.password = password || user.password;
 
         await user.save();
         res.status(200).json({ message: 'User updated successfully', user });

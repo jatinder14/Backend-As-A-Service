@@ -3,114 +3,18 @@ const Property = require('../models/Property');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 const getExchangeRates = require('../utils/currency');
 const router = express.Router();
+const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 const mongoose = require("mongoose");
+const { translateDynamicText } = require('../utils/translator/properties-translation/paginated-properties');
 const isValidObjectId = mongoose.Types.ObjectId.isValid;
 
-router.post('/', async (req, res) => {
-    try {
-        if (req.body?.referenceNumber) {
-            const existingProperty = await Property.findOne({ referenceNumber: req.body?.referenceNumber });
-
-            if (existingProperty)
-                return res.status(409).json({ message: 'Property With Reference Number already exists', referenceNumber: req.body?.referenceNumber, existingProperty }); // 409 Conflict
-
-        }
-
-        const property = new Property(req.body);
-        await property.save();
-        res.status(201).json({ message: 'Property created successfully', property }); // 201 Created
-    } catch (err) {
-        res.status(400).json({ message: err.message }); // 400 Bad Request (can be customized further)
-    }
-});
-
-router.post('/bulkAdd', async (req, res) => {
-    try {
-        const properties = req.body.properties;
-        const addedProperties = [];
-
-        if (!Array.isArray(properties)) {
-            return res.status(400).json({ message: 'Expected an array of properties' });
-        }
-
-        const referenceNumbers = properties.map(p => p.referenceNumber);
-
-        // Find all existing referenceNumbers
-        const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
-        const existingRefs = new Set(existing.map(p => p.referenceNumber));
-
-        // Filter only new properties
-        const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
-
-        if (newProperties.length === 0) {
-            return res.status(409).json({ message: 'All properties already exist' });
-        }
-
-        for (const propertyData of newProperties) {
-            const property = new Property(propertyData);
-            await property.save(); // triggers pre('save')
-            addedProperties.push(property);
-        }
-
-        res.status(201).json({
-            message: `${addedProperties.length} properties added successfully`,
-            addedProperties
-        });
-    } catch (err) {
-        res.status(400).json({ message: err.message });
-    }
-});
-
-router.patch('/bulkUpdateByStatus', async (req, res) => {
-    try {
-        const { oldStatus, newStatus } = req.body;
-
-        if (!oldStatus || !newStatus) {
-            return res.status(400).json({ message: 'Both oldStatus and newStatus are required' });
-        }
-
-        const result = await Property.updateMany(
-            { status: oldStatus },
-            { $set: { status: newStatus } },
-            { runValidators: true }
-        );
-
-        res.status(200).json({
-            message: `Status updated from '${oldStatus}' to '${newStatus}'`,
-            matchedCount: result.matchedCount,
-            modifiedCount: result.modifiedCount
-        });
-    } catch (err) {
-        res.status(500).json({ message: err.message });
-    }
-});
-
-router.put('/bulkUpdate', async (req, res) => {
-    try {
-        const properties = req.body.properties;
-
-        if (!Array.isArray(properties)) {
-            return res.status(400).json({ message: 'Expected an array of properties' });
-        }
-
-        const results = await Promise.all(
-            properties.map(async ({ _id, ...data }) => {
-                if (data?.slug) delete data.slug;
-                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true });
-            })
-        );
-
-        res.status(200).json({ message: 'Bulk update completed', results });
-    } catch (err) {
-        console.error(err);
-        res.status(500).json({ message: err.message });
-    }
-});
+// const { notifyOMs } = require('../websockets/websocket');
+// const Notification = require('../models/notification');
 
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang, isPropertyUnPublished } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -130,6 +34,8 @@ router.get('/', async (req, res) => {
 
 
         if (location) query.location = location
+
+        if (isPropertyUnPublished) query.isPropertyUnPublished = isPropertyUnPublished
 
         if (referenceNumber) query.referenceNumber = referenceNumber
 
@@ -154,8 +60,10 @@ router.get('/', async (req, res) => {
         //         $or: { $in: status }
         //     }
         // }
-        // console.log("query---",query);
-        const totalPropertys = await Property.find(query);
+
+        console.log("query---", query);
+        // let totalPropertys = await Property.find(query).limit(10);
+        let totalPropertys = await Property.find(query);
 
         // Default sort field and order
         const sortField = sortBy || 'createdAt'; // fallback field
@@ -164,7 +72,9 @@ router.get('/', async (req, res) => {
         const properties = await Property.find(query)
             .sort({ [sortField]: sortOrder })
             .limit(limit * 1)
-            .skip((page - 1) * limit);
+            .skip((page - 1) * limit)
+            .populate('createdBy')
+            .populate('updatedBy');
 
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
@@ -174,7 +84,7 @@ router.get('/', async (req, res) => {
             conversionRate = await getExchangeRates(fromCurrency, toCurrency);
 
         // Generate signed URLs for logos and images in parallel for each Property
-        const propertiesWithSignedUrls = await Promise.all(
+        let propertiesWithSignedUrls = await Promise.all(
 
             properties.map(async (property) => {
 
@@ -236,6 +146,12 @@ router.get('/', async (req, res) => {
             })
         );
 
+        // if (lang && lang != 'en') {
+        //     propertiesWithSignedUrls = await translateDynamicText(propertiesWithSignedUrls, lang)
+        //     // totalPropertys = await translateDynamicText(totalPropertys, lang)
+        // }
+        // console.log("totalPropertys------", totalPropertys);
+
         await Promise.all(totalPropertys.map(async (property) => {
             if (!property?.importedFromCrm) {
 
@@ -255,6 +171,7 @@ router.get('/', async (req, res) => {
                 // Assign the results to Property fields
                 property.images = imagesSignedUrls;
             }
+
             mapLocations.push({
                 id: property?.id,
                 slug: property?.slug,
@@ -287,6 +204,8 @@ router.get('/', async (req, res) => {
 router.get('/:idOrSlug', async (req, res) => {
     try {
         const { idOrSlug } = req.params;
+        // const { lang } = req.query;
+
         let property;
 
         if (isValidObjectId(idOrSlug)) {
@@ -301,6 +220,9 @@ router.get('/:idOrSlug', async (req, res) => {
         if (!property) {
             return res.status(404).json({ message: 'Property not found' });
         }
+
+        await property.populate('createdBy');
+        await property.populate('updatedBy');
 
         const fromCurrency = 'AED';
         const toCurrency = req.query?.toCurrency?.toUpperCase()
@@ -361,19 +283,145 @@ router.get('/:idOrSlug', async (req, res) => {
 
             // console.log("videosSignedUrls", videosSignedUrls, property.videos);
         }
-        res.status(200).json(property);
+
+        // if (lang && lang != 'en') {
+        //     let translatedPropertyList = await translateDynamicText([property], lang)
+        //     property = translatedPropertyList[0];
+        // }
+
+        res.status(200).json({ property: property });
 
     } catch (err) {
         res.status(500).json({ message: err.message });
     }
 });
 
+router.use(verifyToken, adminRole);
+
+router.post('/', async (req, res) => {
+    try {
+        if (req.body?.referenceNumber) {
+            const existingProperty = await Property.findOne({ referenceNumber: req.body?.referenceNumber });
+
+            if (existingProperty)
+                return res.status(409).json({ message: 'Property With Reference Number already exists', referenceNumber: req.body?.referenceNumber, existingProperty }); // 409 Conflict
+
+        }
+        const userId = req.user?.id;
+
+        const property = new Property(req.body);
+
+        property.createdBy = userId;
+        await property.save();
+        await property.populate('createdBy');
+
+        res.status(201).json({ message: 'Property created successfully', property }); // 201 Created
+    } catch (err) {
+        res.status(400).json({ message: err.message }); // 400 Bad Request (can be customized further)
+    }
+});
+
+router.post('/bulkAdd', async (req, res) => {
+    try {
+        const properties = req.body.properties;
+        const addedProperties = [];
+
+        if (!Array.isArray(properties)) {
+            return res.status(400).json({ message: 'Expected an array of properties' });
+        }
+
+        const referenceNumbers = properties.map(p => p.referenceNumber);
+
+        // Find all existing referenceNumbers
+        const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
+        const existingRefs = new Set(existing.map(p => p.referenceNumber));
+
+        // Filter only new properties
+        const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
+
+        if (newProperties.length === 0) {
+            return res.status(409).json({ message: 'All properties already exist' });
+        }
+
+        for (const propertyData of newProperties) {
+            const property = new Property(propertyData);
+            property.createdBy = userId;
+
+            await property.save(); // triggers pre('save')
+            await property.populate('createdBy');
+
+            addedProperties.push(property);
+        }
+
+        res.status(201).json({
+            message: `${addedProperties.length} properties added successfully`,
+            addedProperties
+        });
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+});
+
+router.patch('/bulkUpdateByStatus', async (req, res) => {
+    try {
+        const { oldStatus, newStatus } = req.body;
+
+        if (!oldStatus || !newStatus) {
+            return res.status(400).json({ message: 'Both oldStatus and newStatus are required' });
+        }
+
+        const result = await Property.updateMany(
+            { status: oldStatus },
+            {
+                $set: {
+                    status: newStatus, updatedBy: req.user?.id
+                }
+            },
+            { runValidators: true }
+        );
+
+        res.status(200).json({
+            message: `Status updated from '${oldStatus}' to '${newStatus}'`,
+            matchedCount: result.matchedCount,
+            modifiedCount: result.modifiedCount,
+            result
+        });
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+});
+
+router.put('/bulkUpdate', async (req, res) => {
+    try {
+        const properties = req.body.properties;
+
+        if (!Array.isArray(properties)) {
+            return res.status(400).json({ message: 'Expected an array of properties' });
+        }
+
+        const results = await Promise.all(
+            properties.map(async ({ _id, ...data }) => {
+                // if (data?.slug) delete data.slug;
+                data.updatedBy = req.user?.id
+                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true }).populate('createdBy').populate('updatedBy');
+            })
+        );
+
+        res.status(200).json({ message: 'Bulk update completed', results });
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ message: err.message });
+    }
+});
 
 router.put('/:id', async (req, res) => {
     try {
-        if (req.body.slug) delete req.body.slug
+        // if (req.body.slug) delete req.body.slug
+        req.body.updatedBy = req.user?.id;
 
-        const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+        const property = await Property.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true })
+            .populate('updatedBy')
+            .populate('createdBy');
         if (!property) return res.status(404).json({ message: 'Property not found' });
         res.status(200).json({ message: 'property updated successfully', property });
 

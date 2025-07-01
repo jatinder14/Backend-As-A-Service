@@ -3,6 +3,7 @@ const Blog = require('../models/Blog');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 const { isValidObjectId } = require('mongoose');
 const router = express.Router();
+const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 
 // Get all blogs (with pagination, sorting, and filtering)
 router.get('/', async (req, res) => {
@@ -82,9 +83,11 @@ router.get('/:idOrSlug', async (req, res) => {
         blog.image = imagesSignedUrl;
         res.json(blog);
     } catch (err) {
-        res.status(500).json({ message: 'Invalid blog ID',error: err.message });
+        res.status(500).json({ message: 'Invalid blog ID', error: err.message });
     }
 });
+
+router.use(verifyToken, adminRole);
 
 // Create a new blog
 router.post('/', async (req, res) => {
@@ -92,7 +95,12 @@ router.post('/', async (req, res) => {
 
     try {
         const blog = new Blog({ title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author });
+
+        blog.createdBy = req.user?.id;
+
         await blog.save();
+        await blog.populate('createdBy');
+
         res.status(201).json(blog);
     } catch (err) {
         res.status(500).json({ message: 'Error creating blog', error: err.message });
@@ -101,15 +109,18 @@ router.post('/', async (req, res) => {
 
 // Update a blog by ID
 router.put('/:id', async (req, res) => {
-    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author } = req.body;
+    const { title, image, video, date, description, domain, SubTitleAndContent, metaData, shortDescription, author, slug } = req.body;
 
     try {
+
         const blog = await Blog.findById(req.params.id);
         if (!blog) {
             return res.status(404).json({ message: 'Blog not found' });
         }
+        blog.updatedBy = req.user?.id;
 
         blog.title = title || blog.title;
+        blog.slug = slug || blog.slug;
         blog.image = image || blog.image;
         blog.video = video || blog.video;
         blog.date = date || blog.date;
@@ -121,6 +132,8 @@ router.put('/:id', async (req, res) => {
         blog.author = author || blog.author;
 
         await blog.save();
+        await blog.populate([{ path: 'createdBy' }, { path: 'updatedBy' }]);
+
         res.json(blog);
     } catch (err) {
         res.status(500).json({ message: err.message });

@@ -14,9 +14,12 @@ const careerRoutes = require('./routes/career');
 const pageLayoutRoutes = require('./routes/pageLayout');
 const zapierRoutes = require('./routes/zapier');
 const contactUsRoutes = require('./routes/contactUs');
+const dashboardRoutes = require('./routes/Dashboard');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
-const syncProperties = require('./cron-jobs/syncCRM')
+const userRoutes = require('./routes/User');
+const { verifyToken } = require('./middleware/auth');
+// const syncProperties = require('./cron-jobs/syncCRM')
 // const { setupWebSocket } = require("./websockets/websocket");
 
 // const seedUsers = require('./seeders/seedUsers');
@@ -49,7 +52,7 @@ app.get('/', (req, res) => {
 });
 
 // s3 routes
-app.post('/getSignUrlForUpload',
+app.post('/getSignUrlForUpload', verifyToken,
     upload.single('file'),
     uploadController.upload);
 
@@ -61,7 +64,6 @@ server.listen(PORT, () => {
 
 
 // Auth Routes
-// app.use('/api/auth', authRoutes);
 
 app.use('/api/products', productRoutes);
 
@@ -73,7 +75,12 @@ app.use('/api/projects', projectRoutes);
 
 app.use('/api/auth', authRoutes);
 
+app.use('/api/user', userRoutes);
+
 app.use('/api/property', propertyRoutes);
+
+app.use('/api/dashboard', dashboardRoutes);
+
 app.use('/api/property/enquiry', enquiryRoutes);
 
 app.use('/api/careers/application', careerRoutes);

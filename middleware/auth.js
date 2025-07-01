@@ -3,8 +3,6 @@ const User = require('../models/User');
 
 // Verify JWT Token
 const verifyToken = async (req, res, next) => {
-    console.log("jr");
-
     const token = req.header('Authorization');
     if (!token || !token.startsWith('Bearer ')) {
         return res.status(401).json({ message: 'Access denied. No token provided or invalid format.' });

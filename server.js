@@ -34,6 +34,7 @@ require('./cron-jobs/syncHostaway');
 require('./cron-jobs/ejari-expirattion');
 // const seedUsers = require('./seeders/seedUsers');
 const http = require("http");
+const { verifyToken } = require('./middleware/auth');
 
 dotenv.config();
 connectDB();
@@ -62,11 +63,11 @@ app.get('/', (req, res) => {
 });
 
 // s3 routes
-app.post('/getSignUrlForUpload',
+app.post('/getSignUrlForUpload', verifyToken,
     upload.single('file'),
     uploadController.upload);
 
-app.get('/getSignUrlForUpload', async (req, res) => {
+app.get('/getSignUrlForUpload', verifyToken, async (req, res) => {
     let url = await generateSignedUrl(getKey(req.body.fileName))
     res.send({ url });
 });

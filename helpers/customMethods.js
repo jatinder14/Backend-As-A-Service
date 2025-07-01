@@ -1,3 +1,5 @@
+const fs = require('fs');
+const path = require('path');
 
 async function backfillSlugs() {
 
@@ -14,8 +16,6 @@ backfillSlugs()
 
 
 async function fixOldImageSchema() {
-    // const docs = await Property.find(); // Fetch all documents
-
     for (let i = 0; i < docs.length; i++) {
         const doc = docs[i];
 
@@ -30,12 +30,13 @@ async function fixOldImageSchema() {
             }));
 
             console.log('✅ Updated doc:', doc._id);
-
-            docs[i] = doc; // Optional, not necessary — but valid
         }
     }
 
-    console.log('🎉 All legacy docs updated.',docs);
+    const outputPath = path.join(__dirname, 'updatedDocs.json');
+
+    fs.writeFileSync(outputPath, JSON.stringify(docs, null, 2));
+    console.log(`🎉 All legacy docs updated and saved to: ${outputPath}`);
 }
 
 fixOldImageSchema();

@@ -108,6 +108,8 @@ function getKey(url) {
         console.log("Please Provide url---", url);
         return
     }
+    // console.log("url---------", url);
+
     const lastSlashIndex = url.lastIndexOf('/');
 
     const queryIndex = url.indexOf('?');

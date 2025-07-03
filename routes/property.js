@@ -123,9 +123,20 @@ router.get('/', async (req, res) => {
 
                     // Assign the results to Property fields
                     property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
-                    property.images = imagesSignedUrls;
 
-                    // ✅ Map each signed URL to the correct video object
+                    if (property.images?.length === imagesSignedUrls?.length) {
+                        property.images = property.images.map((img, index) => ({
+                            ...img,
+                            url: imagesSignedUrls[index],
+                        }));
+                    }
+
+                    if (property.videos?.length === videosSignedUrls?.length) {
+                        property.videos.forEach((video, index) => ({
+                            ...video,
+                            url: videosSignedUrls[index]
+                        }));
+                    }
 
                     if (property.floorPlans?.length === floorPlanImageSignedUrls?.length) {
                         property.floorPlans.forEach((el, index) => {
@@ -134,13 +145,6 @@ router.get('/', async (req, res) => {
                         });
                     }
                     // console.log(property.floorPlans);
-
-                    if (property.videos?.length === videosSignedUrls?.length) {
-                        property.videos.forEach((el, index) => {
-                            // console.log(el, index);
-                            el.url = videosSignedUrls[index];
-                        });
-                    }
                 }
                 return property;
             })
@@ -159,17 +163,15 @@ router.get('/', async (req, res) => {
                     ? generateSignedUrl(getKey(property?.images?.[0]?.url))
                     : [];
 
-                // console.log("------jatinder", imagesPromises)
                 // Await all promises concurrently
                 const imagesSignedUrls = await imagesPromises
-                // console.log("------mahajan", imagesSignedUrls)
 
-                // const [imagesSignedUrls] = await Promise.all([
-                //     Promise.all(imagesPromises),
-                // ]);
-
-                // Assign the results to Property fields
-                property.images = imagesSignedUrls;
+                if (property.images?.length === imagesSignedUrls?.length) {
+                    property.images = property.images.map((img, index) => ({
+                        ...img,
+                        url: imagesSignedUrls[index],
+                    }));
+                }
             }
 
             mapLocations.push({
@@ -262,9 +264,20 @@ router.get('/:idOrSlug', async (req, res) => {
 
             // Assign the results to Property fields
             property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
-            property.images = imagesSignedUrls;
 
-            // ✅ Map each signed URL to the correct video object
+            if (property.images?.length === imagesSignedUrls?.length) {
+                property.images = property.images.map((img, index) => ({
+                    ...img,
+                    url: imagesSignedUrls[index],
+                }));
+            }
+
+            if (property.videos?.length === videosSignedUrls?.length) {
+                property.videos.forEach((video, index) => ({
+                    ...video,
+                    url: videosSignedUrls[index]
+                }));
+            }
 
             if (property.floorPlans?.length === floorPlanImageSignedUrls?.length) {
                 property.floorPlans.forEach((el, index) => {
@@ -272,16 +285,7 @@ router.get('/:idOrSlug', async (req, res) => {
                     el.floorPlanImage = floorPlanImageSignedUrls[index];
                 });
             }
-            // console.log(property.floorPlans);
 
-            if (property.videos?.length === videosSignedUrls?.length) {
-                property.videos.forEach((el, index) => {
-                    // console.log(el, index);
-                    el.url = videosSignedUrls[index];
-                });
-            }
-
-            // console.log("videosSignedUrls", videosSignedUrls, property.videos);
         }
 
         // if (lang && lang != 'en') {

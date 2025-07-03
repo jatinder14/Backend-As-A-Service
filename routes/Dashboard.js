@@ -54,7 +54,7 @@ router.get('/count', async (req, res) => {
                         Promise.all(floorPlanImagePromises),
                     ]);
 
-                    console.log("imagesPromises--------------", imagesSignedUrls);
+                    // console.log("imagesPromises--------------", imagesSignedUrls);
                     // Assign the results to Property fields
                     property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
 
@@ -64,15 +64,13 @@ router.get('/count', async (req, res) => {
                             url: imagesSignedUrls[index],
                         }));
                     }
+
                     if (property.videos?.length === videosSignedUrls?.length) {
                         property.videos.forEach((video, index) => ({
-                            // console.log(el, index);
                             ...video,
                             url: videosSignedUrls[index]
                         }));
                     }
-
-                    // ✅ Map each signed URL to the correct video object
 
                     if (property.floorPlans?.length === floorPlanImageSignedUrls?.length) {
                         property.floorPlans.forEach((el, index) => {

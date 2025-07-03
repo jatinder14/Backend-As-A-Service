@@ -156,7 +156,7 @@ router.get('/', async (req, res) => {
             if (!property?.importedFromCrm) {
 
                 const imagesPromises = property.images && Array.isArray(property.images)
-                    ? generateSignedUrl(getKey(property?.images?.[0]))
+                    ? generateSignedUrl(getKey(property?.images?.[0]?.url))
                     : [];
 
                 // console.log("------jatinder", imagesPromises)
@@ -249,7 +249,7 @@ router.get('/:idOrSlug', async (req, res) => {
                 : [];
 
             const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)
-                ? property.floorPlans.map(el => generateSignedUrl(getKey(el.floorPlanImage)))
+                ? property.floorPlans.map(el => generateSignedUrl(getKey(el?.floorPlanImage)))
                 : [];
 
             // Await all promises concurrently

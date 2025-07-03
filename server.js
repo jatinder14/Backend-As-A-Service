@@ -20,15 +20,21 @@ const StatusCodes = require('./constants/statusCode')
 const userRoutes = require('./routes/User');
 const { verifyToken } = require('./middleware/auth');
 // const syncProperties = require('./cron-jobs/syncCRM')
+require('./cron-jobs/mongoBackup')
+
 // const { setupWebSocket } = require("./websockets/websocket");
 
 // const seedUsers = require('./seeders/seedUsers');
+
 const http = require("http");
 
 dotenv.config();
+
 connectDB();
+
 const app = express();
 const server = http.createServer(app);
+
 // seedUsers();
 
 // setupWebSocket(server); // Attach WebSocket to server

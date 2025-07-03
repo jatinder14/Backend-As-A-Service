@@ -27,7 +27,6 @@ router.get('/count', async (req, res) => {
         let propertiesWithSignedUrls = await Promise.all(
 
             properties.map(async (property) => {
-
                 if (!property?.importedFromCrm) {
 
                     const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
@@ -55,9 +54,23 @@ router.get('/count', async (req, res) => {
                         Promise.all(floorPlanImagePromises),
                     ]);
 
+                    console.log("imagesPromises--------------", imagesSignedUrls);
                     // Assign the results to Property fields
                     property.dldPermitQrCode = dldPermitQrCodeSignedUrl;
-                    property.images = imagesSignedUrls;
+
+                    if (property.images?.length === imagesSignedUrls?.length) {
+                        property.images = property.images.map((img, index) => ({
+                            ...img,
+                            url: imagesSignedUrls[index],
+                        }));
+                    }
+                    if (property.videos?.length === videosSignedUrls?.length) {
+                        property.videos.forEach((video, index) => ({
+                            // console.log(el, index);
+                            ...video,
+                            url: videosSignedUrls[index]
+                        }));
+                    }
 
                     // ✅ Map each signed URL to the correct video object
 
@@ -69,12 +82,6 @@ router.get('/count', async (req, res) => {
                     }
                     // console.log(property.floorPlans);
 
-                    if (property.videos?.length === videosSignedUrls?.length) {
-                        property.videos.forEach((el, index) => {
-                            // console.log(el, index);
-                            el.url = videosSignedUrls[index];
-                        });
-                    }
                 }
                 return property;
             })

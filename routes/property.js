@@ -60,6 +60,7 @@ router.get('/', async (req, res) => {
         //         $or: { $in: status }
         //     }
         // }
+
         console.log("query---", query);
         // let totalPropertys = await Property.find(query).limit(10);
         let totalPropertys = await Property.find(query);
@@ -98,11 +99,11 @@ router.get('/', async (req, res) => {
                     const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
 
                     const imagesPromises = property.images && Array.isArray(property.images)
-                        ? property.images.map(image => generateSignedUrl(getKey(image)))
+                        ? property.images.map(image => generateSignedUrl(getKey(image?.url)))
                         : [];
 
                     const videoPromises = property.videos && Array.isArray(property.videos)
-                        ? property.videos.map(el => generateSignedUrl(getKey(el.url)))
+                        ? property.videos.map(el => generateSignedUrl(getKey(el?.url)))
                         : [];
 
                     const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)
@@ -240,11 +241,11 @@ router.get('/:idOrSlug', async (req, res) => {
             const dldPermitQrCodePromise = property.dldPermitQrCode ? generateSignedUrl(getKey(property.dldPermitQrCode)) : null;
 
             const imagesPromises = property.images && Array.isArray(property.images)
-                ? property.images.map(image => generateSignedUrl(getKey(image)))
+                ? property.images.map(image => generateSignedUrl(getKey(image?.url)))
                 : [];
 
             const videoPromises = property.videos && Array.isArray(property.videos)
-                ? property.videos.map(el => generateSignedUrl(getKey(el.url)))
+                ? property.videos.map(el => generateSignedUrl(getKey(el?.url)))
                 : [];
 
             const floorPlanImagePromises = property.floorPlans && Array.isArray(property.floorPlans)

@@ -1,13 +1,6 @@
 const mongoose = require('mongoose');
 const { default: slugify } = require('slugify');
-
-const metaDataSchema = new mongoose.Schema({
-    title: { type: String },
-    description: { type: String },
-    keywords: { type: String }
-},
-    { _id: false } // Exclude the `_id` field from this sub-schema
-);
+const metaDataSchema = require('../schemas/metaData.schema');
 
 const SubTitleAndContentSchema = new mongoose.Schema({
     title: { type: String },
@@ -32,6 +25,7 @@ const blogSchema = new mongoose.Schema({
     isActive: { type: Boolean, default: false },
     description: { type: String },
     metaData: metaDataSchema,
+    isActive: { type: Boolean, default: true },
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 }, { timestamps: true });

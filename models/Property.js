@@ -16,6 +16,9 @@ const PropertySchema = new mongoose.Schema(
         latitude: { type: String },
         longitude: { type: String },
         description: { type: String },
+        finishing_type: { type: String },
+        offering_type: { type: String },
+        uae_emirate: { type: String },
         saleOrRentprice: { type: Number },
         pricePrefix: { type: String },
         pricePostfix: { type: String },
@@ -38,8 +41,13 @@ const PropertySchema = new mongoose.Schema(
 
         status: {
             type: String,
-            enum: ["OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT", "DRAFT"]
+            enum: ["", "OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT", "DRAFT"]
         },
+        publishing_status: {
+            type: String,
+            enum: ["PUBLISHED", "UNPUBLISHED", "LIVE", "ARCHIVED", "DRAFT", "POCKET"]
+        },
+
         tower: { type: String },
         city: { type: String },
         sub_location: { type: String },

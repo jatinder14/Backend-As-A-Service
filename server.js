@@ -103,3 +103,93 @@ app.use('/api/contact', contactUsRoutes);
 
 // zapier
 app.use('/api/zapier', zapierRoutes);
+
+
+
+
+
+
+
+
+
+
+
+
+
+// function solution(board) {
+//     const m = board.length
+//     const n = board[0].length
+
+//     const newBoard = Array.from({ length: m }, () => Array(n).fill('.'))
+//     for (let row = 0; row < m; row++) {
+//         for (let col = 0; col < n; col++) {
+//             if (board[row][col] === '*') {
+//                 newBoard[row][col] = '*'
+//             }
+//         }
+//     }
+
+//     for (let col = 0; col < n; col++) {
+
+//         let writeRow = m - 1;
+//         for (let row = m - 1; row >= 0; row--) {
+//             if (board[row][col] === '*') {
+//                 // newBoard[row][col] = '*'
+//                 writeRow = row - 1
+//             }
+//             else if (board[row][col] === '#') {
+//                 while (writeRow >= 0 && newBoard[writeRow][col] !== '.') {
+//                     writeRow--;
+//                 }
+
+//                 if (writeRow >= 0) {
+//                     newBoard[writeRow][col] = '#'
+//                     writeRow--;
+//                 }
+
+
+//             }
+
+//         }
+
+
+//     }
+
+//     const directions = [[-1, -1], [-1, 0], [-1, 1],
+//     [0, -1], , [0, 0], [0, 1]
+//     [1, -1], , [1, 0], [1, 1]
+//     ]
+
+//     const toExplode = Array.from({ length: m }, () => Array(n).fill(false))
+
+//     for (let row = 0; row < m; row++) {
+//         for (let col = 0; col < n; col++) {
+//             if (newBoard[row][col] == '#' && board[row][col] === '*') {
+//                 for (let [dx, dy] of directions) {
+//                     const r = row + dx
+//                     const c = col + dy
+//                     if (r >= 0 && r < m && c >= 0 && c < n) {
+//                         if (newBoard[r][c] === '#') {
+//                             toExplode[r][c] = true;
+//                         }
+//                     }
+
+//                 }
+//                 toExplode[r][c] = true;
+
+
+//             }
+
+
+//         }
+//     }
+//     console.log('toexplode----', toExplode)
+//     for (let row = 0; row < m; row++) {
+//         for (let col = 0; col < n; col++) {
+//             if (toExplode[row][col]) {
+//                 newBoard[row][col] = '-'
+//             }
+//         }
+//     }
+//     return newBoard
+// }

@@ -32,3 +32,5 @@ fi
 find "$PARENT_DIR/mongodb-backups/" -mindepth 1 -maxdepth 1 -type d -mtime +7 -exec rm -rf {} \;
 
 echo "[$(date)] 🧹 Deleted backups older than 7 days"
+
+

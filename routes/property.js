@@ -14,7 +14,7 @@ const isValidObjectId = mongoose.Types.ObjectId.isValid;
 
 router.get('/', async (req, res) => {
     try {
-        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang, isPropertyUnPublished } = req.query;
+        const { page = 1, limit = 10, status, location, type, bathrooms, bedrooms, title, soldOut, saleOrRentprice, orderBy, sortBy, referenceNumber, lang, isPropertyUnPublished, publishing_status } = req.query;
         let mapLocations = [];
         const query = {};
 
@@ -25,8 +25,12 @@ router.get('/', async (req, res) => {
                 query.status = { $regex: status, $options: 'i' };
             }
         } else {
-            // Exclude DRAFT if no status is provided
-            query.status = { $nin: ['DRAFT', 'UNPUBLISHED', 'unpublished'] };
+            // Exclude these values if no status is provided
+            query.status = { $nin: ['UNPUBLISHED', 'unpublished'] };
+        }
+
+        if (publishing_status) {
+            query.publishing_status = { $regex: publishing_status, $options: 'i' };
         }
 
 

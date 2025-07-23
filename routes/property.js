@@ -344,6 +344,14 @@ router.post('/bulkAdd', async (req, res) => {
         const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
         const existingRefs = new Set(existing.map(p => p.referenceNumber));
 
+        const updatedProperties = await Promise.all(
+            existing.map(async ({ _id, ...data }) => {
+                // if (data?.slug) delete data.slug;
+                data.updatedBy = req.user?.id
+                return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true }).populate('createdBy').populate('updatedBy');
+            })
+        );
+
         // Filter only new properties
         const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
 
@@ -362,8 +370,9 @@ router.post('/bulkAdd', async (req, res) => {
         }
 
         res.status(201).json({
-            message: `${addedProperties.length} properties added successfully`,
-            addedProperties
+            message: `${addedProperties.length} properties added successfully and ${updatedProperties.length} properties updated successfully`,
+            addedProperties,
+            updatedProperties
         });
     } catch (err) {
         res.status(400).json({ message: err.message });

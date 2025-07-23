@@ -343,11 +343,12 @@ router.post('/bulkAdd', async (req, res) => {
         // Find all existing referenceNumbers
         const existing = await Property.find({ referenceNumber: { $in: referenceNumbers } }).select('referenceNumber');
         const existingRefs = new Set(existing.map(p => p.referenceNumber));
+        const userId = req.user?.id;
 
         const updatedProperties = await Promise.all(
             existing.map(async ({ _id, ...data }) => {
                 // if (data?.slug) delete data.slug;
-                data.updatedBy = req.user?.id
+                data.updatedBy = userId
                 return Property.findByIdAndUpdate(_id, data, { new: true, runValidators: true }).populate('createdBy').populate('updatedBy');
             })
         );
@@ -355,9 +356,9 @@ router.post('/bulkAdd', async (req, res) => {
         // Filter only new properties
         const newProperties = properties.filter(p => !existingRefs.has(p.referenceNumber));
 
-        if (newProperties.length === 0) {
-            return res.status(409).json({ message: 'All properties already exist' });
-        }
+        // if (newProperties.length === 0) {
+        //     return res.status(409).json({ message: 'All properties already exist' });
+        // }
 
         for (const propertyData of newProperties) {
             const property = new Property(propertyData);

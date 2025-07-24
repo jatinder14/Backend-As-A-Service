@@ -48,6 +48,9 @@ const PropertySchema = new mongoose.Schema(
             enum: ["PUBLISHED", "UNPUBLISHED", "LIVE", "ARCHIVED", "DRAFT", "POCKET"]
         },
 
+        rental_period: { type: String },
+        listing_agent: { type: String },
+        listing_owner: { type: String },
         tower: { type: String },
         city: { type: String },
         sub_location: { type: String },

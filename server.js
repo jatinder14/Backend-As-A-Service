@@ -41,7 +41,7 @@ const server = http.createServer(app);
 // setupWebSocket(server); // Attach WebSocket to server
 app.use(cors({
     origin: '*', 
-    // allowedHeaders: '*'
+    allowedHeaders: '*'
 }));
 
 // Middleware to parse JSON requests

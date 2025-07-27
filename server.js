@@ -15,6 +15,7 @@ const pageLayoutRoutes = require('./routes/pageLayout');
 const zapierRoutes = require('./routes/zapier');
 const contactUsRoutes = require('./routes/contactUs');
 const dashboardRoutes = require('./routes/Dashboard');
+const geminiRoutes = require('./routes/gemini');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
 const userRoutes = require('./routes/User');
@@ -62,12 +63,13 @@ app.post('/getSignUrlForUpload', verifyToken,
     upload.single('file'),
     uploadController.upload);
 
+app.use('/summarize', geminiRoutes);
+
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
 });
-
 
 // Auth Routes
 

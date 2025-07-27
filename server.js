@@ -39,8 +39,10 @@ const server = http.createServer(app);
 // seedUsers();
 
 // setupWebSocket(server); // Attach WebSocket to server
+// app.use(cors());
 app.use(cors({
-    origin: '*', 
+    origin: '*', // Or explicitly: chrome-extension://oekdlegcccpmgoioblacenjdlfffploj
+    methods: '*',
     allowedHeaders: '*'
 }));
 

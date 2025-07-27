@@ -39,7 +39,10 @@ const server = http.createServer(app);
 // seedUsers();
 
 // setupWebSocket(server); // Attach WebSocket to server
-app.use(cors());
+app.use(cors({
+    origin: '*', 
+    // allowedHeaders: '*'
+}));
 
 // Middleware to parse JSON requests
 app.use(express.json());

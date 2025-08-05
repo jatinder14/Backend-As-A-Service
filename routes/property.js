@@ -36,8 +36,13 @@ router.get('/', async (req, res) => {
 
         if (title) query.title = { $regex: title, $options: 'i' };
 
-
-        if (location) query.location = location
+        if (location) {
+            query.$or = [
+                ...(query.$or || []),
+                { location: { $regex: location, $options: 'i' } },
+                { address: { $regex: location, $options: 'i' } }
+            ];
+        }
 
         if (isPropertyUnPublished) query.isPropertyUnPublished = isPropertyUnPublished
 
@@ -56,14 +61,6 @@ router.get('/', async (req, res) => {
 
         if (bedrooms)
             query.bedrooms = { $gte: bedrooms }
-
-        // console.log(query);
-
-        // if (status) {
-        //     query.status = {
-        //         $or: { $in: status }
-        //     }
-        // }
 
         console.log("query---", query);
         // let totalPropertys = await Property.find(query).limit(10);

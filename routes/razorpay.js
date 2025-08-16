@@ -35,7 +35,7 @@ router.post("/link/create-payment", async (req, res) => {
                 email: true,
             },
             reminder_enable: true,
-            callback_url: "http://localhost:8000/api/payment/razorpay/link/verify", // Your verify route
+            callback_url: process.env.RAZORPAY_WEBHOOK_URL || "https://backend.empireinfratech.ae/api/payment/razorpay/link/verify", // Your verify route
             callback_method: "get"
         };
 
@@ -51,6 +51,7 @@ router.post("/link/create-payment", async (req, res) => {
 router.all('/link/verify', async (req, res) => {
     try {
         const {
+            razorpay_order_id,
             razorpay_payment_id,
             razorpay_payment_link_id,
             razorpay_payment_link_reference_id,
@@ -58,21 +59,28 @@ router.all('/link/verify', async (req, res) => {
             razorpay_signature
         } = req.method === "GET" ? req.query : req.body;
 
-        if (!razorpay_payment_link_id || !razorpay_payment_id || !razorpay_signature) {
-            return res.status(400).json({ success: false, error: "Missing parameters" });
+        let body = "";
+
+        if (req.method === "GET") {
+            if (!razorpay_payment_link_id || !razorpay_payment_id || !razorpay_signature || !razorpay_payment_link_status) {
+                return res.status(400).json({ success: false, error: "Missing parameters" });
+            }
+
+            body = `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`;
+            console.log("🔹 Body string:", body);
         }
-        const secret = process.env.RAZORPAY_KEY_SECRET;
+        else if (req.method === "POST") {
+            if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
+                return res.status(400).json({ success: false, error: "Missing parameters" });
+            }
 
-        const body = `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`;
-        console.log("🔹 Body string:", body);
+            body = `${razorpay_order_id}|${razorpay_payment_id}`;
+            console.log("🔹 Body string:", body);
+        }
 
+        console.log("------fadfadf------", Razorpay.validateWebhookSignature(body, razorpay_signature, process.env.RAZORPAY_KEY_SECRET));
 
-        const expectedSignature = crypto
-            .createHmac("sha256", secret)
-            .update(body)
-            .digest("hex");
-
-        if (expectedSignature === razorpay_signature) {
+        if (Razorpay.validateWebhookSignature(body, razorpay_signature, process.env.RAZORPAY_KEY_SECRET)) {
             return res.json({
                 success: true,
                 message: "Payment verified successfully",
@@ -81,7 +89,6 @@ router.all('/link/verify', async (req, res) => {
             return res.status(400).json({
                 success: false,
                 error: "Invalid signature",
-                debug: { expectedSignature, providedSignature: razorpay_signature }
             });
         }
     } catch (error) {
@@ -89,7 +96,6 @@ router.all('/link/verify', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
 
 // Create Razorpay order
 router.post('/create-order', async (req, res) => {
@@ -109,10 +115,7 @@ router.post('/create-order', async (req, res) => {
         const order = await razorpay.orders.create(options);
 
         res.json({
-            id: order.id,
-            amount: order.amount,
-            currency: order.currency,
-            // key_id: process.env.RAZORPAY_KEY_ID
+            order
         });
     } catch (error) {
         console.error('Razorpay order creation error:', error);
@@ -182,9 +185,6 @@ router.post('/create-payment', async (req, res) => {
         res.status(500).json({ error: error.message });
     }
 });
-
-
-
 
 // Get subscription status
 router.get('/subscription/status/:userId', async (req, res) => {

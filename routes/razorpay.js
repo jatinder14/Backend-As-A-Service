@@ -4,6 +4,9 @@ const crypto = require('crypto');
 const User = require('../models/User');
 const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 
+const { v4: uuidv4 } = require('uuid');
+const Transaction = require('../models/Transaction');
+
 const router = express.Router();
 
 // router.use(verifyToken, hrOrAdmin);
@@ -13,6 +16,80 @@ const razorpay = new Razorpay({
     key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_R5dcC7mGZBJI9y',
     key_secret: process.env.RAZORPAY_KEY_SECRET || '29KBqceNnQER5CxM4Aj4Zsen',
 });
+
+router.post("/link/create-payment", async (req, res) => {
+    try {
+        const { amount, currency, customerName, customerEmail } = req.body;
+
+        const options = {
+            amount: amount, // in paise
+            currency: currency,
+            accept_partial: false,
+            description: "ChatInsight Premium Subscription",
+            customer: {
+                name: customerName || "Test User",
+                email: customerEmail || "test@example.com",
+            },
+            notify: {
+                sms: false,
+                email: true,
+            },
+            reminder_enable: true,
+            callback_url: "http://localhost:8000/api/payment/razorpay/link/verify", // Your verify route
+            callback_method: "get"
+        };
+
+        const paymentLink = await razorpay.paymentLink.create(options);
+
+        res.json({ link: paymentLink.short_url });
+    } catch (error) {
+        console.error("Payment link error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+router.all('/link/verify', async (req, res) => {
+    try {
+        const {
+            razorpay_payment_id,
+            razorpay_payment_link_id,
+            razorpay_payment_link_reference_id,
+            razorpay_payment_link_status,
+            razorpay_signature
+        } = req.method === "GET" ? req.query : req.body;
+
+        if (!razorpay_payment_link_id || !razorpay_payment_id || !razorpay_signature) {
+            return res.status(400).json({ success: false, error: "Missing parameters" });
+        }
+        const secret = process.env.RAZORPAY_KEY_SECRET;
+
+        const body = `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`;
+        console.log("🔹 Body string:", body);
+
+
+        const expectedSignature = crypto
+            .createHmac("sha256", secret)
+            .update(body)
+            .digest("hex");
+
+        if (expectedSignature === razorpay_signature) {
+            return res.json({
+                success: true,
+                message: "Payment verified successfully",
+            });
+        } else {
+            return res.status(400).json({
+                success: false,
+                error: "Invalid signature",
+                debug: { expectedSignature, providedSignature: razorpay_signature }
+            });
+        }
+    } catch (error) {
+        console.error("Razorpay verification error:", error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
 
 // Create Razorpay order
 router.post('/create-order', async (req, res) => {
@@ -43,42 +120,71 @@ router.post('/create-order', async (req, res) => {
     }
 });
 
-// Verify Razorpay payment
-router.post('/verify', async (req, res) => {
+router.post('/create-payment', async (req, res) => {
     try {
-        const { razorpay_order_id, razorpay_payment_id, razorpay_signature } = req.body;
+        const { transactionId, data, user, currentUserAccessToken } = req
+        console.log("[Payment] data......................", data);
 
-        // Create signature for verification
-        const body = razorpay_order_id + "|" + razorpay_payment_id;
-        const expectedSignature = crypto
-            .createHmac('sha256', process.env.RAZORPAY_KEY_SECRET)
-            .update(body.toString())
-            .digest('hex');
+        let uuid1 = uuidv4();
 
-        if (expectedSignature === razorpay_signature) {
-            // Payment is verified
-            // Fetch payment details
-            const payment = await razorpay.payments.fetch(razorpay_payment_id);
+        let paymentDetail;
 
-            if (payment.status === 'captured') {
-                // Activate subscription in database
-                // Update user subscription status
-                res.json({
-                    success: true,
-                    subscription: { plan: 'premium', isActive: true },
-                    payment_id: razorpay_payment_id
-                });
+        let lastTransaction = await Transaction.find({})
+            .sort({ createdAt: -1 })
+            .limit(1);
+        let humanReadableID = "";
+
+        if (lastTransaction) {
+            const lastHumanReadableID = lastTransaction.humanReadableID;
+
+            if (lastHumanReadableID) {
+                const lastTransactionNumber = lastHumanReadableID.split("-");
+
+                //get humanReadable id
+                humanReadableID = `transactionId_${parseInt(lastTransactionNumber.slice(-1)) + 1
+                    }`;
             } else {
-                res.json({ success: false, error: 'Payment not captured' });
+                humanReadableID = `transactionId_${pad(1, 4)}`;
             }
         } else {
-            res.json({ success: false, error: 'Invalid signature' });
+            humanReadableID = `transactionId_${pad(1, 4)}`;
         }
+
+        let options = {
+            amount: parseInt(data.amount) * 100,
+            currency: "INR",
+            receipt: humanReadableID,
+        };
+        console.log("[Payment] option......................", options);
+
+        let orderDetail = await razorpay.orders.create(options);
+
+        const transaction = {
+            amount: data.amount,
+            status: RAZORPAY_STATUS.COMPLETED,
+            type: "ON-ORDER",
+            transactionId: transactionId,
+            orderId: orderDetail.id,
+            humanReadableID: humanReadableID,
+        };
+        const intentTransaction = new Transaction(transaction);
+        await intentTransaction.save();
+
+        return res.json(
+            {
+                orderDetail,
+                intentTransaction,
+                transactionIdx: intentTransaction._id,
+            });
+
     } catch (error) {
-        console.error('Razorpay verification error:', error);
+        console.error('Razorpay order creation error:', error);
         res.status(500).json({ error: error.message });
     }
 });
+
+
+
 
 // Get subscription status
 router.get('/subscription/status/:userId', async (req, res) => {

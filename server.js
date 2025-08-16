@@ -57,6 +57,12 @@ const upload = multer({
     },
 });
 
+// Start server
+const PORT = process.env.PORT || 3000;
+server.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+});
+
 const uploadController = new UploadController();
 
 // Server health check
@@ -69,17 +75,13 @@ app.post('/getSignUrlForUpload', verifyToken,
     upload.single('file'),
     uploadController.upload);
 
+// LLM routes
 app.use('/summarize', geminiRoutes);
 
+// Razorpay routes
 app.use('/api/payment/razorpay', razorpayRoutes);
 
-// Start server
-const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
-});
 
-// Auth Routes
 
 app.use('/api/products', productRoutes);
 
@@ -88,7 +90,7 @@ app.use('/api/products', productRoutes);
 app.use('/api/projects', projectRoutes);
 
 // empire infratech
-
+// Auth Routes
 app.use('/api/auth', authRoutes);
 
 app.use('/api/user', userRoutes);

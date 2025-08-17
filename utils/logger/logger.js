@@ -1,5 +1,5 @@
-import winston, { format, transports } from "winston"
-import LokiTransport from "winston-loki"
+const winston = require("winston");
+const LokiTransport = require("winston-loki");
 
 const commonOptions = {
   level: "info",
@@ -20,7 +20,7 @@ const productionConfig = {
   transports: [
     new LokiTransport({
       host: process.env.LOKI_HOST,
-      labels: { app: "Bhartham" },
+      labels: { app: "ChatInsight" },
       json: true,
       format: winston.format.json(),
       replaceTimestamp: true,
@@ -38,11 +38,11 @@ const productionConfig = {
 const envLocation = process.env.NODE_ENV || "dev";
 const config =
   ["dev", "staging", "production"].includes(envLocation) ?
-  productionConfig :
-  localConfig;
+    productionConfig :
+    localConfig;
 
 
 console.log("config ---------------", config, process.env.NODE_ENV, process.env.LOKI_HOST);
 const logger = winston.createLogger({ ...commonOptions, ...config });
 
-export default logger;
+module.exports = logger;

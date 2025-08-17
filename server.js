@@ -17,16 +17,22 @@ const contactUsRoutes = require('./routes/contactUs');
 const dashboardRoutes = require('./routes/Dashboard');
 const geminiRoutes = require('./routes/gemini');
 const razorpayRoutes = require('./routes/razorpay');
+const subscriptionRoutes = require('./routes/subscription');
+const orderRoutes = require('./routes/order');
+const paymentRoutes = require('./routes/payments');
+const planRoutes = require('./routes/plan');
 const UploadController = require('./controllers/uploadController');
 const StatusCodes = require('./constants/statusCode')
 const userRoutes = require('./routes/User');
 const { verifyToken } = require('./middleware/auth');
 // const syncProperties = require('./cron-jobs/syncCRM')
 require('./cron-jobs/mongoBackup')
+require('./cron-jobs/subscriptionManagement').initSubscriptionCronJobs()
 
 // const { setupWebSocket } = require("./websockets/websocket");
 
 // const seedUsers = require('./seeders/seedUsers');
+// seedUsers();
 
 const http = require("http");
 
@@ -37,7 +43,6 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-// seedUsers();
 
 // setupWebSocket(server); // Attach WebSocket to server
 // app.use(cors());
@@ -110,6 +115,12 @@ app.use('/api/page-layouts', pageLayoutRoutes);
 
 
 app.use('/api/contact', contactUsRoutes);
+
+// Subscription, Order, Payment, and Plan routes
+app.use('/api/subscriptions', subscriptionRoutes);
+app.use('/api/orders', orderRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/plans', planRoutes);
 
 // end empire infratech
 

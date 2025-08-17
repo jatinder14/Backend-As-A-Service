@@ -1,61 +1,99 @@
-const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 const connectDB = require('../Database/connection');
 
-
 const users = [
     {
-        name: "admin",
+        name: "Admin User",
         email: "admin@gmail.com",
         password: "password123",
-        role: "admin"
+        role: "admin",
+        position: "System Administrator",
+        employmentType: "full-time",
+        isActive: true
     },
     {
-        name: "sales",
+        name: "Sales Manager",
         email: "sales@gmail.com",
         password: "password123",
-        role: "sales"
+        role: "sales",
+        position: "Sales Manager",
+        employmentType: "full-time",
+        isActive: true
     },
     {
-        name: "hr",
+        name: "HR Manager",
         email: "hr@gmail.com",
         password: "password123",
-        role: "hr"
+        role: "hr",
+        position: "Human Resources Manager",
+        employmentType: "full-time",
+        isActive: true
     },
     {
-        name: "ceo",
+        name: "CEO",
         email: "ceo@gmail.com",
         password: "password123",
-        role: "ceo"
+        role: "ceo",
+        position: "Chief Executive Officer",
+        employmentType: "full-time",
+        isActive: true
     },
     {
-        name: "operations_manager",
+        name: "Operations Manager",
         email: "operations_manager@gmail.com",
         password: "password123",
-        role: "operations_manager"
+        role: "operations_manager",
+        position: "Operations Manager",
+        employmentType: "full-time",
+        isActive: true
+    },
+    {
+        name: "Test Customer",
+        email: "customer@gmail.com",
+        password: "password123",
+        role: "customer",
+        customerType: "individual",
+        isActive: true
     }
 ];
 
 const seedUsers = async () => {
     try {
-        connectDB();
+        await connectDB();
 
-        // Clear existing users
+        // Clear existing users (optional - uncomment if needed)
         // await User.deleteMany();
         // console.log('Existing users deleted');
 
-        // Hash passwords and create new users
-        for (let user of users) {
-            await User.create(user);
-            console.log(`User ${user.email} created`);
+        // Create new users (password will be hashed by pre-save middleware)
+        for (let userData of users) {
+            const existingUser = await User.findOne({ email: userData.email });
+            if (!existingUser) {
+                await User.create(userData);
+                console.log(`User ${userData.email} created successfully`);
+            } else {
+                console.log(`User ${userData.email} already exists, skipping...`);
+            }
         }
 
-        console.log('Users seeded successfully');
+        console.log('Users seeding completed successfully');
     } catch (err) {
         console.error('Error seeding users:', err);
-        // process.exit(1);
+        if (err.name === 'ValidationError') {
+            console.error('Validation errors:', Object.values(err.errors).map(e => e.message));
+        }
     }
 };
 
-seedUsers();
-module.exports = seedUsers
+// Only run if this file is executed directly
+if (require.main === module) {
+    seedUsers().then(() => {
+        console.log('Seeding process completed');
+        process.exit(0);
+    }).catch(err => {
+        console.error('Seeding process failed:', err);
+        process.exit(1);
+    });
+}
+
+module.exports = seedUsers;

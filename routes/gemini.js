@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 const { getChatSummary } = require('../utils/gemini');
 
 router.post('/', async (req, res) => {

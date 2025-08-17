@@ -1,7 +1,7 @@
 const express = require('express');
 const BankAccount = require('../models/BankAccount');
 const Lead = require('../models/Lead');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 const { notifyOMs } = require('../websockets/websocket');
 const Notification = require('../models/notification');
 
@@ -128,22 +128,7 @@ router.get('/:leadId', async (req, res) => {
 // Update Bank Account
 router.put('/:leadId', async (req, res) => {
   const { leadId } = req.params;
-  const {
-    accountNumber,
-    accountName,
-    iban,
-    branchName,
-    emiratesIdFront,
-    emiratesIdBack,
-    passport,
-    ejari,
-    maintenanceKey,
-    accessCard,
-    parkingKey,
-    Addendum,
-    startDate,
-    endDate,
-  } = req.body;
+  const { ejari } = req.body;
 
   try {
     const lead = await Lead.findById(leadId);

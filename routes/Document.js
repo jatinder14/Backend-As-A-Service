@@ -1,7 +1,7 @@
 const express = require('express');
 const Document = require('../models/Document');
 const User = require('../models/User');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 const { ERROR_MESSAGES } = require('../constants/eroorMessaages');
 
 const router = express.Router();

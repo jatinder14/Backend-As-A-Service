@@ -1,13 +1,13 @@
-const nodemailer = require('nodemailer');
+// const nodemailer = require('nodemailer');
 
-// Configure the transporter
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // Use your email provider (e.g., Gmail)
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+// Configure the transporter (commented out - unused)
+// const transporter = nodemailer.createTransport({
+//   service: 'gmail', // Use your email provider (e.g., Gmail)
+//   auth: {
+//     user: process.env.EMAIL,
+//     pass: process.env.EMAIL_PASSWORD,
+//   },
+// });
 
 /**
  * Sends an email.
@@ -15,23 +15,23 @@ const transporter = nodemailer.createTransport({
  * @param {string} subject - The subject of the email.
  * @param {string} text - The plain text body of the email.
  */
-async function sendEmail(to, subject, text) {
-  const mailOptions = {
-    from: process.env.EMAIL_USER,
-    to,
-    subject,
-    text,
-  };
+// async function sendEmail(to, subject, text) {
+// const mailOptions = {
+//   from: process.env.EMAIL_USER,
+//   to,
+//   subject,
+//   text,
+// };
 
-  try {
-    // await transporter.sendMail(mailOptions);
-    console.log(`Email sent to ${to}`);
-  } catch (error) {
-    console.error('Error sending email:', error.message);
-  }
+try {
+  // await transporter.sendMail(mailOptions);
+  // console.log(`Email sent to ${to}`);
+} catch (error) {
+  console.error('Error sending email:', error.message);
 }
+// }
 
-module.exports = { sendEmail };
+// module.exports = { sendEmail };
 
 // import * as nodemailer from 'nodemailer';
 // import ejs from 'ejs';

@@ -1,6 +1,5 @@
 //Empire Infratech
 const mongoose = require('mongoose');
-const slugify = require('slugify');
 const mediaSchema = require('../schemas/media.schema');
 
 const PropertySchema = new mongoose.Schema(

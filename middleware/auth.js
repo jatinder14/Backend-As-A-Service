@@ -31,13 +31,6 @@ const adminRole = (req, res, next) => {
   next();
 };
 
-const hrRole = (req, res, next) => {
-  if (req.user.role !== 'hr') {
-    return res.status(403).json({ message: 'Access denied. hr only.' });
-  }
-  next();
-};
-
 // Check if User is HR or Admin
 const hrOrAdmin = (req, res, next) => {
   if (req.user.role !== 'hr' && req.user.role !== 'admin') {

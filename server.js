@@ -22,7 +22,6 @@ const orderRoutes = require('./routes/order');
 const paymentRoutes = require('./routes/payments');
 const planRoutes = require('./routes/plan');
 const UploadController = require('./controllers/uploadController');
-const StatusCodes = require('./constants/statusCode');
 const userRoutes = require('./routes/User');
 const { verifyToken } = require('./middleware/auth');
 // const syncProperties = require('./cron-jobs/syncCRM')

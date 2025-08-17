@@ -57,7 +57,7 @@ router.get('/:id', async (req, res) => {
     project.video = videoSignedUrl;
     project.image = imagesSignedUrl;
     res.json(project);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: 'Invalid project ID' });
   }
 });

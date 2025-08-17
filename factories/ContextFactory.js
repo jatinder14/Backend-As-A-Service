@@ -1,7 +1,7 @@
-import { v4 as uuidv4 } from 'uuid';
-import { PROTOCOL_CONTEXT, PROTOCOL_VERSION } from '../utils/constants.js';
-import { CITY_CODE } from '../utils/cityCode.js';
-import MappedCity from '../utils/mappedCityCode.js';
+const { v4: uuidv4 } = require('uuid');
+const { PROTOCOL_CONTEXT, PROTOCOL_VERSION } = require('../utils/constants.js');
+const { CITY_CODE } = require('../utils/cityCode.js');
+const MappedCity = require('../utils/mappedCityCode.js');
 
 class ContextFactory {
   constructor(arg = {}) {
@@ -11,8 +11,6 @@ class ContextFactory {
       country = process.env.COUNTRY,
       bapId = process.env.BAP_ID,
       bapUrl = process.env.BAP_URL,
-      city,
-      state,
     } = arg || {};
 
     this.domain = domain;
@@ -76,8 +74,6 @@ class ContextFactory {
       action = PROTOCOL_CONTEXT.SEARCH,
       bppId,
       city,
-      state,
-      cityCode,
       bpp_uri,
       pincode,
       domain,
@@ -101,4 +97,4 @@ class ContextFactory {
   }
 }
 
-export default ContextFactory;
+module.exports = ContextFactory;

@@ -4,7 +4,6 @@ const Order = require('../models/Order');
 const User = require('../models/User');
 const Subscription = require('../models/Subscription');
 const Payment = require('../models/Payment');
-const auth = require('../middleware/auth');
 
 // Get all orders with pagination and filtering
 router.get('/', async (req, res) => {
@@ -369,4 +368,3 @@ router.get('/subscription/:subscriptionId', async (req, res) => {
 });
 
 module.exports = router;
-

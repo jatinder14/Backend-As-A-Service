@@ -3,11 +3,8 @@ const Property = require('../models/Property');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 const getExchangeRates = require('../utils/currency');
 const router = express.Router();
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken, adminRole } = require('../middleware/auth');
 const mongoose = require('mongoose');
-const {
-  translateDynamicText,
-} = require('../utils/translator/properties-translation/paginated-properties');
 const isValidObjectId = mongoose.Types.ObjectId.isValid;
 
 // const { notifyOMs } = require('../websockets/websocket');
@@ -29,7 +26,6 @@ router.get('/', async (req, res) => {
       orderBy,
       sortBy,
       referenceNumber,
-      lang,
       isPropertyUnPublished,
       publishing_status,
     } = req.query;

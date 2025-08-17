@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { verifyToken } = require('../middleware/auth');
-const { notifyAdmins } = require('../websockets/websocket');
+// const { notifyAdmins } = require('../websockets/websocket');
 const Notification = require('../models/notification');
 
 router.use(verifyToken);

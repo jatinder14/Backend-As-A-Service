@@ -1,11 +1,10 @@
 const express = require('express');
 const User = require('../models/User');
 const Task = require('../models/Task');
-const { verifyToken, adminRole } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 const hostaway = require('../models/hostway-listing');
 const { sendEmail } = require('../services/emailService');
 const { EMAIL_SUBJECTS, EMAIL_MESSAGES } = require('../constants/message');
-const { EMAIL_TEMPLATES } = require('../constants/emailTemplate');
 const { ERROR_MESSAGES } = require('../constants/eroorMessaages');
 const { SUCCESS_MESSAGES } = require('../constants/successMessges');
 const router = express.Router();

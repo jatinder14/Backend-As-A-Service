@@ -1,7 +1,6 @@
 const express = require('express');
 const User = require('../models/User');
-const bcrypt = require('bcryptjs');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken, adminRole } = require('../middleware/auth');
 const router = express.Router();
 
 router.use(verifyToken, adminRole);

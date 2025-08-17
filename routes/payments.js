@@ -4,7 +4,6 @@ const User = require('../models/User');
 const Order = require('../models/Order');
 const Subscription = require('../models/Subscription');
 const Booking = require('../models/Booking');
-const auth = require('../middleware/auth');
 const router = express.Router();
 
 // Get all payments with pagination and filtering

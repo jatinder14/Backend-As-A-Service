@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const { default: slugify } = require('slugify');
 const metaDataSchema = require('../schemas/metaData.schema');
 
 const SubTitleAndContentSchema = new mongoose.Schema(
@@ -24,7 +23,6 @@ const blogSchema = new mongoose.Schema(
     date: { type: String },
     shortDescription: { type: String },
     isHomePage: { type: Boolean, default: false },
-    isActive: { type: Boolean, default: false },
     description: { type: String },
     metaData: metaDataSchema,
     isActive: { type: Boolean, default: true },

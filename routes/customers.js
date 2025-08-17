@@ -24,7 +24,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Customer not found' });
     }
     res.json(customer);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: 'Invalid customer ID' });
   }
 });

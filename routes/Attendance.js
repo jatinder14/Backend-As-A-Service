@@ -1,7 +1,6 @@
 const express = require('express');
 const Attendance = require('../models/Attendance');
-const User = require('../models/User');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 

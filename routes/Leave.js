@@ -1,7 +1,6 @@
 const express = require('express');
 const Leave = require('../models/Leave');
-const User = require('../models/User');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
@@ -132,7 +131,7 @@ router.get('/:id', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    const { startDate, endDate, type, status, rejectedReason, rejectedBy } = req.body;
+    const { startDate, endDate, type } = req.body;
     const userId = req.user.id;
     const year = new Date(startDate).getFullYear();
 

@@ -1,7 +1,7 @@
 const express = require('express');
 const Enquiry = require('../models/Enquiry');
 const router = express.Router();
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken, adminRole } = require('../middleware/auth');
 
 router.get('/getEnquiries', async (req, res) => {
   try {

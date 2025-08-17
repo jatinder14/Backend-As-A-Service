@@ -26,7 +26,7 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
     res.json(booking);
-  } catch (err) {
+  } catch {
     res.status(500).json({ message: 'Invalid booking ID' });
   }
 });

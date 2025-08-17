@@ -1,7 +1,7 @@
 const express = require('express');
 const Salary = require('../models/salary');
 const User = require('../models/User');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken, hrOrAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 

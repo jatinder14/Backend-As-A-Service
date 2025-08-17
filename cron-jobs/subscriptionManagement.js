@@ -2,7 +2,6 @@ const cron = require('node-cron');
 const Subscription = require('../models/Subscription');
 const User = require('../models/User');
 const Order = require('../models/Order');
-const Payment = require('../models/Payment');
 const logger = require('../utils/logger/winstonLogger');
 
 // Function to check and update expired subscriptions

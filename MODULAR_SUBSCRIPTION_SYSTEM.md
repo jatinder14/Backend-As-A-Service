@@ -416,4 +416,3 @@ await seedPlans();
 ## Conclusion
 
 The modular subscription system provides a robust, scalable foundation for managing subscriptions. The separation of plans into their own model makes the system more flexible and easier to maintain, while providing better business agility for plan management and pricing strategies.
-

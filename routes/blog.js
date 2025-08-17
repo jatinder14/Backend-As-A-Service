@@ -3,7 +3,7 @@ const Blog = require('../models/Blog');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 const { isValidObjectId } = require('mongoose');
 const router = express.Router();
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
+const { verifyToken, adminRole } = require('../middleware/auth');
 
 // Get all blogs (with pagination, sorting, and filtering)
 router.get('/', async (req, res) => {

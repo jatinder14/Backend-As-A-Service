@@ -1,10 +1,6 @@
 const express = require('express');
 const Razorpay = require('razorpay');
-const crypto = require('crypto');
-const User = require('../models/User');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
 
-const { v4: uuidv4 } = require('uuid');
 const Transaction = require('../models/Transaction');
 
 const router = express.Router();
@@ -131,12 +127,8 @@ router.post('/create-order', async (req, res) => {
 
 router.post('/create-payment', async (req, res) => {
   try {
-    const { transactionId, data, user, currentUserAccessToken } = req;
+    const { transactionId, data } = req;
     console.log('[Payment] data......................', data);
-
-    let uuid1 = uuidv4();
-
-    let paymentDetail;
 
     let lastTransaction = await Transaction.find({}).sort({ createdAt: -1 }).limit(1);
     let humanReadableID = '';
@@ -150,10 +142,10 @@ router.post('/create-payment', async (req, res) => {
         //get humanReadable id
         humanReadableID = `transactionId_${parseInt(lastTransactionNumber.slice(-1)) + 1}`;
       } else {
-        humanReadableID = `transactionId_${pad(1, 4)}`;
+        humanReadableID = `transactionId_${String(1).padStart(4, '0')}`;
       }
     } else {
-      humanReadableID = `transactionId_${pad(1, 4)}`;
+      humanReadableID = `transactionId_${String(1).padStart(4, '0')}`;
     }
 
     let options = {
@@ -167,7 +159,7 @@ router.post('/create-payment', async (req, res) => {
 
     const transaction = {
       amount: data.amount,
-      status: RAZORPAY_STATUS.COMPLETED,
+      status: 'COMPLETED',
       type: 'ON-ORDER',
       transactionId: transactionId,
       orderId: orderDetail.id,
@@ -190,10 +182,11 @@ router.post('/create-payment', async (req, res) => {
 // Get subscription status
 router.get('/subscription/status/:userId', async (req, res) => {
   try {
-    const { userId } = req.params;
+    // const { userId } = req.params;
 
     // Get from database
-    const subscription = await getUserSubscription(userId);
+    // const subscription = await getUserSubscription(userId);
+    const subscription = { error: 'getUserSubscription function not implemented' };
 
     res.json(subscription);
   } catch (error) {
@@ -204,10 +197,11 @@ router.get('/subscription/status/:userId', async (req, res) => {
 // Update usage
 router.post('/subscription/usage', async (req, res) => {
   try {
-    const { userId, increment } = req.body;
+    // const { userId, increment } = req.body;
 
     // Update usage in database
-    const updatedSubscription = await updateUserUsage(userId, increment);
+    // const updatedSubscription = await updateUserUsage(userId, increment);
+    const updatedSubscription = { error: 'updateUserUsage function not implemented' };
 
     res.json(updatedSubscription);
   } catch (error) {

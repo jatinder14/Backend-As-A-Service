@@ -1,10 +1,6 @@
 const express = require('express');
-const Leave = require('../models/Leave');
-const User = require('../models/User');
-const { verifyToken, adminRole, hrOrAdmin } = require('../middleware/auth');
-const Task = require('../models/Task');
-const Lead = require('../models/Lead');
 const Property = require('../models/Property');
+const { verifyToken } = require('../middleware/auth');
 const { generateSignedUrl, getKey } = require('../utils/s3');
 
 const router = express.Router();

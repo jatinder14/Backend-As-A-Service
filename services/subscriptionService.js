@@ -2,7 +2,7 @@ const Subscription = require('../models/Subscription');
 const Plan = require('../models/Plan');
 const User = require('../models/User');
 const Order = require('../models/Order');
-const Payment = require('../models/Payment');
+// const Payment = require('../models/Payment');
 const logger = require('../utils/logger/winstonLogger');
 
 class SubscriptionService {
@@ -92,7 +92,7 @@ class SubscriptionService {
     try {
       const subscription = await Subscription.findById(subscriptionId);
       if (!subscription) {
-        throw new Error('Subscription not found');
+        throw new Error('Subscription not found', options);
       }
 
       const newPlan = await Plan.findById(newPlanId);
@@ -105,7 +105,7 @@ class SubscriptionService {
       const newDiscountedPrice = newPlan.getDiscountedPriceForCycle(subscription.billingCycle);
 
       // Calculate proration if needed
-      const prorationAmount = options.prorate ? this.calculateProration(subscription, newPlan) : 0;
+      // const prorationAmount = options.prorate ? this.calculateProration(subscription, newPlan) : 0;
 
       // Create upgrade/downgrade order
       const orderType =

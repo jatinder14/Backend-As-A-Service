@@ -1,26 +1,23 @@
-const axios = require("axios");
+const axios = require('axios');
 
 // Returns the appropriate status label based on soldOut flag, status type, and optional custom message
-const getSoldStatusLabel = (data) => {
+const getSoldStatusLabel = data => {
   if (data?.soldOut && data?.propertyStatusMessage) {
     return data?.propertyStatusMessage;
-  } else if (
-    data?.soldOut &&
-    (data?.status === "OFF_PLAN" || data?.status === "SALE")
-  ) {
-    return "Sold";
-  } else if (data?.soldOut && data?.status === "RENT") {
-    return "Rented";
+  } else if (data?.soldOut && (data?.status === 'OFF_PLAN' || data?.status === 'SALE')) {
+    return 'Sold';
+  } else if (data?.soldOut && data?.status === 'RENT') {
+    return 'Rented';
   } else {
-    return "-";
+    return '-';
   }
 };
 
-const convertResponseArrayObject = async (data) => {
+const convertResponseArrayObject = async data => {
   let convertedArray = [];
 
   // Extract the 'translatedText' from each object and add to the convertedArray
-  await data.forEach((item) => {
+  await data.forEach(item => {
     if (item?.translatedText) {
       convertedArray.push(item.translatedText);
     }
@@ -30,29 +27,29 @@ const convertResponseArrayObject = async (data) => {
 };
 
 /* to convert array od object data into translated atring array structure */
-const convertToStringArray = async (data) => {
+const convertToStringArray = async data => {
   let convertedArray = [];
-  await data?.forEach((item) => {
+  await data?.forEach(item => {
     const soldStatusLabel = getSoldStatusLabel(item);
     convertedArray.push(
       item?.title,
-      item?.address ? item?.address : "-",
-      item?.bedrooms ? item?.bedrooms : "-",
-      item?.bathrooms ? item?.bathrooms : "-",
-      ['none', 'null', null].includes(item?.developer) ? "-" : item?.developer,
-      item?.area ? item?.area : "-",
-      item?.baseCurrency ? item?.baseCurrency : "-",
-      item?.status ? item?.status : "-",
+      item?.address ? item?.address : '-',
+      item?.bedrooms ? item?.bedrooms : '-',
+      item?.bathrooms ? item?.bathrooms : '-',
+      ['none', 'null', null].includes(item?.developer) ? '-' : item?.developer,
+      item?.area ? item?.area : '-',
+      item?.baseCurrency ? item?.baseCurrency : '-',
+      item?.status ? item?.status : '-',
       // soldStatusLabel,
-      item?.propertyLabel ? item.propertyLabel : "-",
-      item?.description ? item?.description : "-"
+      item?.propertyLabel ? item.propertyLabel : '-',
+      item?.description ? item?.description : '-'
     );
   });
   return convertedArray;
 };
 
 /* to convert string data into array of object */
-const convertArrayObject = async (data) => {
+const convertArrayObject = async data => {
   let convertedArray = [];
   const response = await convertResponseArrayObject(data);
   const keysPerObject = 10; // Each object will have 8 keys: title, address, currency
@@ -71,9 +68,9 @@ const convertArrayObject = async (data) => {
       developer: chunk[4],
       area: chunk[5],
       currency: chunk[6],
-      propertyStatusMessage: chunk[7] !== "-" ? chunk[7] : "",
-      propertyLabel: chunk[8] !== "-" ? chunk[8] : "",
-      description: chunk[9] !== "-" ? chunk[9] : "",
+      propertyStatusMessage: chunk[7] !== '-' ? chunk[7] : '',
+      propertyLabel: chunk[8] !== '-' ? chunk[8] : '',
+      description: chunk[9] !== '-' ? chunk[9] : '',
     };
 
     // Push the object to the converted array
@@ -83,34 +80,29 @@ const convertArrayObject = async (data) => {
   return convertedArray;
 };
 
-const translateDynamicText = async (
-  dynamicText,
-  targetLanguage
-) => {
+const translateDynamicText = async (dynamicText, targetLanguage) => {
   const url = process.env.TRANSLATION_API_URL;
   // console.log("convertToString", dynamicText);
   const convertToString = await convertToStringArray(dynamicText);
   // console.log("convertToString", convertToString);
 
   const headers = {
-    "x-goog-api-key": process.env.TRANSLATION_API_SECRET,
-    "Content-Type": "application/json",
+    'x-goog-api-key': process.env.TRANSLATION_API_SECRET,
+    'Content-Type': 'application/json',
   };
 
   const payload = {
     q: convertToString,
-    source: "en",
+    source: 'en',
     target: targetLanguage?.toLowerCase(),
-    format: "html",
+    format: 'html',
   };
 
   try {
     const response = await axios.post(url, payload, { headers });
     // console.log("response-------", response);
 
-    const convertedArray = await convertArrayObject(
-      response.data.data.translations
-    );
+    const convertedArray = await convertArrayObject(response.data.data.translations);
 
     // console.log("convertedArray-------", convertedArray, payload);
     dynamicText.forEach((item, index) => {
@@ -123,15 +115,14 @@ const translateDynamicText = async (
           bathrooms: translated.bathrooms ?? item.bathrooms,
           developer: translated.developer ?? item.developer,
           area: translated.area ?? item.area,
-          baseCurrency: translated.currency ?? item.currency ?? "",
-          propertyStatusMessage: translated.propertyStatusMessage ?? item.propertyStatusMessage ?? "",
-          propertyLabel: translated.propertyLabel ?? item.propertyLabel ?? "",
-          description: translated.description ?? item.description ?? "",
+          baseCurrency: translated.currency ?? item.currency ?? '',
+          propertyStatusMessage:
+            translated.propertyStatusMessage ?? item.propertyStatusMessage ?? '',
+          propertyLabel: translated.propertyLabel ?? item.propertyLabel ?? '',
+          description: translated.description ?? item.description ?? '',
         });
       }
     });
-
-
   } catch (error) {
     return error;
   }
@@ -140,5 +131,5 @@ const translateDynamicText = async (
 };
 
 module.exports = {
-  translateDynamicText
-}
+  translateDynamicText,
+};

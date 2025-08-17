@@ -1,5 +1,5 @@
-const { createLogger, format, transports } = require("winston");
-const LokiTransport = require("winston-loki");
+const { createLogger, format, transports } = require('winston');
+const LokiTransport = require('winston-loki');
 const { combine, timestamp, printf, colorize, json } = format;
 const fs = require('fs');
 const path = require('path');
@@ -19,54 +19,44 @@ const logFormat = printf(({ level, message, timestamp }) => {
 });
 
 // Determine if we should write to file based on environment
-const isLocalEnvironment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local';
+const isLocalEnvironment =
+  process.env.NODE_ENV === 'development' || process.env.NODE_ENV === 'local';
 
 // Create transports array - always include console
 const transportsArray = [
   new transports.Console({
-    format: combine(
-      colorize(),
-      logFormat
-    )
-  })
+    format: combine(colorize(), logFormat),
+  }),
 ];
 
 // Only add file transport for local environments
 if (isLocalEnvironment) {
   transportsArray.push(
     new transports.File({
-      filename: path.join(logsDir, "app.log"),
-      format: combine(
-        timestamp(),
-        logFormat
-      )
+      filename: path.join(logsDir, 'app.log'),
+      format: combine(timestamp(), logFormat),
     })
   );
-}
-else {
+} else {
   // Using winston-cloudwatch for production
   transportsArray.push(
     new LokiTransport({
       host: process.env.LOKI_HOST,
-      labels: { app: "ChatInsight" },
+      labels: { app: 'ChatInsight' },
       json: true,
       format: json(),
       replaceTimestamp: true,
-      onConnectionError: err => console.error(err)
-    }
-    )
-  )
+      onConnectionError: err => console.error(err),
+    })
+  );
 }
 // Create logger
 const logger = createLogger({
-  level: "info", // Changed from "silly" to "info" for production use
-  format: combine(
-    timestamp(),
-    logFormat
-  ),
-  transports: transportsArray
+  level: 'info', // Changed from "silly" to "info" for production use
+  format: combine(timestamp(), logFormat),
+  transports: transportsArray,
 });
 
-logger.info("Logger initialized successfully.");
+logger.info('Logger initialized successfully.');
 
 module.exports = logger;

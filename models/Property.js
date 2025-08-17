@@ -1,134 +1,133 @@
-//Empire Infratech 
-const mongoose = require("mongoose");
+//Empire Infratech
+const mongoose = require('mongoose');
 const slugify = require('slugify');
 const mediaSchema = require('../schemas/media.schema');
 
 const PropertySchema = new mongoose.Schema(
-    {
-        title: { type: String, required: true },
-        slug: { type: String, unique: true, default: null },
-        isPropertyUnPublished: { type: Boolean, default: false },
-        address: { type: String },
-        country: { type: String },
-        completion_status: { type: String },
-        property_purpose: { type: String },  //same as status field
-        property_type: { type: String },
-        latitude: { type: String },
-        longitude: { type: String },
-        description: { type: String },
-        finishing_type: { type: String },
-        offering_type: { type: String },
-        uae_emirate: { type: String },
-        saleOrRentprice: { type: Number },
-        pricePrefix: { type: String },
-        pricePostfix: { type: String },
-        price_freq: { type: String },
-        soldOut: { type: Boolean, default: false },
-        importedFromCrm: { type: Boolean, default: false },
-        propertyStatusMessage: { type: String },
-        referenceNumber: { type: String },
-        meta_title: [{ type: String }],
-        meta_keyword: [{ type: String }],
-        meta_description: [{ type: String }],
-        type: {
-            type: String,
-        },
-        baseCurrency: {
-            type: String,
-            // enum: ["INR", "USD", "GBP", "YEN", "EURO", "AED", "RUB"],
-            // default: "AED",
-        },
-
-        status: {
-            type: String,
-            enum: ["", "OFF_PLAN", "SALE", "SALE_OFF_PLAN", "RENT", "DRAFT"]
-        },
-        publishing_status: {
-            type: String,
-            enum: ["PUBLISHED", "UNPUBLISHED", "LIVE", "ARCHIVED", "DRAFT", "POCKET"]
-        },
-
-        rental_period: { type: String },
-        listing_agent: { type: String },
-        listing_owner: { type: String },
-        tower: { type: String },
-        city: { type: String },
-        sub_location: { type: String },
-        location: {
-            type: String,
-        },
-        bedrooms: { type: String, default: 0 }, // Number of Bedrooms
-        bathrooms: { type: String, default: 0 }, // Number of Bathrooms
-        garagesOrParkingSpaces: { type: String, default: 0 }, // Number of Garages or Parking Spaces
-        area: { type: String }, // Property Area
-        plot: { type: String }, // Property Area
-        areaPostfix: { type: String, default: "sq ft" }, // Unit of Area
-        developer: {
-            type: String,
-        },
-        handoverDate: { type: String }, // Handover Date
-        isFeatured: { type: Boolean, default: false }, // Mark as Featured
-        images: [mediaSchema],
-        dldPermitQrCode: { type: String },
-        galleryType: {
-            type: String,
-        },
-        floorPlans: [
-            {
-                _id: false, // Prevents MongoDB from auto-generating _id for each video object
-                floorName: { type: String },
-                description: { type: String },
-                floorPlanImage: { type: String },
-                floorPrice: { type: String },
-                pricePostfix: { type: String },
-                floorSize: { type: String },
-                sizePostfix: { type: String },
-                bedrooms: { type: String },
-                bathrooms: { type: String },
-            },
-        ],
-
-        videos: [mediaSchema],
-
-        additionalDetails: [
-            {
-                _id: false, // Prevents MongoDB from auto-generating _id for each video object
-                title: { type: String },
-                value: { type: String },
-            },
-        ],
-
-        features: [
-            {
-                type: String,
-            },
-        ],
-
-        propertyLabel: { type: String }, // Allows adding a property label for display
-        labelBackgroundColor: { type: String }, // Allows adding a property label for display
-        permit_no: { type: String },
-        agentInformationDisplay: {
-            type: String,
-        },
-
-        selectedAgents: [
-            {
-                type: String,
-            }
-        ],
-
-        acceptTermsAndConditions: {
-            type: Boolean,
-            default: false, // Ensures the user must accept before submitting
-        },
-
-        createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
-        rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
-        rejectedReason: { type: String },
-
+  {
+    title: { type: String, required: true },
+    slug: { type: String, unique: true, default: null },
+    isPropertyUnPublished: { type: Boolean, default: false },
+    address: { type: String },
+    country: { type: String },
+    completion_status: { type: String },
+    property_purpose: { type: String }, //same as status field
+    property_type: { type: String },
+    latitude: { type: String },
+    longitude: { type: String },
+    description: { type: String },
+    finishing_type: { type: String },
+    offering_type: { type: String },
+    uae_emirate: { type: String },
+    saleOrRentprice: { type: Number },
+    pricePrefix: { type: String },
+    pricePostfix: { type: String },
+    price_freq: { type: String },
+    soldOut: { type: Boolean, default: false },
+    importedFromCrm: { type: Boolean, default: false },
+    propertyStatusMessage: { type: String },
+    referenceNumber: { type: String },
+    meta_title: [{ type: String }],
+    meta_keyword: [{ type: String }],
+    meta_description: [{ type: String }],
+    type: {
+      type: String,
     },
-    { timestamps: true }
+    baseCurrency: {
+      type: String,
+      // enum: ["INR", "USD", "GBP", "YEN", "EURO", "AED", "RUB"],
+      // default: "AED",
+    },
+
+    status: {
+      type: String,
+      enum: ['', 'OFF_PLAN', 'SALE', 'SALE_OFF_PLAN', 'RENT', 'DRAFT'],
+    },
+    publishing_status: {
+      type: String,
+      enum: ['PUBLISHED', 'UNPUBLISHED', 'LIVE', 'ARCHIVED', 'DRAFT', 'POCKET'],
+    },
+
+    rental_period: { type: String },
+    listing_agent: { type: String },
+    listing_owner: { type: String },
+    tower: { type: String },
+    city: { type: String },
+    sub_location: { type: String },
+    location: {
+      type: String,
+    },
+    bedrooms: { type: String, default: 0 }, // Number of Bedrooms
+    bathrooms: { type: String, default: 0 }, // Number of Bathrooms
+    garagesOrParkingSpaces: { type: String, default: 0 }, // Number of Garages or Parking Spaces
+    area: { type: String }, // Property Area
+    plot: { type: String }, // Property Area
+    areaPostfix: { type: String, default: 'sq ft' }, // Unit of Area
+    developer: {
+      type: String,
+    },
+    handoverDate: { type: String }, // Handover Date
+    isFeatured: { type: Boolean, default: false }, // Mark as Featured
+    images: [mediaSchema],
+    dldPermitQrCode: { type: String },
+    galleryType: {
+      type: String,
+    },
+    floorPlans: [
+      {
+        _id: false, // Prevents MongoDB from auto-generating _id for each video object
+        floorName: { type: String },
+        description: { type: String },
+        floorPlanImage: { type: String },
+        floorPrice: { type: String },
+        pricePostfix: { type: String },
+        floorSize: { type: String },
+        sizePostfix: { type: String },
+        bedrooms: { type: String },
+        bathrooms: { type: String },
+      },
+    ],
+
+    videos: [mediaSchema],
+
+    additionalDetails: [
+      {
+        _id: false, // Prevents MongoDB from auto-generating _id for each video object
+        title: { type: String },
+        value: { type: String },
+      },
+    ],
+
+    features: [
+      {
+        type: String,
+      },
+    ],
+
+    propertyLabel: { type: String }, // Allows adding a property label for display
+    labelBackgroundColor: { type: String }, // Allows adding a property label for display
+    permit_no: { type: String },
+    agentInformationDisplay: {
+      type: String,
+    },
+
+    selectedAgents: [
+      {
+        type: String,
+      },
+    ],
+
+    acceptTermsAndConditions: {
+      type: Boolean,
+      default: false, // Ensures the user must accept before submitting
+    },
+
+    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    rejectedBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
+    rejectedReason: { type: String },
+  },
+  { timestamps: true }
 );
 
 // // Pre-save hook to auto-generate slug
@@ -177,4 +176,4 @@ const PropertySchema = new mongoose.Schema(
 //     next();
 // });
 
-module.exports = mongoose.model("Property", PropertySchema);
+module.exports = mongoose.model('Property', PropertySchema);

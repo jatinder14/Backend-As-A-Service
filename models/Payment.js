@@ -1,88 +1,91 @@
 const mongoose = require('mongoose');
 
-const paymentSchema = new mongoose.Schema({
-    paymentId: { 
-        type: String, 
-        required: true, 
-        unique: true,
-        default: () => `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+const paymentSchema = new mongoose.Schema(
+  {
+    paymentId: {
+      type: String,
+      required: true,
+      unique: true,
+      default: () => `PAY-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
     },
     user: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
     },
     order: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Order'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Order',
     },
     subscription: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Subscription'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Subscription',
     },
-    bookingId: { 
-        type: mongoose.Schema.Types.ObjectId, 
-        ref: 'Booking' 
+    bookingId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Booking',
     },
-    amount: { 
-        type: Number, 
-        required: true, 
-        min: [0, 'Amount must be greater than zero'] 
+    amount: {
+      type: Number,
+      required: true,
+      min: [0, 'Amount must be greater than zero'],
     },
     currency: {
-        type: String,
-        default: 'USD'
+      type: String,
+      default: 'USD',
     },
-    paymentMethod: { 
-        type: String, 
-        enum: ['credit_card', 'bank_transfer', 'paypal', 'razorpay', 'cash'], 
-        required: true 
+    paymentMethod: {
+      type: String,
+      enum: ['credit_card', 'bank_transfer', 'paypal', 'razorpay', 'cash'],
+      required: true,
     },
     paymentType: {
-        type: String,
-        enum: ['subscription', 'one_time', 'refund', 'partial_refund'],
-        default: 'one_time'
+      type: String,
+      enum: ['subscription', 'one_time', 'refund', 'partial_refund'],
+      default: 'one_time',
     },
-    status: { 
-        type: String, 
-        enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'], 
-        default: 'pending' 
+    status: {
+      type: String,
+      enum: ['pending', 'processing', 'completed', 'failed', 'cancelled', 'refunded'],
+      default: 'pending',
     },
-    transactionId: { 
-        type: String, 
-        unique: true 
+    transactionId: {
+      type: String,
+      unique: true,
     },
     externalPaymentId: {
-        type: String // For third-party payment providers
+      type: String, // For third-party payment providers
     },
     gatewayResponse: {
-        type: mongoose.Schema.Types.Mixed // Store gateway response data
+      type: mongoose.Schema.Types.Mixed, // Store gateway response data
     },
     failureReason: {
-        type: String
+      type: String,
     },
     refundAmount: {
-        type: Number,
-        default: 0
+      type: Number,
+      default: 0,
     },
     refundReason: {
-        type: String
+      type: String,
     },
     refundedAt: {
-        type: Date
+      type: Date,
     },
     refundedBy: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User'
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
     },
     processedAt: {
-        type: Date
+      type: Date,
     },
     notes: {
-        type: String
-    }
-}, {
-    timestamps: true
-});
+      type: String,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 module.exports = mongoose.model('Payment', paymentSchema);

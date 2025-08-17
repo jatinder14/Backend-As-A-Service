@@ -8,4 +8,3 @@
 //     console.log('Running syncProperties every 15 minutes...');
 //     syncProperties();
 // });
-

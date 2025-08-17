@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-const BankAccountSchema = new mongoose.Schema({
+const BankAccountSchema = new mongoose.Schema(
+  {
     leadId: { type: mongoose.Schema.Types.ObjectId, ref: 'Lead', required: true, unique: true },
     accountNumber: { type: String, required: true },
     accountName: { type: String, required: true },
@@ -17,26 +18,24 @@ const BankAccountSchema = new mongoose.Schema({
     // gracePeriod: { type: Date },
     startDate: { type: Date, required: true },
     endDate: {
-        type: Date,
-        required: true,
-        validate: {
-            validator: function (value) {
-                // console.log("------------fadf", fthis.startDate, this.endDate)
-                return value >= this.startDate;
-            },
-            message: 'End date must be greater than or equal to start date'
-        }
+      type: Date,
+      required: true,
+      validate: {
+        validator: function (value) {
+          // console.log("------------fadf", fthis.startDate, this.endDate)
+          return value >= this.startDate;
+        },
+        message: 'End date must be greater than or equal to start date',
+      },
     },
-
-
-
 
     // keys
     maintenanceKey: { type: Boolean },
     accessCard: { type: Boolean },
     parkingKey: { type: Boolean },
-
-}, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
 // Pre-save hook to automatically calculate grace period
 // BankAccountSchema.pre('save', async function (next) {

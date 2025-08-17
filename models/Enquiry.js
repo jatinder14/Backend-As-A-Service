@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-const enquirySchema = new mongoose.Schema({
+const enquirySchema = new mongoose.Schema(
+  {
     name: { type: String },
     email: { type: String },
     phone: { type: String },
@@ -11,9 +12,8 @@ const enquirySchema = new mongoose.Schema({
     createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
     updatedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     // status: { type: String, enum: ['Active', 'Inprogress', 'Rejected'], default: 'Active' }
-
-},
-    { timestamps: true }
+  },
+  { timestamps: true }
 );
 
 module.exports = mongoose.model('Enquiry', enquirySchema);

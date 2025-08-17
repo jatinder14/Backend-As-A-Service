@@ -1,18 +1,20 @@
 const getRandomString = (length = 10) => {
-  return (Math.random().toFixed(length).replace("0.", "")).toString();
-}
-
+  return Math.random().toFixed(length).replace('0.', '').toString();
+};
 
 export function pad(str, count = 2, char = '0') {
   str = str.toString();
   if (str.length < count)
-    str = Array(count - str.length).fill(char).join('') + str;
+    str =
+      Array(count - str.length)
+        .fill(char)
+        .join('') + str;
   return str;
 }
 
 export function parseDuration(duration) {
   if (!duration) {
-    return "";
+    return '';
   }
 
   // Regular expressions to match patterns like P1D, PT1H, PT1M (case-insensitive)
@@ -38,7 +40,7 @@ export function parseDuration(duration) {
     minutes = parseInt(minuteMatch[1], 10);
   }
 
-  let result = "";
+  let result = '';
   if (days > 0) {
     result += `${days} day${days > 1 ? 's' : ''} `;
   }
@@ -51,8 +53,5 @@ export function parseDuration(duration) {
 
   return result.trim();
 }
-
-
-
 
 export { getRandomString };

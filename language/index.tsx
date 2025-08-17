@@ -1,61 +1,61 @@
 // English
-import { EnglishLanguage } from "./en";
-import { enFilterComponent } from "@/language/en/filter-component";
-import { enLayout } from "./en/layout";
+import { EnglishLanguage } from './en';
+import { enFilterComponent } from '@/language/en/filter-component';
+import { enLayout } from './en/layout';
 // French
-import { FrenchPageLanguage } from "./fr";
-import { frFilterComponent } from "@/language/fr/filter-component";
-import { frLayout } from "./fr/layout";
+import { FrenchPageLanguage } from './fr';
+import { frFilterComponent } from '@/language/fr/filter-component';
+import { frLayout } from './fr/layout';
 
 // Arabic
-import { ArabicPageLanguage } from "./ar";
-import { arFilterComponent } from "@/language/ar/filter-component";
-import { arLayout } from "./ar/layout";
+import { ArabicPageLanguage } from './ar';
+import { arFilterComponent } from '@/language/ar/filter-component';
+import { arLayout } from './ar/layout';
 
 // Italic
-import { ItPageLanguage } from "./it";
-import { itFilterComponent } from "@/language/it/filter-component";
-import { itLayout } from "./it/layout";
+import { ItPageLanguage } from './it';
+import { itFilterComponent } from '@/language/it/filter-component';
+import { itLayout } from './it/layout';
 
 // farsi
-import { faPageLanguage } from "./fa";
-import { faFilterComponent } from "@/language/fa/filter-component";
-import { faLayout } from "./fa/layout";
+import { faPageLanguage } from './fa';
+import { faFilterComponent } from '@/language/fa/filter-component';
+import { faLayout } from './fa/layout';
 
 // dutch
-import { nlPageLanguage } from "./nl";
-import { nlFilterComponent } from "@/language/nl/filter-component";
-import { nlLayout } from "./nl/layout";
+import { nlPageLanguage } from './nl';
+import { nlFilterComponent } from '@/language/nl/filter-component';
+import { nlLayout } from './nl/layout';
 
 // Chinease
-import { zhCnPageLanguage } from "./zh-CN";
-import { zhCnFilterComponent } from "@/language/zh-CN/filter-component";
-import { zhCnLayout } from "./zh-CN/layout";
+import { zhCnPageLanguage } from './zh-CN';
+import { zhCnFilterComponent } from '@/language/zh-CN/filter-component';
+import { zhCnLayout } from './zh-CN/layout';
 
 // Turkish
-import { trPageLanguage } from "./tr";
-import { trFilterComponent } from "@/language/tr/filter-component";
-import { trLayout } from "./tr/layout";
+import { trPageLanguage } from './tr';
+import { trFilterComponent } from '@/language/tr/filter-component';
+import { trLayout } from './tr/layout';
 
 // German
-import { dePageLanguage } from "./de";
-import { deFilterComponent } from "@/language/de/filter-component";
-import { deLayout } from "./de/layout";
+import { dePageLanguage } from './de';
+import { deFilterComponent } from '@/language/de/filter-component';
+import { deLayout } from './de/layout';
 
 // RO = Romanian
-import { roPageLanguage } from "./ro";
-import { roFilterComponent } from "@/language/ro/filter-component";
-import { roLayout } from "./ro/layout";
+import { roPageLanguage } from './ro';
+import { roFilterComponent } from '@/language/ro/filter-component';
+import { roLayout } from './ro/layout';
 
 // HI = Hindi
-import { HindiLanguage } from "./hi";
-import { hiFilterComponent } from "@/language/hi/filter-component";
-import { hiLayout } from "./hi/layout";
+import { HindiLanguage } from './hi';
+import { hiFilterComponent } from '@/language/hi/filter-component';
+import { hiLayout } from './hi/layout';
 
 /* Handler to set page language */
 export const selectedLanguage = (language: any, route: any) => {
   // english
-  if (language === "EN") {
+  if (language === 'EN') {
     return {
       language: EnglishLanguage(route),
       filterComponent: enFilterComponent,
@@ -63,7 +63,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // french
-  else if (language === "FR") {
+  else if (language === 'FR') {
     return {
       language: FrenchPageLanguage(route),
       filterComponent: frFilterComponent,
@@ -71,7 +71,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // arabic
-  else if (language === "AR") {
+  else if (language === 'AR') {
     return {
       language: ArabicPageLanguage(route),
       filterComponent: arFilterComponent,
@@ -79,7 +79,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // italic
-  else if (language === "IT") {
+  else if (language === 'IT') {
     return {
       language: ItPageLanguage(route),
       filterComponent: itFilterComponent,
@@ -87,7 +87,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // italic
-  else if (language === "IT") {
+  else if (language === 'IT') {
     return {
       language: ItPageLanguage(route),
       filterComponent: itFilterComponent,
@@ -95,7 +95,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // farsi
-  else if (language === "FA") {
+  else if (language === 'FA') {
     return {
       language: faPageLanguage(route),
       filterComponent: faFilterComponent,
@@ -103,7 +103,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // Dutch
-  else if (language === "NL") {
+  else if (language === 'NL') {
     return {
       language: nlPageLanguage(route),
       filterComponent: nlFilterComponent,
@@ -111,7 +111,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // chinease
-  else if (language === "ZH-CN") {
+  else if (language === 'ZH-CN') {
     return {
       language: zhCnPageLanguage(route),
       filterComponent: zhCnFilterComponent,
@@ -119,7 +119,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // turkish
-  else if (language === "TR") {
+  else if (language === 'TR') {
     return {
       language: trPageLanguage(route),
       filterComponent: trFilterComponent,
@@ -127,7 +127,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // german
-  else if (language === "DE") {
+  else if (language === 'DE') {
     return {
       language: dePageLanguage(route),
       filterComponent: deFilterComponent,
@@ -135,7 +135,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // romanian
-  else if (language === "RO") {
+  else if (language === 'RO') {
     return {
       language: roPageLanguage(route),
       filterComponent: roFilterComponent,
@@ -143,7 +143,7 @@ export const selectedLanguage = (language: any, route: any) => {
     };
   }
   // Hindi
-  else if (language === "HI") {
+  else if (language === 'HI') {
     return {
       language: HindiLanguage(route),
       filterComponent: hiFilterComponent,

@@ -2,11 +2,11 @@ const nodemailer = require('nodemailer');
 
 // Configure the transporter
 const transporter = nodemailer.createTransport({
-    service: 'gmail', // Use your email provider (e.g., Gmail)
-    auth: {
-        user: process.env.EMAIL, 
-        pass: process.env.EMAIL_PASSWORD  
-    }
+  service: 'gmail', // Use your email provider (e.g., Gmail)
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAIL_PASSWORD,
+  },
 });
 
 /**
@@ -16,23 +16,22 @@ const transporter = nodemailer.createTransport({
  * @param {string} text - The plain text body of the email.
  */
 async function sendEmail(to, subject, text) {
-    const mailOptions = {
-        from: process.env.EMAIL_USER,
-        to,
-        subject,
-        text
-    };
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to,
+    subject,
+    text,
+  };
 
-    try {
-        // await transporter.sendMail(mailOptions);
-        console.log(`Email sent to ${to}`);
-    } catch (error) {
-        console.error('Error sending email:', error.message);
-    }
+  try {
+    // await transporter.sendMail(mailOptions);
+    console.log(`Email sent to ${to}`);
+  } catch (error) {
+    console.error('Error sending email:', error.message);
+  }
 }
 
 module.exports = { sendEmail };
-
 
 // import * as nodemailer from 'nodemailer';
 // import ejs from 'ejs';
@@ -58,7 +57,6 @@ module.exports = { sendEmail };
 //         const templatePath = new URL(`.${HTMLtemplate}`, import.meta.url).pathname;
 //         const subjectPartData = subject.includes('|') ? subject.split('|')[1].trim() : subject;
 
-
 //         // Read the EJS template file
 //         const template = fs.readFileSync(templatePath, 'utf8');
 
@@ -76,7 +74,7 @@ module.exports = { sendEmail };
 
 //         for (let i = 0; i < userEmails.length; i++) {
 //             const userEmail = userEmails[i];
-//             const orderId = orderIds[i]; 
+//             const orderId = orderIds[i];
 //             const userNames= userName[i].toLowerCase().split(' ').map((word) => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
 //             const orderPrice = totalPrice ? parseFloat(totalPrice).toFixed(2) : undefined
 //             const html = ejs.render(template, { orderId, userNames, itemName, itemQuantity, itemPrice, estimatedDelivery,profile_site_url,feedback_url, items, totalPrice: orderPrice ,subjectPartData});
@@ -98,5 +96,3 @@ module.exports = { sendEmail };
 //         console.log('Error sending emails:', error);
 //     }
 // }
-
-

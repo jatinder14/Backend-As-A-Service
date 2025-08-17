@@ -1,22 +1,31 @@
 const mongoose = require('mongoose');
 
-const updateHistorySchema = new mongoose.Schema({
+const updateHistorySchema = new mongoose.Schema(
+  {
     user: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     updatedAt: { type: Date, default: Date.now },
-    remarks: { type: String }
-},
-    { _id: false } // Exclude the `_id` field from this sub-schema
+    remarks: { type: String },
+  },
+  { _id: false } // Exclude the `_id` field from this sub-schema
 );
 
-const taskSchema = new mongoose.Schema({
+const taskSchema = new mongoose.Schema(
+  {
     title: { type: String, required: true },
     description: { type: String, required: true },
     listingId: { type: mongoose.Schema.Types.ObjectId, ref: 'Listing', default: null },
     assignedUsers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }], // Reference to multiple users
     dueDate: { type: Date, required: true },
-    createdBy: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true, immutable: true },
+    createdBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+      immutable: true,
+    },
     updatedBy: [updateHistorySchema],
-    status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' }
-}, { timestamps: true });
+    status: { type: String, enum: ['Pending', 'In Progress', 'Completed'], default: 'Pending' },
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model('Task', taskSchema);

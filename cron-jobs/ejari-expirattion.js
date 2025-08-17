@@ -98,7 +98,6 @@
 //     }
 // }
 
-
 // const now = new Date();
 // let minute = now.getMinutes() + 1;
 // let hour = now.getHours();
@@ -120,5 +119,3 @@
 //     console.log('🔔 Checking for Ejari expiration...');
 //     ejariExpiration();
 // });
-
-

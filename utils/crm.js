@@ -1,7 +1,6 @@
 // const axios = require('axios');
 // const Property = require('../models/Property');
 
-
 // async function syncProperties() {
 //     let config = {
 //         method: 'get',

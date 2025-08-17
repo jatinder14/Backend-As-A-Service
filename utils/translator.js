@@ -1,11 +1,11 @@
-import axios from "axios";
+import axios from 'axios';
 
 /* To reconvert it back to string array from API response strucure */
-const convertResponseArrayObject = async (data) => {
+const convertResponseArrayObject = async data => {
   let convertedArray = [];
 
   // Extract the 'translatedText' from each object and add to the convertedArray
-  await data.forEach((item) => {
+  await data.forEach(item => {
     if (item?.translatedText) {
       convertedArray.push(item.translatedText);
     }
@@ -14,28 +14,23 @@ const convertResponseArrayObject = async (data) => {
   return convertedArray;
 };
 
-export const translateBlogDetail = async (
-  dynamicText,
-  globalState
-) => {
+export const translateBlogDetail = async (dynamicText, globalState) => {
   const url = process.env.TRANSLATION_API_URL;
   const headers = {
-    "x-goog-api-key": process.env.TRANSLATION_API_SECRET,
-    "Content-Type": "application/json",
+    'x-goog-api-key': process.env.TRANSLATION_API_SECRET,
+    'Content-Type': 'application/json',
   };
 
   const payload = {
     q: dynamicText,
-    source: "en",
+    source: 'en',
     target: globalState?.selectedLanguage?.toLowerCase(),
-    format: "html",
+    format: 'html',
   };
 
   try {
     const response = await axios.post(url, payload, { headers });
-    const convertedArray = await convertResponseArrayObject(
-      response.data.data.translations
-    );
+    const convertedArray = await convertResponseArrayObject(response.data.data.translations);
 
     dynamicText = convertedArray;
   } catch (error) {

@@ -22,19 +22,19 @@ const orderRoutes = require('./routes/order');
 const paymentRoutes = require('./routes/payments');
 const planRoutes = require('./routes/plan');
 const UploadController = require('./controllers/uploadController');
-const StatusCodes = require('./constants/statusCode')
+const StatusCodes = require('./constants/statusCode');
 const userRoutes = require('./routes/User');
 const { verifyToken } = require('./middleware/auth');
 // const syncProperties = require('./cron-jobs/syncCRM')
-require('./cron-jobs/mongoBackup')
-require('./cron-jobs/subscriptionManagement').initSubscriptionCronJobs()
+require('./cron-jobs/mongoBackup');
+require('./cron-jobs/subscriptionManagement').initSubscriptionCronJobs();
 
 // const { setupWebSocket } = require("./websockets/websocket");
 
 // const seedUsers = require('./seeders/seedUsers');
 // seedUsers();
 
-const http = require("http");
+const http = require('http');
 
 dotenv.config();
 
@@ -43,50 +43,47 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
-
 // setupWebSocket(server); // Attach WebSocket to server
 // app.use(cors());
-app.use(cors({
+app.use(
+  cors({
     origin: '*', // Or explicitly: chrome-extension://oekdlegcccpmgoioblacenjdlfffploj
     methods: '*',
-    allowedHeaders: '*'
-}));
+    allowedHeaders: '*',
+  })
+);
 
 // Middleware to parse JSON requests
 app.use(express.json());
 
 const upload = multer({
-    storage: multer.memoryStorage(),
-    limits: {
-        fileSize: 1000 * 1024 * 1024, // limit file size to 1000MB
-    },
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 1000 * 1024 * 1024, // limit file size to 1000MB
+  },
 });
 
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Server running on port ${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
 
 const uploadController = new UploadController();
 
 // Server health check
 app.get('/', (req, res) => {
-    res.send('Empire Infratech Backend Server is healthy');
+  res.send('Empire Infratech Backend Server is healthy');
 });
 
 // s3 routes
-app.post('/getSignUrlForUpload', verifyToken,
-    upload.single('file'),
-    uploadController.upload);
+app.post('/getSignUrlForUpload', verifyToken, upload.single('file'), uploadController.upload);
 
 // LLM routes
 app.use('/summarize', geminiRoutes);
 
 // Razorpay routes
 app.use('/api/payment/razorpay', razorpayRoutes);
-
-
 
 app.use('/api/products', productRoutes);
 
@@ -113,7 +110,6 @@ app.use('/api/seoTags', seoTagRoutes);
 
 app.use('/api/page-layouts', pageLayoutRoutes);
 
-
 app.use('/api/contact', contactUsRoutes);
 
 // Subscription, Order, Payment, and Plan routes
@@ -126,12 +122,3 @@ app.use('/api/plans', planRoutes);
 
 // zapier
 app.use('/api/zapier', zapierRoutes);
-
-
-
-
-
-
-
-
-

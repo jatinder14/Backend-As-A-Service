@@ -470,16 +470,24 @@ router.put('/bulkUpdate', async (req, res) => {
 
 router.put('/:id', async (req, res) => {
   try {
-    // if (req.body.slug) delete req.body.slug
     req.body.updatedBy = req.user?.id;
 
-    const property = await Property.findByIdAndUpdate(req.params.id, req.body, {
+    let query;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      query = { _id: req.params.id };
+    } else {
+      query = { crm_id: req.params.id };
+    }
+
+    const property = await Property.findOneAndUpdate(query, req.body, {
       new: true,
       runValidators: true,
     })
       .populate('updatedBy')
       .populate('createdBy');
+
     if (!property) return res.status(404).json({ message: 'Property not found' });
+
     res.status(200).json({ message: 'property updated successfully', property });
   } catch (err) {
     res.status(400).json({ message: err.message });

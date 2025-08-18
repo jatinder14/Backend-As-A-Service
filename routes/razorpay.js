@@ -70,15 +70,14 @@ router.all('/link/verify', async (req, res) => {
       }
 
       body = `${razorpay_payment_link_id}|${razorpay_payment_link_reference_id}|${razorpay_payment_link_status}|${razorpay_payment_id}`;
-      console.log('🔹 Body string:', body);
     } else if (req.method === 'POST') {
       if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
         return res.status(400).json({ success: false, error: 'Missing parameters' });
       }
 
       body = `${razorpay_order_id}|${razorpay_payment_id}`;
-      console.log('🔹 Body string:', body);
     }
+    // console.log('🔹 Body string:', body);
 
     if (
       Razorpay.validateWebhookSignature(body, razorpay_signature, process.env.RAZORPAY_KEY_SECRET)

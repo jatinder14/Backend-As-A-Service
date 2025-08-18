@@ -55,6 +55,9 @@ app.use(
 // Middleware to parse JSON requests
 app.use(express.json());
 
+// for razorpay verify api
+app.use(express.urlencoded({ extended: true }));
+
 const upload = multer({
   storage: multer.memoryStorage(),
   limits: {

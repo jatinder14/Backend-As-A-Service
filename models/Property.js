@@ -10,6 +10,7 @@ const PropertySchema = new mongoose.Schema(
     address: { type: String },
     country: { type: String },
     completion_status: { type: String },
+    crm_id: { type: String },
     property_purpose: { type: String }, //same as status field
     property_type: { type: String },
     latitude: { type: String },

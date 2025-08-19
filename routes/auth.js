@@ -12,8 +12,8 @@ const generateToken = user => {
       email: user.email,
       iat: Math.floor(Date.now() / 1000),
     },
-    process.env.JWT_SECRET,
-    { expiresIn: '30d' }
+    process.env.JWT_SECRET
+    // { expiresIn: '30y' }
   );
 };
 

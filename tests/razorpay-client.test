@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Razorpay Payment</title>
+</head>
+
+<body>
+  <h1>Razorpay Payment Gateway Integration</h1>
+  <form id="payment-form">
+    <label for="amount">Amount:</label>
+    <input type="number" id="amount" name="amount" required>
+    <button type="button" onclick="payNow()">Pay Now</button>
+  </form>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    async function payNow() {
+      const amount = document.getElementById('amount').value;
+
+      // Create order by calling the server endpoint
+      const response = await fetch('http://localhost:8000/api/payment/razorpay/create-order', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount, currency: 'INR', receipt: 'receipt#1', notes: {} })
+      });
+
+      const order = await response.json();
+
+      // Open Razorpay Checkout
+      const options = {
+        key: 'rzp_test_R5dcC7mGZBJI9y', // Replace with your Razorpay key_id
+        amount: '50000', // Amount is in currency subunits. Default currency is INR. Hence, 50000 refers to 50000 paise
+        currency: 'INR',
+        name: 'Acme Corp',
+        description: 'Test Transaction',
+        order_id: 'order_R72kycwbqBmtFs', // This is the order_id created in the backend
+        // callback_url: 'http://localhost:3000/payment-success', // Your success URL
+        callback_url: 'http://localhost:8000/api/payment/razorpay/link/verify', // Your success URL
+        prefill: {
+          name: 'Gaurav Kumar',
+          email: 'gaurav.kumar@example.com',
+          contact: '9999999999'
+        },
+        theme: {
+          color: '#F37254'
+        },
+        redirect: true,
+        "handler": function (response) {
+          alert(response.razorpay_payment_id);
+          alert(response.razorpay_order_id);
+          alert(response.razorpay_signature)
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+      // rzp.on('payment.failed', function (response) {
+      //   alert(response.error.code);
+      //   alert(response.error.description);
+      //   alert(response.error.source);
+      //   alert(response.error.step);
+      //   alert(response.error.reason);
+      //   alert(response.error.metadata.order_id);
+      //   alert(response.error.metadata.payment_id);
+      // }
+      // );
+
+
+    }
+  </script>
+</body>
+
+</html>

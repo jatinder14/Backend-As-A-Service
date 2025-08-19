@@ -2,10 +2,12 @@ const express = require('express');
 const Razorpay = require('razorpay');
 
 const Transaction = require('../models/Transaction');
+const Plan = require('../models/Plan');
+const { verifyToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// router.use(verifyToken, hrOrAdmin);
+// router.use(verifyToken);
 
 // Initialize Razorpay
 const razorpay = new Razorpay({
@@ -13,18 +15,81 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET || '29KBqceNnQER5CxM4Aj4Zsen',
 });
 
-router.post('/link/create-payment', async (req, res) => {
+router.post('/link/create-payment', verifyToken, async (req, res) => {
   try {
-    const { amount, currency, customerName, customerEmail } = req.body;
+    const { planSlug, billingCycle } = req.body;
+
+    const userId = req.user?.id;
+    const customerName = req.user?.name || 'NEW-Customer';
+    const customerEmail = req.user?.email || 'new-customer@jatinder.com';
+
+    // Validate required fields
+    if (!planSlug || !billingCycle || !customerEmail) {
+      return res.status(400).json({
+        error: 'Missing required fields: planSlug, billingCycle, and customerEmail are required',
+      });
+    }
+
+    // Fetch plan details from database
+    const plan = await Plan.getBySlug(planSlug);
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+
+    // Get price for the specific billing cycle
+    const cyclePrice = plan.getPriceForCycle(billingCycle);
+    if (!cyclePrice) {
+      return res.status(400).json({ error: 'Invalid billing cycle for this plan' });
+    }
+
+    // Convert to paise (multiply by 100)
+    const amountInPaise = Math.round(cyclePrice * 100);
+
+    // Generate human readable ID for the transaction
+    let lastTransaction = await Transaction.find({}).sort({ createdAt: -1 }).limit(1);
+    let humanReadableID = '';
+
+    if (lastTransaction.length > 0) {
+      const lastHumanReadableID = lastTransaction[0].humanReadableID;
+      if (lastHumanReadableID && lastHumanReadableID.includes('_')) {
+        const lastTransactionNumber = lastHumanReadableID.split('_');
+        humanReadableID = `payment_${parseInt(lastTransactionNumber.slice(-1)) + 1}`;
+      } else {
+        humanReadableID = `payment_${String(1).padStart(4, '0')}`;
+      }
+    } else {
+      humanReadableID = `payment_${String(1).padStart(4, '0')}`;
+    }
+
+    // Create initial transaction record
+    const transaction = new Transaction({
+      amount: cyclePrice,
+      status: 'PENDING',
+      paymentType: 'RAZORPAY_LINK',
+      date: Date.now(),
+      humanReadableID: humanReadableID,
+      customerEmail: customerEmail,
+      customerName: customerName || 'Customer',
+      // Store plan details for reference
+      metadata: {
+        planSlug: planSlug,
+        planName: plan.name,
+        billingCycle: billingCycle,
+        planPrice: cyclePrice,
+        userId: userId,
+      },
+    });
+
+    await transaction.save();
 
     const options = {
-      amount: amount, // in paise
-      currency: currency,
+      amount: amountInPaise, // in paise
+      currency: plan.currency || 'USD',
       accept_partial: false,
-      description: 'ChatInsight Premium Subscription',
+      description: `${plan.name} - ${billingCycle} subscription`,
       customer: {
-        name: customerName || 'Test User',
-        email: customerEmail || 'test@example.com',
+        name: customerName || 'Customer',
+        email: customerEmail,
       },
       notify: {
         sms: false,
@@ -33,13 +98,37 @@ router.post('/link/create-payment', async (req, res) => {
       reminder_enable: true,
       callback_url:
         process.env.RAZORPAY_WEBHOOK_URL ||
-        'https://backend.empireinfratech.ae/api/payment/razorpay/link/verify', // Your verify route
+        'https://backend.empireinfratech.ae/api/payment/razorpay/link/verify',
       callback_method: 'get',
+      // Pass transaction ID and other details for verification
+      notes: {
+        transactionId: transaction._id,
+        planSlug: planSlug,
+        billingCycle: billingCycle,
+        userId: userId || '',
+      },
     };
 
     const paymentLink = await razorpay.paymentLink.create(options);
+    console.log('Payment link:', paymentLink, transaction.metadata);
 
-    res.json({ link: paymentLink.short_url });
+    // // Update transaction with payment link details
+    transaction.razorpayPaymentLink = paymentLink.short_url;
+    transaction.razorpayPaymentLinkId = paymentLink.id;
+    transaction.metadata = { ...transaction.metadata, paymentLinkDetails: paymentLink };
+    await transaction.save();
+
+    res.json({
+      link: paymentLink.short_url,
+      transactionId: transaction._id,
+      humanReadableID: humanReadableID,
+      plan: {
+        name: plan.name,
+        price: cyclePrice,
+        billingCycle: billingCycle,
+        currency: plan.currency,
+      },
+    });
   } catch (error) {
     console.error('Payment link error:', error);
     res.status(500).json({ error: error.message });
@@ -77,14 +166,47 @@ router.all('/link/verify', async (req, res) => {
 
       body = `${razorpay_order_id}|${razorpay_payment_id}`;
     }
-    // console.log('🔹 Body string:', body);
 
     if (
       Razorpay.validateWebhookSignature(body, razorpay_signature, process.env.RAZORPAY_KEY_SECRET)
     ) {
+      // Find existing transaction by payment link ID and update it
+      let transaction = await Transaction.findOne({
+        razorpayPaymentLinkId: razorpay_payment_link_id,
+      });
+
+      if (transaction) {
+        console.log('Transaction found:', transaction, razorpay_order_id);
+        // Update existing transaction
+        transaction.status = razorpay_payment_link_status === 'paid' ? 'COMPLETED' : 'PENDING';
+        transaction.razorpayPaymentId = razorpay_payment_id;
+        transaction.razorpayOrderId = razorpay_order_id;
+        transaction.razorpaySignature = razorpay_signature;
+        transaction.razorpayPaymentLinkStatus = razorpay_payment_link_status;
+        await transaction.save();
+      } else {
+        // Create new transaction if not found
+        transaction = new Transaction({
+          transactionId: razorpay_payment_id,
+          orderId: razorpay_order_id || razorpay_payment_link_id,
+          status: razorpay_payment_link_status === 'paid' ? 'COMPLETED' : 'PENDING',
+          paymentType: 'RAZORPAY',
+          date: Date.now(),
+          razorpayPaymentId: razorpay_payment_id,
+          razorpayOrderId: razorpay_order_id,
+          razorpaySignature: razorpay_signature,
+          paymentLinkId: razorpay_payment_link_id,
+          paymentLinkStatus: razorpay_payment_link_status,
+          humanReadableID: `payment_${Date.now()}`,
+        });
+        await transaction.save();
+      }
+
       return res.json({
         success: true,
-        message: 'Payment verified successfully',
+        message: 'Payment verified and stored successfully',
+        transactionId: transaction._id,
+        status: transaction.status,
       });
     } else {
       return res.status(400).json({
@@ -99,7 +221,7 @@ router.all('/link/verify', async (req, res) => {
 });
 
 // Create Razorpay order
-router.post('/create-order', async (req, res) => {
+router.post('/create-order', verifyToken, async (req, res) => {
   try {
     const { plan, amount, currency } = req.body;
 
@@ -117,60 +239,6 @@ router.post('/create-order', async (req, res) => {
 
     res.json({
       order,
-    });
-  } catch (error) {
-    console.error('Razorpay order creation error:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-router.post('/create-payment', async (req, res) => {
-  try {
-    const { transactionId, data } = req;
-    console.log('[Payment] data......................', data);
-
-    let lastTransaction = await Transaction.find({}).sort({ createdAt: -1 }).limit(1);
-    let humanReadableID = '';
-
-    if (lastTransaction) {
-      const lastHumanReadableID = lastTransaction.humanReadableID;
-
-      if (lastHumanReadableID) {
-        const lastTransactionNumber = lastHumanReadableID.split('-');
-
-        //get humanReadable id
-        humanReadableID = `transactionId_${parseInt(lastTransactionNumber.slice(-1)) + 1}`;
-      } else {
-        humanReadableID = `transactionId_${String(1).padStart(4, '0')}`;
-      }
-    } else {
-      humanReadableID = `transactionId_${String(1).padStart(4, '0')}`;
-    }
-
-    let options = {
-      amount: parseInt(data.amount) * 100,
-      currency: 'INR',
-      receipt: humanReadableID,
-    };
-    console.log('[Payment] option......................', options);
-
-    let orderDetail = await razorpay.orders.create(options);
-
-    const transaction = {
-      amount: data.amount,
-      status: 'COMPLETED',
-      type: 'ON-ORDER',
-      transactionId: transactionId,
-      orderId: orderDetail.id,
-      humanReadableID: humanReadableID,
-    };
-    const intentTransaction = new Transaction(transaction);
-    await intentTransaction.save();
-
-    return res.json({
-      orderDetail,
-      intentTransaction,
-      transactionIdx: intentTransaction._id,
     });
   } catch (error) {
     console.error('Razorpay order creation error:', error);

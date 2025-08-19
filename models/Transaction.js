@@ -1,13 +1,7 @@
 const mongoose = require('mongoose');
-const { v4: uuidv4 } = require('uuid');
 
 const TransactionSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-      required: true,
-      default: () => uuidv4(),
-    },
     amount: {
       type: Number,
     },
@@ -20,17 +14,46 @@ const TransactionSchema = new mongoose.Schema(
     date: {
       type: Number,
     },
-    status: {
-      type: String,
-    },
-    orderId: {
-      type: String,
-    },
     humanReadableID: {
       type: String,
     },
     depositDate: {
       type: Number,
+    },
+    // Razorpay specific fields
+    razorpayPaymentId: {
+      type: String,
+    },
+    status: {
+      type: String,
+    },
+    razorpayOrderId: {
+      type: String,
+    },
+    razorpaySignature: {
+      type: String,
+    },
+    razorpayPaymentLink: {
+      type: String,
+    },
+    razorpayPaymentLinkId: {
+      type: String,
+    },
+    razorpayPaymentLinkReferenceId: {
+      type: String,
+    },
+    razorpayPaymentLinkStatus: {
+      type: String,
+    },
+    customerEmail: {
+      type: String,
+    },
+    customerName: {
+      type: String,
+    },
+    // Store additional plan and payment details
+    metadata: {
+      type: mongoose.Schema.Types.Mixed,
     },
   },
   {

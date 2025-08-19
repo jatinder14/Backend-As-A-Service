@@ -32,6 +32,8 @@ require('./cron-jobs/subscriptionManagement').initSubscriptionCronJobs();
 
 // const seedUsers = require('./seeders/seedUsers');
 // seedUsers();
+// const { seedPlans, clearPlans, defaultPlans } = require('./seeders/seedPlans');
+// seedPlans();
 
 const http = require('http');
 

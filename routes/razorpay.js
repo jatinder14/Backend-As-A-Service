@@ -15,7 +15,7 @@ const razorpay = new Razorpay({
   key_secret: process.env.RAZORPAY_KEY_SECRET || '29KBqceNnQER5CxM4Aj4Zsen',
 });
 
-router.post('/link/create-payment', verifyToken, async (req, res) => {
+router.post('/createPaymentLink', verifyToken, async (req, res) => {
   try {
     const { planSlug, billingCycle } = req.body;
 
@@ -61,27 +61,6 @@ router.post('/link/create-payment', verifyToken, async (req, res) => {
       humanReadableID = `payment_${String(1).padStart(4, '0')}`;
     }
 
-    // Create initial transaction record
-    const transaction = new Transaction({
-      amount: cyclePrice,
-      status: 'PENDING',
-      paymentType: 'RAZORPAY_LINK',
-      date: Date.now(),
-      humanReadableID: humanReadableID,
-      customerEmail: customerEmail,
-      customerName: customerName || 'Customer',
-      // Store plan details for reference
-      metadata: {
-        planSlug: planSlug,
-        planName: plan.name,
-        billingCycle: billingCycle,
-        planPrice: cyclePrice,
-        userId: userId,
-      },
-    });
-
-    await transaction.save();
-
     const options = {
       amount: amountInPaise, // in paise
       currency: plan.currency || 'USD',
@@ -102,7 +81,7 @@ router.post('/link/create-payment', verifyToken, async (req, res) => {
       callback_method: 'get',
       // Pass transaction ID and other details for verification
       notes: {
-        transactionId: transaction._id,
+        // transactionId: transaction._id,
         planSlug: planSlug,
         billingCycle: billingCycle,
         userId: userId || '',
@@ -110,12 +89,30 @@ router.post('/link/create-payment', verifyToken, async (req, res) => {
     };
 
     const paymentLink = await razorpay.paymentLink.create(options);
-    console.log('Payment link:', paymentLink, transaction.metadata);
+    // console.log('Payment link:', paymentLink, transaction.metadata);
 
-    // // Update transaction with payment link details
-    transaction.razorpayPaymentLink = paymentLink.short_url;
-    transaction.razorpayPaymentLinkId = paymentLink.id;
-    transaction.metadata = { ...transaction.metadata, paymentLinkDetails: paymentLink };
+    // Create initial transaction record
+    const transaction = new Transaction({
+      amount: cyclePrice,
+      status: 'PENDING',
+      paymentType: 'RAZORPAY_LINK',
+      date: Date.now(),
+      humanReadableID: humanReadableID,
+      customerEmail: customerEmail,
+      customerName: customerName || 'Customer',
+      razorpayPaymentLink: paymentLink.short_url,
+      razorpayPaymentLinkId: paymentLink.id,
+      // Store plan details for reference
+      metadata: {
+        planSlug: planSlug,
+        planName: plan.name,
+        billingCycle: billingCycle,
+        planPrice: cyclePrice,
+        userId: userId,
+        razorpayPaymentLinkDetails: paymentLink,
+      },
+    });
+
     await transaction.save();
 
     res.json({
@@ -131,11 +128,11 @@ router.post('/link/create-payment', verifyToken, async (req, res) => {
     });
   } catch (error) {
     console.error('Payment link error:', error);
-    res.status(500).json({ error: error.message });
+    res.status(500).json({ error });
   }
 });
 
-router.all('/link/verify', async (req, res) => {
+router.all('/verifyPayment', async (req, res) => {
   try {
     const {
       razorpay_order_id,
@@ -170,44 +167,66 @@ router.all('/link/verify', async (req, res) => {
     if (
       Razorpay.validateWebhookSignature(body, razorpay_signature, process.env.RAZORPAY_KEY_SECRET)
     ) {
-      // Find existing transaction by payment link ID and update it
-      let transaction = await Transaction.findOne({
-        razorpayPaymentLinkId: razorpay_payment_link_id,
-      });
+      let transaction = null;
 
-      if (transaction) {
-        console.log('Transaction found:', transaction, razorpay_order_id);
-        // Update existing transaction
-        transaction.status = razorpay_payment_link_status === 'paid' ? 'COMPLETED' : 'PENDING';
-        transaction.razorpayPaymentId = razorpay_payment_id;
-        transaction.razorpayOrderId = razorpay_order_id;
-        transaction.razorpaySignature = razorpay_signature;
-        transaction.razorpayPaymentLinkStatus = razorpay_payment_link_status;
-        await transaction.save();
-      } else {
-        // Create new transaction if not found
-        transaction = new Transaction({
-          transactionId: razorpay_payment_id,
-          orderId: razorpay_order_id || razorpay_payment_link_id,
-          status: razorpay_payment_link_status === 'paid' ? 'COMPLETED' : 'PENDING',
-          paymentType: 'RAZORPAY',
-          date: Date.now(),
-          razorpayPaymentId: razorpay_payment_id,
-          razorpayOrderId: razorpay_order_id,
-          razorpaySignature: razorpay_signature,
+      if (req.method === 'GET') {
+        // Payment link verification - find by payment link ID
+        transaction = await Transaction.findOne({
           paymentLinkId: razorpay_payment_link_id,
-          paymentLinkStatus: razorpay_payment_link_status,
-          humanReadableID: `payment_${Date.now()}`,
         });
-        await transaction.save();
-      }
 
-      return res.json({
-        success: true,
-        message: 'Payment verified and stored successfully',
-        transactionId: transaction._id,
-        status: transaction.status,
-      });
+        if (transaction) {
+          console.log('Payment link transaction found:', transaction._id);
+          // Update existing transaction
+          transaction.status = razorpay_payment_link_status === 'paid' ? 'COMPLETED' : 'PENDING';
+          transaction.razorpayPaymentId = razorpay_payment_id;
+          transaction.razorpaySignature = razorpay_signature;
+          transaction.paymentLinkStatus = razorpay_payment_link_status;
+          await transaction.save();
+
+          return res.json({
+            success: true,
+            message: 'Payment link verified and updated successfully',
+            transactionId: transaction._id,
+            status: transaction.status,
+          });
+        } else {
+          console.log('Payment link not found in our system:', razorpay_payment_link_id);
+          return res.status(404).json({
+            success: false,
+            error: 'Payment link not found in our system',
+            paymentLinkId: razorpay_payment_link_id,
+          });
+        }
+      } else if (req.method === 'POST') {
+        // Regular order verification - find by order ID
+        transaction = await Transaction.findOne({
+          razorpayOrderId: razorpay_order_id,
+        });
+
+        if (transaction) {
+          console.log('Order transaction found:', transaction._id);
+          // Update existing transaction
+          transaction.status = 'COMPLETED';
+          transaction.razorpayPaymentId = razorpay_payment_id;
+          transaction.razorpaySignature = razorpay_signature;
+          await transaction.save();
+
+          return res.json({
+            success: true,
+            message: 'Order payment verified and updated successfully',
+            transactionId: transaction._id,
+            status: transaction.status,
+          });
+        } else {
+          console.log('Order not found in our system:', razorpay_order_id);
+          return res.status(404).json({
+            success: false,
+            error: 'Order not found in our system',
+            orderId: razorpay_order_id,
+          });
+        }
+      }
     } else {
       return res.status(400).json({
         success: false,
@@ -221,24 +240,101 @@ router.all('/link/verify', async (req, res) => {
 });
 
 // Create Razorpay order
-router.post('/create-order', verifyToken, async (req, res) => {
+router.post('/createOrder', verifyToken, async (req, res) => {
   try {
-    const { plan, amount, currency } = req.body;
+    const { planSlug, billingCycle } = req.body;
+
+    const userId = req.user?.id;
+    const customerName = req.user?.name;
+    const customerEmail = req.user?.email;
+
+    // Validate required fields
+    if (!planSlug || !billingCycle) {
+      return res.status(400).json({
+        error: 'Missing required fields: planSlug and billingCycle are required',
+      });
+    }
+
+    // Fetch plan details from database
+    const plan = await Plan.getBySlug(planSlug);
+    if (!plan) {
+      return res.status(404).json({ error: 'Plan not found' });
+    }
+
+    // Get price for the specific billing cycle
+    const cyclePrice = plan.getPriceForCycle(billingCycle);
+    if (!cyclePrice) {
+      return res.status(400).json({ error: 'Invalid billing cycle for this plan' });
+    }
+
+    // Convert to paise (multiply by 100)
+    const amountInPaise = Math.round(cyclePrice * 100);
+
+    // Generate human readable ID for the transaction
+    let lastTransaction = await Transaction.find({}).sort({ createdAt: -1 }).limit(1);
+    let humanReadableID = '';
+
+    if (lastTransaction.length > 0) {
+      const lastHumanReadableID = lastTransaction[0].humanReadableID;
+      if (lastHumanReadableID && lastHumanReadableID.includes('_')) {
+        const lastTransactionNumber = lastHumanReadableID.split('_');
+        humanReadableID = `order_${parseInt(lastTransactionNumber.slice(-1)) + 1}`;
+      } else {
+        humanReadableID = `order_${String(1).padStart(4, '0')}`;
+      }
+    } else {
+      humanReadableID = `order_${String(1).padStart(4, '0')}`;
+    }
 
     const options = {
-      amount: amount, // amount in paise
-      currency: currency,
-      receipt: `receipt_${Date.now()}`,
+      amount: amountInPaise, // amount in paise
+      currency: plan.currency || 'USD',
+      receipt: humanReadableID,
       notes: {
-        plan: plan,
+        planSlug: planSlug,
+        planName: plan.name,
+        billingCycle: billingCycle,
+        userId: userId || '',
         service: 'ChatInsight Premium',
       },
     };
 
     const order = await razorpay.orders.create(options);
+    console.log('order', order);
+
+    // Create transaction record
+    const transaction = new Transaction({
+      amount: cyclePrice,
+      status: 'PENDING',
+      paymentType: 'RAZORPAY_ORDER',
+      date: Date.now(),
+      humanReadableID: humanReadableID,
+      razorpayOrderId: order.id,
+      customerEmail: customerEmail,
+      customerName: customerName,
+      // Store plan details for reference
+      metadata: {
+        planSlug: planSlug,
+        planName: plan.name,
+        billingCycle: billingCycle,
+        planPrice: cyclePrice,
+        userId: userId,
+        razorpayOrderDetails: order,
+      },
+    });
+
+    await transaction.save();
 
     res.json({
       order,
+      transactionId: transaction._id,
+      humanReadableID: humanReadableID,
+      plan: {
+        name: plan.name,
+        price: cyclePrice,
+        billingCycle: billingCycle,
+        currency: plan.currency,
+      },
     });
   } catch (error) {
     console.error('Razorpay order creation error:', error);

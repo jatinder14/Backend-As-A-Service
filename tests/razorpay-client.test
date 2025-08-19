@@ -21,7 +21,7 @@
       const amount = document.getElementById('amount').value;
 
       // Create order by calling the server endpoint
-      const response = await fetch('http://localhost:8000/api/payment/razorpay/create-order', {
+      const response = await fetch('http://localhost:8000/api/payment/razorpay/createOrder', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -40,7 +40,7 @@
         description: 'Test Transaction',
         order_id: 'order_R72kycwbqBmtFs', // This is the order_id created in the backend
         // callback_url: 'http://localhost:3000/payment-success', // Your success URL
-        callback_url: 'http://localhost:8000/api/payment/razorpay/link/verify', // Your success URL
+        callback_url: 'http://localhost:8000/api/payment/razorpay/verifyPayment', // Your success URL
         prefill: {
           name: 'Gaurav Kumar',
           email: 'gaurav.kumar@example.com',

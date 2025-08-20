@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Terms and Conditions - <%= COMPANY_NAME %></title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #667eea, #764ba2, #f093fb);
+        }
+        
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            color: #667eea;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .company-info {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        
+        .company-info h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+        
+        .company-info p {
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+        
+        .content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+        }
+        
+        .content h2 {
+            color: #667eea;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            border-bottom: 3px solid #f0f0f0;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        
+        .content h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+        }
+        
+        .content p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+        
+        .content ul {
+            margin: 20px 0;
+            padding-left: 0;
+        }
+        
+        .content li {
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            background-color: #f8f9ff;
+            border-left: 4px solid #667eea;
+            border-radius: 5px;
+            list-style: none;
+            position: relative;
+        }
+        
+        .content li::before {
+            content: '✓';
+            color: #667eea;
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        
+        .highlight-box {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        
+        .contact-section {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        
+        .contact-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #666;
+        }
+        
+        .footer p {
+            margin: 5px 0;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+            
+            .header h1 {
+                font-size: 2.2em;
+            }
+            
+            .content {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Terms and Conditions</h1>
+        </div>
+        
+        <div class="company-info">
+            <h2><%= COMPANY_NAME %></h2>
+            <p><strong>Email:</strong> <%= COMPANY_EMAIL %></p>
+            <p><strong>Phone:</strong> <%= COMPANY_PHONE %></p>
+        </div>
+        
+        <div class="content">
+            <p>Welcome to <%= COMPANY_NAME %>. By accessing and using our website and services, you agree to comply with and be bound by the following Terms and Conditions. Please read them carefully.</p>
+
+            <h2>1. Services</h2>
+            <p><%= COMPANY_NAME %> provides web development and related consulting services. The scope, deliverables, and timelines for each project will be defined in a separate written agreement or proposal.</p>
+
+            <h2>2. Client Responsibilities</h2>
+            <ul>
+                <li>Clients must provide accurate and complete information required for project execution.</li>
+                <li>All necessary content, images, and data should be shared in the agreed timeframe.</li>
+                <li>Any delays in providing required material may impact the delivery timeline.</li>
+            </ul>
+
+            <h2>3. Payments</h2>
+            <ul>
+                <li>Fees for services will be outlined in the proposal or invoice.</li>
+                <li>Payments must be made as per the agreed schedule.</li>
+                <li>Late or incomplete payments may result in suspension of services or project delays.</li>
+            </ul>
+
+            <h2>4. Intellectual Property</h2>
+            <ul>
+                <li>Upon full payment, the client will own the rights to the final project deliverables, unless otherwise agreed.</li>
+                <li><%= COMPANY_NAME %> reserves the right to showcase the completed project in its portfolio for promotional purposes.</li>
+            </ul>
+
+            <h2>5. Revisions and Changes</h2>
+            <ul>
+                <li>Reasonable revisions are included as per the project scope.</li>
+                <li>Additional revisions or changes beyond the agreed scope may incur extra charges.</li>
+            </ul>
+
+            <h2>6. Limitation of Liability</h2>
+            <ul>
+                <li><%= COMPANY_NAME %> is not liable for any indirect, incidental, or consequential damages arising from the use or inability to use our services.</li>
+                <li>We are not responsible for issues caused by third-party services, hosting providers, or software.</li>
+            </ul>
+
+            <h2>7. Confidentiality</h2>
+            <p>Both parties agree to maintain confidentiality of sensitive information shared during the course of the project.</p>
+
+            <h2>8. Termination</h2>
+            <p>Either party may terminate the agreement with prior written notice. Fees for completed work and expenses incurred up to the termination date remain payable.</p>
+
+            <h2>9. Third-Party Services</h2>
+            <p>If third-party tools, plugins, or services are required, the client may be responsible for their purchase or subscription costs.</p>
+
+            <div class="contact-section">
+                <h3>Contact Information</h3>
+                <p>For any questions about these Terms and Conditions, you may contact us at:</p>
+                <p><strong>Email:</strong> <%= COMPANY_EMAIL %></p>
+                <p><strong>Phone:</strong> <%= COMPANY_PHONE %></p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 <%= COMPANY_NAME %>. All rights reserved.</p>
+            <p>Last updated: <%= LAST_UPDATED %></p>
+        </div>
+    </div>
+</body>
+</html>

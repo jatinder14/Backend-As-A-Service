@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - <%= COMPANY_NAME %>
+    </title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+            border-radius: 15px;
+            margin-top: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #11998e, #38ef7d, #06beb6);
+        }
+
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            color: #11998e;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .company-info {
+            background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+
+        .company-info h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+        }
+
+        .company-info p {
+            margin: 8px 0;
+            font-size: 1.1em;
+        }
+
+        .content {
+            font-size: 16px;
+            line-height: 1.8;
+            color: #444;
+        }
+
+        .content h2 {
+            color: #11998e;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            border-bottom: 3px solid #f0f0f0;
+            padding-bottom: 10px;
+            position: relative;
+        }
+
+        .content h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px;
+            left: 0;
+            width: 50px;
+            height: 3px;
+            background: linear-gradient(90deg, #11998e, #38ef7d);
+        }
+
+        .content p {
+            margin-bottom: 18px;
+            text-align: justify;
+        }
+
+        .content ul {
+            margin: 20px 0;
+            padding-left: 0;
+        }
+
+        .content li {
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            background-color: #f0fffe;
+            border-left: 4px solid #11998e;
+            border-radius: 5px;
+            list-style: none;
+            position: relative;
+        }
+
+        .content li::before {
+            content: '🔒';
+            margin-right: 10px;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 2px solid #ff9a9e;
+        }
+
+        .contact-section {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 40px;
+            text-align: center;
+        }
+
+        .contact-section h3 {
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+
+        .footer {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #666;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 20px;
+                padding: 20px;
+            }
+
+            .header h1 {
+                font-size: 2.2em;
+            }
+
+            .content {
+                font-size: 15px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Privacy Policy</h1>
+        </div>
+
+        <div class="company-info">
+            <h2>
+                <%= COMPANY_NAME %>
+            </h2>
+            <p><strong>Email:</strong>
+                <%= COMPANY_EMAIL %>
+            </p>
+            <p><strong>Phone:</strong>
+                <%= COMPANY_PHONE %>
+            </p>
+        </div>
+
+        <div class="content">
+            <p>
+                <%= COMPANY_NAME %> ("we," "our," or "us") values your privacy and is committed to protecting the
+                    personal information you share with us. This Privacy Policy outlines how we collect, use, and
+                    safeguard your information when you use our services or visit our website.
+            </p>
+
+            <h2>1. Information We Collect</h2>
+            <p>We may collect the following types of information:</p>
+            <ul>
+                <li><strong>Personal Information:</strong> Name, email address, phone number, or other details you
+                    provide when contacting us or using our services.</li>
+                <li><strong>Project Information:</strong> Content, files, or requirements shared with us for web
+                    development and consulting purposes.</li>
+                <li><strong>Technical Information:</strong> IP address, browser type, device information, and usage data
+                    when you visit our website.</li>
+            </ul>
+
+            <h2>2. How We Use Your Information</h2>
+            <p>Your information may be used for the following purposes:</p>
+            <ul>
+                <li>To provide and manage our web development services.</li>
+                <li>To communicate regarding project progress, support, or updates.</li>
+                <li>To process payments and maintain transaction records.</li>
+                <li>To improve our website, services, and customer experience.</li>
+                <li>To comply with legal or regulatory requirements.</li>
+            </ul>
+
+            <h2>3. Sharing of Information</h2>
+            <ul>
+                <li>We do not sell, trade, or rent your personal information to third parties.</li>
+                <li>Information may be shared with trusted service providers or partners who assist us in delivering
+                    services, provided they also protect your data.</li>
+                <li>We may disclose information if required by law or to protect our legal rights.</li>
+            </ul>
+
+            <div class="highlight-box">
+                <h3>🔐 Your Data Security is Our Priority</h3>
+                <p>We implement reasonable technical and organizational measures to protect your personal data from
+                    unauthorized access, alteration, disclosure, or destruction.</p>
+            </div>
+
+            <h2>4. Data Security</h2>
+            <p>We implement reasonable technical and organizational measures to protect your personal data from
+                unauthorized access, alteration, disclosure, or destruction. However, no method of transmission over the
+                internet is 100% secure.</p>
+
+            <h2>5. Data Retention</h2>
+            <p>We will retain your personal information only for as long as necessary to fulfill the purposes outlined
+                in this policy or as required by law.</p>
+
+            <h2>6. Your Rights</h2>
+            <p>You may:</p>
+            <ul>
+                <li>Request access to the personal data we hold about you.</li>
+                <li>Request corrections to your information.</li>
+                <li>Request deletion of your data, subject to legal and contractual obligations.</li>
+            </ul>
+
+            <h2>7. Third-Party Links</h2>
+            <p>Our website may contain links to third-party sites. We are not responsible for the privacy practices or
+                content of such external websites.</p>
+
+            <h2>8. Updates to This Policy</h2>
+            <p>We may update this Privacy Policy from time to time. Any changes will be posted on our website, and
+                continued use of our services indicates your acceptance of the revised policy.</p>
+
+            <div class="contact-section">
+                <h3>Contact Information</h3>
+                <p>If you have any questions about this Privacy Policy, please contact us at:</p>
+                <p><strong>Email:</strong>
+                    <%= COMPANY_EMAIL %>
+                </p>
+                <p><strong>Phone:</strong>
+                    <%= COMPANY_PHONE %>
+                </p>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p>&copy; 2024 <%= COMPANY_NAME %>. All rights reserved.</p>
+            <p>Last updated: <%= LAST_UPDATED %>
+            </p>
+        </div>
+    </div>
+</body>
+
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Refund Policy - <%= COMPANY_NAME %></title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 20px;
+            background-color: white;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            border-radius: 15px;
+            position: relative;
+            overflow: hidden;
+        }
+        .container::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 5px;
+            background: linear-gradient(90deg, #fc466b, #3f5efb, #ff6b6b);
+        }
+        .header {
+            text-align: center;
+            padding: 30px 0;
+            border-bottom: 2px solid #f0f0f0;
+            margin-bottom: 40px;
+        }
+        .header h1 {
+            color: #fc466b;
+            font-size: 2.8em;
+            margin-bottom: 15px;
+            font-weight: 700;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .company-info {
+            background: linear-gradient(135deg, #fc466b 0%, #3f5efb 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            text-align: center;
+        }
+        .company-info h2 { font-size: 1.5em; margin-bottom: 15px; }
+        .company-info p { margin: 8px 0; font-size: 1.1em; }
+        .content { font-size: 16px; line-height: 1.8; color: #444; }
+        .content h2 {
+            color: #fc466b;
+            margin-top: 35px;
+            margin-bottom: 20px;
+            font-size: 1.6em;
+            border-bottom: 3px solid #f0f0f0;
+            padding-bottom: 10px;
+            position: relative;
+        }
+        .content h2::after {
+            content: '';
+            position: absolute;
+            bottom: -3px; left: 0;
+            width: 50px; height: 3px;
+            background: linear-gradient(90deg, #fc466b, #3f5efb);
+        }
+        .content p { margin-bottom: 18px; text-align: justify; }
+        .content ul { margin: 20px 0; padding-left: 0; }
+        .content li {
+            margin-bottom: 12px;
+            padding: 10px 15px;
+            background-color: #fff5f5;
+            border-left: 4px solid #fc466b;
+            border-radius: 5px;
+            list-style: none;
+        }
+        .content li::before { content: '⚠️'; margin-right: 10px; }
+        .warning-box {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            color: #333;
+            padding: 25px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+            border: 3px solid #ff6b6b;
+        }
+        .warning-box h3 { color: #d63031; font-size: 1.5em; margin-bottom: 15px; }
+        .important-notice {
+            background: linear-gradient(135deg, #fdcb6e 0%, #e17055 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 25px 0;
+            text-align: center;
+        }
+        .contact-section {
+            background: linear-gradient(135deg, #a29bfe 0%, #6c5ce7 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            margin-top: 40px;
+            text-align: center;
+        }
+        .contact-section h3 { margin-bottom: 15px; font-size: 1.4em; }
+        .footer {
+            margin-top: 40px;
+            padding-top: 25px;
+            border-top: 2px solid #f0f0f0;
+            text-align: center;
+            color: #666;
+        }
+        .footer p { margin: 5px 0; }
+        @media (max-width: 768px) {
+            .container { margin: 20px; padding: 20px; }
+            .header h1 { font-size: 2.2em; }
+            .content { font-size: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Refund Policy</h1>
+        </div>
+        
+        <div class="company-info">
+            <h2><%= COMPANY_NAME %></h2>
+            <p><strong>Email:</strong> <%= COMPANY_EMAIL %></p>
+            <p><strong>Phone:</strong> <%= COMPANY_PHONE %></p>
+        </div>
+        
+        <div class="content">
+            <p>At <%= COMPANY_NAME %>, we strive to deliver high-quality web development and consulting services tailored to our clients' requirements. Please note that all payments made to <%= COMPANY_NAME %> are final and non-refundable.</p>
+
+            <div class="warning-box">
+                <h3>🚫 No Refund Policy</h3>
+                <p><strong>All payments are final and non-refundable under any circumstances.</strong></p>
+            </div>
+
+            <h2>No Refund Policy</h2>
+            <ul>
+                <li>Once a payment is made for any of our services, it is non-refundable under any circumstances.</li>
+                <li>Clients are encouraged to carefully review project proposals, terms, and service details before making any payment.</li>
+                <li>Any advance, milestone, or full payment made towards a project will not be refunded, even if the project is terminated early by the client.</li>
+                <li>In case of disputes, <%= COMPANY_NAME %> will work with the client to find a reasonable resolution, but refunds will not be provided.</li>
+            </ul>
+
+            <div class="important-notice">
+                <h3>📋 Important Notice</h3>
+                <p>Please carefully review all project details, timelines, and requirements before making any payment. Our team is available to answer any questions before you proceed.</p>
+            </div>
+
+            <h2>Project Changes & Revisions</h2>
+            <ul>
+                <li>If adjustments or additional requirements arise during a project, they may be handled through change requests, subject to additional costs.</li>
+                <li>Refunds will not be offered for dissatisfaction with services once work has commenced or been delivered, as clear communication and approvals are maintained throughout the project lifecycle.</li>
+            </ul>
+
+            <h2>Quality Assurance</h2>
+            <p>We maintain high standards of quality and communication throughout our projects:</p>
+            <ul>
+                <li>Regular progress updates and milestone reviews</li>
+                <li>Clear communication channels with dedicated project managers</li>
+                <li>Detailed project documentation and approval processes</li>
+                <li>Professional consultation before project commencement</li>
+            </ul>
+
+            <h2>Dispute Resolution</h2>
+            <p>While we do not offer refunds, we are committed to client satisfaction:</p>
+            <ul>
+                <li>We will work diligently to resolve any concerns or issues</li>
+                <li>Alternative solutions may be offered to address client needs</li>
+                <li>Mediation services may be utilized for complex disputes</li>
+            </ul>
+
+            <div class="contact-section">
+                <h3>Contact Information</h3>
+                <p>For any questions regarding this policy, you can reach us at:</p>
+                <p><strong>Email:</strong> <%= COMPANY_EMAIL %></p>
+                <p><strong>Phone:</strong> <%= COMPANY_PHONE %></p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2024 <%= COMPANY_NAME %>. All rights reserved.</p>
+            <p>Last updated: <%= LAST_UPDATED %></p>
+        </div>
+    </div>
+</body>
+</html>

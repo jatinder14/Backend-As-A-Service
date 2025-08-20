@@ -25,6 +25,9 @@ const planRoutes = require('./routes/plan');
 const UploadController = require('./controllers/uploadController');
 const userRoutes = require('./routes/User');
 const { verifyToken } = require('./middleware/auth');
+const policyRoutes = require('./routes/policy');
+const path = require('path');
+
 // const syncProperties = require('./cron-jobs/syncCRM')
 require('./cron-jobs/mongoBackup');
 require('./cron-jobs/subscriptionManagement').initSubscriptionCronJobs();
@@ -68,6 +71,20 @@ const upload = multer({
   },
 });
 
+// ejs conf
+
+// set ejs view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'Policies'));
+
+// ✅ make env variables available to all EJS templates
+app.locals.COMPANY_NAME = process.env.COMPANY_NAME || 'Empire Infratech';
+app.locals.COMPANY_EMAIL = process.env.COMPANY_EMAIL || 'jatinder1901243@gmail.com';
+app.locals.COMPANY_PHONE = process.env.COMPANY_PHONE || '+91 9781948706';
+app.locals.LAST_UPDATED = process.env.LAST_UPDATED || 'August 19, 2025';
+
+// end ejs conf
+
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
@@ -90,6 +107,9 @@ app.use('/summarize', geminiRoutes);
 // Razorpay routes
 app.use('/api/payment/razorpay', razorpayRoutes);
 app.use('/api/transaction', transactionRoutes);
+
+// policy routes
+app.use('/policy', policyRoutes);
 
 app.use('/api/products', productRoutes);
 

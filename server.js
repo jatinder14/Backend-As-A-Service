@@ -75,7 +75,8 @@ const upload = multer({
 
 // set ejs view engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'Policies'));
+app.set('views', path.join(__dirname, 'views/templates/policies'));
+console.log('Views directory set to:', path.join(__dirname, 'views/templates/policies'));
 
 // ✅ make env variables available to all EJS templates
 app.locals.COMPANY_NAME = process.env.COMPANY_NAME || 'Empire Infratech';
@@ -86,7 +87,7 @@ app.locals.LAST_UPDATED = process.env.LAST_UPDATED || 'August 19, 2025';
 // end ejs conf
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 8000;
 server.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

@@ -45,6 +45,9 @@ router.get('/', async (req, res) => {
 
     if (publishing_status) {
       query.publishing_status = { $regex: publishing_status, $options: 'i' };
+    } else {
+      // Exclude these values if no status is provided
+      query.publishing_status = { $nin: ['UNPUBLISHED', 'DRAFT'] };
     }
 
     if (title) query.title = { $regex: title, $options: 'i' };

@@ -38,9 +38,6 @@ router.get('/', async (req, res) => {
       } else {
         query.status = { $regex: status, $options: 'i' };
       }
-    } else {
-      // Exclude these values if no status is provided
-      query.status = { $nin: ['UNPUBLISHED', 'unpublished'] };
     }
 
     if (publishing_status) {
@@ -499,8 +496,19 @@ router.put('/:id', async (req, res) => {
 
 router.delete('/:id', async (req, res) => {
   try {
-    const property = await Property.findByIdAndDelete(req.params.id);
-    if (!property) return res.status(404).json({ message: 'Property not found' });
+    let query;
+    if (mongoose.Types.ObjectId.isValid(req.params.id)) {
+      query = { _id: req.params.id };
+    } else {
+      query = { crm_id: req.params.id };
+    }
+
+    const property = await Property.findOneAndDelete(query);
+
+    if (!property) {
+      return res.status(404).json({ message: 'Property not found' });
+    }
+
     res.status(200).json({ message: 'Property deleted successfully' });
   } catch (err) {
     res.status(500).json({ message: err.message });

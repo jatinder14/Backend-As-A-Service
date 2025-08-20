@@ -41,7 +41,7 @@ const PropertySchema = new mongoose.Schema(
 
     status: {
       type: String,
-      enum: ['', 'OFF_PLAN', 'SALE', 'SALE_OFF_PLAN', 'RENT', 'DRAFT'],
+      enum: ['', 'OFF_PLAN', 'SALE', 'SALE_OFF_PLAN', 'RENT'],
     },
     publishing_status: {
       type: String,

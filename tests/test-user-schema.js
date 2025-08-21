@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const User = require('./models/User');
-const connectDB = require('./Database/connection');
+const User = require('../models/User');
+const connectDB = require('../Database/connection');
 
 const testUserSchema = async () => {
   try {

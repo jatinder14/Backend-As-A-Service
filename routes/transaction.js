@@ -13,7 +13,7 @@ router.get('/myTransactions', async (req, res) => {
     const { page = 1, limit = 10, status } = req.query;
 
     const filter = {
-      'metadata.userId': req.user?.id,
+      userId: req.user?.id,
     };
 
     if (status) filter.status = status;
@@ -106,7 +106,7 @@ router.get('/:id', async (req, res) => {
     }
 
     // Check if user can access this transaction
-    if (req.user?.role !== 'admin' && transaction.metadata?.userId !== req.user?.id) {
+    if (req.user?.role !== 'admin' && transaction.userId.toString() !== req.user?.id) {
       return res.status(403).json({ error: 'Access denied' });
     }
 

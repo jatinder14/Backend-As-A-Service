@@ -230,7 +230,7 @@ class SubscriptionService {
   }
 
   // Check user's subscription status and limits
-  static async checkUserAccess(userId, resourceType, resourceCount = 1) {
+  static async checkUserAccess(userId) {
     try {
       const user = await User.findById(userId).populate('currentSubscription');
       if (!user) {
@@ -259,59 +259,15 @@ class SubscriptionService {
         };
       }
 
-      // Check resource limits
+      // For now, just check if user has an active subscription
+      // Usage tracking has been removed - implement specific limits as needed
       let hasAccess = true;
       let reason = null;
 
-      switch (resourceType) {
-        case 'properties':
-          if (
-            limits.properties !== -1 &&
-            user.usageStats.propertiesCreated + resourceCount > limits.properties
-          ) {
-            hasAccess = false;
-            reason = 'Property limit exceeded';
-          }
-          break;
-        case 'users':
-          if (limits.users !== -1 && resourceCount > limits.users) {
-            hasAccess = false;
-            reason = 'User limit exceeded';
-          }
-          break;
-        case 'storage':
-          if (
-            limits.storage !== -1 &&
-            user.usageStats.storageUsed + resourceCount > limits.storage
-          ) {
-            hasAccess = false;
-            reason = 'Storage limit exceeded';
-          }
-          break;
-        case 'apiCalls':
-          if (
-            limits.apiCalls !== -1 &&
-            user.usageStats.apiCallsUsed + resourceCount > limits.apiCalls
-          ) {
-            hasAccess = false;
-            reason = 'API call limit exceeded';
-          }
-          break;
-        case 'customDomains':
-          if (limits.customDomains !== -1 && resourceCount > limits.customDomains) {
-            hasAccess = false;
-            reason = 'Custom domain limit exceeded';
-          }
-          break;
-        case 'integrations':
-          if (limits.integrations !== -1 && resourceCount > limits.integrations) {
-            hasAccess = false;
-            reason = 'Integration limit exceeded';
-          }
-          break;
-        default:
-          hasAccess = false;
-          reason = 'Unknown resource type';
+      // Basic access control - can be extended with specific limits later
+      if (!subscription || subscription.status !== 'active') {
+        hasAccess = false;
+        reason = 'No active subscription';
       }
 
       return {
@@ -319,7 +275,7 @@ class SubscriptionService {
         reason,
         currentPlan: subscription.planSnapshot.name,
         limits,
-        usage: user.usageStats,
+        // Removed usage stats - implement specific tracking as needed
       };
     } catch (error) {
       logger.error('Error checking user access:', error);
@@ -327,23 +283,16 @@ class SubscriptionService {
     }
   }
 
-  // Update user usage statistics
-  static async updateUsageStats(userId, resourceType, amount = 1) {
+  // Update user activity (simplified from usage stats)
+  static async updateUserActivity(userId) {
     try {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
+      await User.findByIdAndUpdate(userId, {
+        lastActivity: new Date(),
+      });
 
-      const updateField = `usageStats.${resourceType}`;
-      const updateValue = { $inc: { [updateField]: amount } };
-
-      await User.findByIdAndUpdate(userId, updateValue);
-      user.usageStats.lastActivity = new Date();
-
-      logger.info(`Updated usage stats for user ${userId}: ${resourceType} += ${amount}`);
+      logger.info(`Updated last activity for user ${userId}`);
     } catch (error) {
-      logger.error('Error updating usage stats:', error);
+      logger.error('Error updating user activity:', error);
       throw error;
     }
   }

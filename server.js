@@ -18,6 +18,7 @@ const dashboardRoutes = require('./routes/Dashboard');
 const geminiRoutes = require('./routes/gemini');
 const razorpayRoutes = require('./routes/razorpay');
 const transactionRoutes = require('./routes/transaction');
+const refundRoutes = require('./routes/refund');
 const subscriptionRoutes = require('./routes/subscription');
 const orderRoutes = require('./routes/order');
 const paymentRoutes = require('./routes/payments');
@@ -108,6 +109,7 @@ app.use('/summarize', geminiRoutes);
 // Razorpay routes
 app.use('/api/payment/razorpay', razorpayRoutes);
 app.use('/api/transaction', transactionRoutes);
+app.use('/api/refund', refundRoutes);
 
 // policy routes
 app.use('/policy', policyRoutes);

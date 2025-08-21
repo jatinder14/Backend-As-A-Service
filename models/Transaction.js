@@ -51,6 +51,13 @@ const TransactionSchema = new mongoose.Schema(
     customerName: {
       type: String,
     },
+    // User association - REQUIRED for refund authorization
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      required: [true, 'User ID is required for transaction'],
+      index: true,
+    },
     // Store additional plan and payment details
     metadata: {
       type: mongoose.Schema.Types.Mixed,

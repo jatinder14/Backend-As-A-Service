@@ -1,19 +1,146 @@
 const express = require('express');
+const Razorpay = require('razorpay');
 const Refund = require('../models/Refund');
+const Transaction = require('../models/Transaction');
 const { verifyToken, adminRole } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Initialize Razorpay
+const razorpay = new Razorpay({
+  key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_R5dcC7mGZBJI9y',
+  key_secret: process.env.RAZORPAY_KEY_SECRET || '29KBqceNnQER5CxM4Aj4Zsen',
+});
+
 // Apply authentication to all routes
 router.use(verifyToken);
+
+// Create a new refund
+router.post('/create', async (req, res) => {
+  try {
+    const { transactionId, paymentId, amount, reason } = req.body;
+
+    // Validate required fields
+    if (!transactionId && !paymentId) {
+      return res.status(400).json({
+        error: 'Either transactionId or paymentId is required',
+      });
+    }
+
+    if (!amount || amount <= 0) {
+      return res.status(400).json({
+        error: 'Valid refund amount is required',
+      });
+    }
+
+    let razorpayPaymentId = paymentId;
+    let transaction = null;
+
+    // Find transaction and payment ID
+    if (transactionId) {
+      transaction = await Transaction.findById(transactionId);
+      if (!transaction) {
+        return res.status(404).json({ error: 'Transaction not found' });
+      }
+      razorpayPaymentId = transaction.razorpayPaymentId;
+    } else if (paymentId) {
+      transaction = await Transaction.findOne({ razorpayPaymentId: paymentId });
+    }
+
+    if (!razorpayPaymentId) {
+      return res.status(400).json({ error: 'Razorpay payment ID not found' });
+    }
+
+    // Check if user has permission to refund this transaction
+    if (req.user?.role !== 'admin' && transaction?.userId?.toString() !== req.user?.id) {
+      return res
+        .status(403)
+        .json({ error: 'Access denied - You can only request refunds for your own transactions' });
+    }
+
+    // Verify payment exists and is refundable
+    const payment = await razorpay.payments.fetch(razorpayPaymentId);
+    if (payment.status !== 'captured') {
+      return res.status(400).json({
+        error: 'Payment is not captured, cannot process refund',
+      });
+    }
+
+    // Convert amount to paise
+    const refundAmountInPaise = Math.round(Math.abs(amount) * 100);
+
+    // Process refund with Razorpay
+    const refundResponse = await razorpay.payments.refund(razorpayPaymentId, {
+      amount: refundAmountInPaise,
+      speed: 'optimum',
+      notes: {
+        reason: reason || 'Customer requested refund',
+        transactionId: transaction?._id?.toString() || '',
+        processedBy: req.user?.id || 'system',
+      },
+    });
+
+    // Create refund record
+    const refundRecord = new Refund({
+      refundId: refundResponse.id,
+      refundedAmount: (refundResponse.amount / 100).toString(),
+      isRefunded: 'pending',
+      status: 'PENDING',
+      razorpayPaymentId: refundResponse.payment_id,
+      created_at: new Date(refundResponse.created_at * 1000).toISOString(),
+      transationId: transaction?._id?.toString() || '',
+      reason: reason || 'Customer requested refund',
+      processedBy: req.user?.id,
+      processedAt: new Date(),
+      metadata: {
+        originalAmount: transaction?.amount,
+        planName: transaction?.metadata?.planName,
+        originalTransactionId: transaction?._id,
+      },
+    });
+
+    await refundRecord.save();
+
+    // Update transaction status
+    if (transaction) {
+      transaction.status = 'REFUND_INITIATED';
+      await transaction.save();
+    }
+
+    res.json({
+      message: 'Refund initiated successfully',
+      refund: {
+        id: refundRecord._id,
+        refundId: refundResponse.id,
+        amount: amount,
+        status: 'PENDING',
+      },
+    });
+  } catch (error) {
+    console.error('Create refund error:', error);
+
+    let errorMessage = 'Error processing refund';
+    if (error.statusCode === 404) {
+      errorMessage = 'Payment not found';
+    } else if (error.statusCode === 400) {
+      errorMessage = error.error?.description || 'Invalid refund request';
+    }
+
+    res.status(500).json({ error: errorMessage });
+  }
+});
 
 // Get user's own refunds
 router.get('/myRefunds', async (req, res) => {
   try {
     const { page = 1, limit = 10, status } = req.query;
 
+    // Find refunds for transactions that belong to this user
+    const userTransactions = await Transaction.find({ userId: req.user?.id }).select('_id');
+    const transactionIds = userTransactions.map(t => t._id.toString());
+
     const filter = {
-      'metadata.userId': req.user?.id,
+      transationId: { $in: transactionIds },
     };
 
     if (status) filter.status = status;
@@ -105,9 +232,14 @@ router.get('/:id', async (req, res) => {
       return res.status(404).json({ error: 'Refund not found' });
     }
 
-    // Check if user can access this refund
-    if (req.user?.role !== 'admin' && refund.metadata?.userId !== req.user?.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    // Check if user can access this refund by verifying transaction ownership
+    if (req.user?.role !== 'admin') {
+      const transaction = await Transaction.findById(refund.transationId);
+      if (!transaction || transaction.userId.toString() !== req.user?.id) {
+        return res
+          .status(403)
+          .json({ error: 'Access denied - You can only view your own refunds' });
+      }
     }
 
     res.json(refund);
@@ -159,7 +291,7 @@ router.delete('/:id', adminRole, async (req, res) => {
     }
 
     // Prevent deletion of completed refunds
-    if (refund.status === 'COMPLETED') {
+    if (refund.status === 'COMPLETED' || refund.isRefunded === 'completed') {
       return res.status(400).json({
         error: 'Cannot delete completed refunds. Consider updating status instead.',
       });

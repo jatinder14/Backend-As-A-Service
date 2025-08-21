@@ -101,9 +101,9 @@ const UserSchema = new mongoose.Schema(
     subscriptionStatus: {
       type: String,
       enum: {
-        values: ['active', 'inactive', 'expired', 'cancelled'],
+        values: ['active', 'inactive', 'expired', 'cancelled', 'trial'],
         message:
-          'Invalid subscription status. Must be one of: active, inactive, expired, cancelled',
+          'Invalid subscription status. Must be one of: active, inactive, expired, cancelled, trial',
       },
       default: 'inactive',
     },
@@ -115,6 +115,46 @@ const UserSchema = new mongoose.Schema(
         },
         message: 'Subscription expiry date must be in the future',
       },
+    },
+    // Payment status tracking
+    isPaidCustomer: {
+      type: Boolean,
+      default: false,
+    },
+    paymentHistory: [
+      {
+        transactionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Transaction',
+        },
+        amount: Number,
+        status: {
+          type: String,
+          enum: ['completed', 'pending', 'failed', 'refunded'],
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        planName: String,
+        billingCycle: String,
+      },
+    ],
+    totalAmountPaid: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total amount paid cannot be negative'],
+    },
+    totalRefunded: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total refunded cannot be negative'],
+    },
+    firstPaymentDate: {
+      type: Date,
+    },
+    lastPaymentDate: {
+      type: Date,
     },
     // Customer specific fields
     customerType: {
@@ -157,27 +197,10 @@ const UserSchema = new mongoose.Schema(
         maxlength: [20, 'Zip code cannot exceed 20 characters'],
       },
     },
-    // Usage tracking
-    usageStats: {
-      propertiesCreated: {
-        type: Number,
-        default: 0,
-        min: [0, 'Properties created cannot be negative'],
-      },
-      apiCallsUsed: {
-        type: Number,
-        default: 0,
-        min: [0, 'API calls used cannot be negative'],
-      },
-      storageUsed: {
-        type: Number,
-        default: 0,
-        min: [0, 'Storage used cannot be negative'],
-      }, // in MB
-      lastActivity: {
-        type: Date,
-        default: Date.now,
-      },
+    // Activity tracking
+    lastActivity: {
+      type: Date,
+      default: Date.now,
     },
     // Additional fields for better user management
     isActive: {

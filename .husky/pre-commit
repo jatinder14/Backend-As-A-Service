@@ -1,0 +1,19 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Run linting and formatting
+npm run lint-staged
+
+# Export Postman collection if API key is available
+if [ -n "$POSTMAN_API_KEY" ] && [ -n "$POSTMAN_COLLECTION_ID" ]; then
+  echo "🔄 Updating Postman collection..."
+  npm run export-postman
+  
+  # Add the updated collection to the commit if it changed
+  if [ -f "docs/api-collection.json" ]; then
+    git add docs/api-collection.json
+    echo "✅ Postman collection updated and staged"
+  fi
+else
+  echo "⚠️  Skipping Postman export (API key or collection ID not set)"
+fi

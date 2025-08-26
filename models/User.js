@@ -140,6 +140,27 @@ const UserSchema = new mongoose.Schema(
         billingCycle: String,
       },
     ],
+    // Refund tracking (summary only)
+    refundHistory: [
+      {
+        refundId: String, // Razorpay refund ID
+        transactionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: 'Transaction',
+        },
+        amount: Number,
+        status: {
+          type: String,
+          enum: ['pending', 'completed', 'failed'],
+        },
+        date: {
+          type: Date,
+          default: Date.now,
+        },
+        reason: String,
+      },
+    ],
+    // Summary fields for quick access
     totalAmountPaid: {
       type: Number,
       default: 0,
@@ -150,10 +171,23 @@ const UserSchema = new mongoose.Schema(
       default: 0,
       min: [0, 'Total refunded cannot be negative'],
     },
+    totalTransactions: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total transactions cannot be negative'],
+    },
+    totalRefunds: {
+      type: Number,
+      default: 0,
+      min: [0, 'Total refunds cannot be negative'],
+    },
     firstPaymentDate: {
       type: Date,
     },
     lastPaymentDate: {
+      type: Date,
+    },
+    lastRefundDate: {
       type: Date,
     },
     // Customer specific fields

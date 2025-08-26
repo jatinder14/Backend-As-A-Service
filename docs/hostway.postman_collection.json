@@ -1,0 +1,284 @@
+{
+  "info": {
+    "_postman_id": "9d821fd7-42a1-4bd0-bf69-17aff09cdd8b",
+    "name": "hostway",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32965413",
+    "_collection_link": "https://tech-tank-innovations.postman.co/workspace/1a3fd59b-8421-467d-ba26-5c950af4774f/collection/32965413-9d821fd7-42a1-4bd0-bf69-17aff09cdd8b?action=share&source=collection_link&creator=32965413"
+  },
+  "item": [
+    {
+      "name": "accessTokens",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cache-control",
+            "value": "no-cache"
+          },
+          {
+            "key": "Content-type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "107113",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "1519621781fe6ec9cedd327ea9e55958472a46897cb2dfaf21c72196933ff03f",
+              "type": "text"
+            },
+            {
+              "key": "scope",
+              "value": "general",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://api.hostaway.com/v1/accessTokens",
+          "protocol": "https",
+          "host": ["api", "hostaway", "com"],
+          "path": ["v1", "accessTokens"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "fetch reservations",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cache-control",
+            "value": "no-cache"
+          },
+          {
+            "key": "Content-type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "107113",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "1519621781fe6ec9cedd327ea9e55958472a46897cb2dfaf21c72196933ff03f",
+              "type": "text"
+            },
+            {
+              "key": "scope",
+              "value": "general",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://api.hostaway.com/v1/accessTokens",
+          "protocol": "https",
+          "host": ["api", "hostaway", "com"],
+          "path": ["v1", "accessTokens"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "delete listing hostaway",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cache-control",
+            "value": "no-cache"
+          },
+          {
+            "key": "Content-type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "107113",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "1519621781fe6ec9cedd327ea9e55958472a46897cb2dfaf21c72196933ff03f",
+              "type": "text"
+            },
+            {
+              "key": "scope",
+              "value": "general",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://api.hostaway.com/v1/accessTokens",
+          "protocol": "https",
+          "host": ["api", "hostaway", "com"],
+          "path": ["v1", "accessTokens"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "create a property on hostaway",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Cache-control",
+            "value": "no-cache"
+          },
+          {
+            "key": "Content-type",
+            "value": "application/x-www-form-urlencoded"
+          }
+        ],
+        "body": {
+          "mode": "urlencoded",
+          "urlencoded": [
+            {
+              "key": "grant_type",
+              "value": "client_credentials",
+              "type": "text"
+            },
+            {
+              "key": "client_id",
+              "value": "107113",
+              "type": "text"
+            },
+            {
+              "key": "client_secret",
+              "value": "1519621781fe6ec9cedd327ea9e55958472a46897cb2dfaf21c72196933ff03f",
+              "type": "text"
+            },
+            {
+              "key": "scope",
+              "value": "general",
+              "type": "text"
+            }
+          ]
+        },
+        "url": {
+          "raw": "https://api.hostaway.com/v1/accessTokens",
+          "protocol": "https",
+          "host": ["api", "hostaway", "com"],
+          "path": ["v1", "accessTokens"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "https://api.hostaway.com/v1/listings?limit=&offset=&sortOrder=&city=&match=&country=&contactName=&propertyTypeId=",
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiJ9.eyJhdWQiOiIxMDcxMTMiLCJqdGkiOiI3MWY2ZDE1Nzc4ZDdhZTBiMjQzMWFhODk0ZTQ5ODZmN2RmMmVkZjQ1NDgyYzViYThjZmRmZTdkYWNiMGM5M2I2M2VhNjI0ZmI2NjE0M2Q0NyIsImlhdCI6MTcyOTA3MTkwMy4wMjQ2NDIsIm5iZiI6MTcyOTA3MTkwMy4wMjQ2NDMsImV4cCI6MjA0NDYwNDcwMy4wMjQ2NDcsInN1YiI6IiIsInNjb3BlcyI6WyJnZW5lcmFsIl0sInNlY3JldElkIjo0ODU1Nn0.JESO3AAXhEyB57ncWusjMv4hhpkUIUnw5QV9SY17ETTUJ-52t0bhAWP_dDtJpfaE6iIgQ__TQCgy6Ijy2MxxwBSByzPC0rY5GzaJcH7ys0JufIHTDHZrTHQNbOQ1hPlLQrXWv40sOAh76bOBoRZoil-mtWUnOd4TsAz6V4wpkz8",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Authorization",
+            "value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c"
+          },
+          {
+            "key": "Cache-control",
+            "value": "no-cache"
+          }
+        ],
+        "url": {
+          "raw": "https://api.hostaway.com/v1/listings?limit=&offset=&sortOrder=&city=&match=&country=&contactName=&propertyTypeId=",
+          "protocol": "https",
+          "host": ["api", "hostaway", "com"],
+          "path": ["v1", "listings"],
+          "query": [
+            {
+              "key": "limit",
+              "value": ""
+            },
+            {
+              "key": "offset",
+              "value": ""
+            },
+            {
+              "key": "sortOrder",
+              "value": ""
+            },
+            {
+              "key": "city",
+              "value": ""
+            },
+            {
+              "key": "match",
+              "value": ""
+            },
+            {
+              "key": "country",
+              "value": ""
+            },
+            {
+              "key": "contactName",
+              "value": ""
+            },
+            {
+              "key": "propertyTypeId",
+              "value": ""
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "hostaway/getListingById",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "localhost:3000/api/hostaway/getListing/290142",
+          "host": ["localhost"],
+          "port": "3000",
+          "path": ["api", "hostaway", "getListing", "290142"]
+        }
+      },
+      "response": []
+    }
+  ]
+}

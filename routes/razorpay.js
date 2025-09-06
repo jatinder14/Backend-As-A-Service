@@ -565,7 +565,7 @@ async function handleRefundFailed(payload) {
 
 router.post('/refund', verifyToken, async (req, res) => {
   try {
-    const { paymentId, amount, transactionId, reason } = req.body;
+    const { paymentId, amount, transactionId, reason, refundType = 'full' } = req.body;
 
     // Validate required fields
     if (!paymentId && !transactionId) {
@@ -575,10 +575,19 @@ router.post('/refund', verifyToken, async (req, res) => {
       });
     }
 
-    if (!amount || amount <= 0) {
+    // Validate refund type
+    if (!['full', 'partial'].includes(refundType)) {
       return res.status(400).json({
         status: false,
-        message: 'Valid refund amount is required',
+        message: 'refundType must be either "full" or "partial"',
+      });
+    }
+
+    // For partial refunds, amount is required
+    if (refundType === 'partial' && (!amount || amount <= 0)) {
+      return res.status(400).json({
+        status: false,
+        message: 'Valid refund amount is required for partial refunds',
       });
     }
 
@@ -608,11 +617,53 @@ router.post('/refund', verifyToken, async (req, res) => {
     }
 
     // SECURITY CHECK: Ensure user can only refund their own transactions
-    if (req.user?.role !== 'admin' && transaction.userId.toString() !== req.user?.id) {
-      return res.status(403).json({
-        status: false,
-        message: 'Access denied - You can only request refunds for your own transactions',
-      });
+    if (req.user?.role !== 'admin') {
+      if (transaction.userId.toString() !== req.user?.id) {
+        return res.status(403).json({
+          status: false,
+          message: 'Access denied - You can only request refunds for your own transactions',
+        });
+      }
+
+      // Check 7-day refund policy for non-admin users
+      const transactionDate = new Date(transaction.createdAt || transaction.date);
+      const currentDate = new Date();
+      const daysDifference = Math.floor((currentDate - transactionDate) / (1000 * 60 * 60 * 24));
+
+      if (daysDifference <= 7) {
+        // Within 7 days: Only FULL refunds allowed for regular users
+        if (refundType === 'partial') {
+          return res.status(403).json({
+            status: false,
+            message: 'Partial refunds are not available for regular users within the first 7 days. Only full refunds are allowed during this period.',
+            transactionAge: daysDifference,
+            refundType: refundType,
+            policy: 'Within 7 days: Only full refunds allowed for users. After 7 days: Only partial refunds with admin approval.',
+            suggestion: 'Please request a full refund or wait until after 7 days to request a partial refund through admin.',
+          });
+        }
+      } else {
+        // After 7 days: Only PARTIAL refunds allowed, but require admin approval
+        if (refundType === 'full') {
+          return res.status(403).json({
+            status: false,
+            message: 'Full refunds are only available within 7 days of purchase. This transaction is ' + daysDifference + ' days old. Only partial refunds are available after 7 days with admin approval.',
+            transactionAge: daysDifference,
+            refundType: refundType,
+            policy: 'Within 7 days: Only full refunds allowed. After 7 days: Only partial refunds with admin approval.',
+            contactInfo: 'Please contact admin/support to request a partial refund for this transaction.',
+          });
+        } else if (refundType === 'partial') {
+          return res.status(403).json({
+            status: false,
+            message: 'Partial refunds after 7 days require admin approval and conversation. This transaction is ' + daysDifference + ' days old.',
+            transactionAge: daysDifference,
+            refundType: refundType,
+            policy: 'Partial refunds after 7 days require admin conversation and approval.',
+            contactInfo: 'Please reach out to admin/support to discuss and process your partial refund request.',
+          });
+        }
+      }
     }
 
     if (!razorpayPaymentId) {
@@ -623,9 +674,12 @@ router.post('/refund', verifyToken, async (req, res) => {
     }
 
     // Verify payment exists in Razorpay
+    let payment;
+    let fee;
     try {
-      const payment = await razorpay.payments.fetch(razorpayPaymentId);
+      payment = await razorpay.payments.fetch(razorpayPaymentId);
       console.log('Payment details:', payment);
+      fee=payment.fee/100
 
       // Check if payment is captured
       if (payment.status !== 'captured') {
@@ -642,18 +696,69 @@ router.post('/refund', verifyToken, async (req, res) => {
       });
     }
 
+    // Determine refund amount based on refund type
+    const paymentAmountInRupees = payment.amount / 100;
+    let finalRefundAmount;
+
+    if (refundType === 'full') {
+      // For full refund, use the entire payment amount or provided amount
+      // finalRefundAmount = paymentAmountInRupees - fee;
+      finalRefundAmount = paymentAmountInRupees;
+      
+    } else if (refundType === 'partial') {
+      // For partial refund, use the provided amount
+      finalRefundAmount = amount;
+
+      // Check if partial refund amount doesn't exceed payment amount
+      if (finalRefundAmount > paymentAmountInRupees) {
+        return res.status(400).json({
+          status: false,
+          message: `Partial refund amount (₹${finalRefundAmount}) cannot exceed payment amount (₹${paymentAmountInRupees})`,
+        });
+      }
+    }
+
+    // Check for existing refunds to prevent over-refunding
+    const existingRefunds = await Refund.find({
+      razorpayPaymentId: razorpayPaymentId,
+      isRefunded: { $in: ['pending', 'completed'] }
+    });
+
+    const totalRefundedAmount = existingRefunds.reduce((sum, refund) => {
+      return sum + (parseFloat(refund.refundedAmount) || 0);
+    }, 0);
+
+    const remainingRefundableAmount = paymentAmountInRupees - totalRefundedAmount;
+
+    if (finalRefundAmount > remainingRefundableAmount) {
+      return res.status(400).json({
+        status: false,
+        message: `Refund amount (₹${finalRefundAmount}) exceeds remaining refundable amount (₹${remainingRefundableAmount.toFixed(2)}). Total payment: ₹${paymentAmountInRupees}, Already refunded: ₹${totalRefundedAmount.toFixed(2)}`,
+      });
+    }
+
     // Convert amount to paise
-    const refundAmountInPaise = Math.round(Math.abs(amount) * 100);
-    console.log(`Refund amount in paise: ${refundAmountInPaise}`);
+    const refundAmountInPaise = Math.round(Math.abs(finalRefundAmount) * 100);
+    console.log(`${refundType} refund amount in paise: ${refundAmountInPaise}`,{
+      amount: refundAmountInPaise,
+      speed: 'optimum',
+      notes: {
+        reason: reason || `Customer requested ${refundType} refund`,
+        refundType: refundType,
+        transactionId: transaction?._id?.toString() || '',
+        processedBy: req.user?.id || 'system',
+        originalAmount: paymentAmountInRupees,
+        refundAmount: finalRefundAmount,
+      },
+    });
 
     // Process refund with Razorpay
     const refundResponse = await razorpay.payments.refund(razorpayPaymentId, {
       amount: refundAmountInPaise,
       speed: 'optimum',
       notes: {
-        reason: reason || 'Customer requested refund',
-        transactionId: transaction?._id?.toString() || '',
-        processedBy: req.user?.id || 'system',
+        reason: reason || `Customer requested ${refundType} refund`,
+        refundType: refundType
       },
     });
 
@@ -662,10 +767,26 @@ router.post('/refund', verifyToken, async (req, res) => {
     // Create refund record in database
     const refundRecord = new Refund({
       refundId: refundResponse.id,
+      userId: req.user?.id,
+      transactionId: transaction?._id,
+      amount: refundResponse.amount / 100,
       refundedAmount: (refundResponse.amount / 100).toString(),
       isRefunded: 'pending', // Will be updated via webhook
+      status: 'PENDING',
       razorpayPaymentId: refundResponse.payment_id,
       created_at: new Date(refundResponse.created_at * 1000).toISOString(),
+      reason: reason || `Customer requested ${refundType} refund`,
+      processedBy: req.user?.id,
+      processedAt: new Date(),
+      metadata: {
+        refundType: refundType,
+        originalAmount: transaction?.amount,
+        paymentAmount: paymentAmountInRupees,
+        refundAmount: finalRefundAmount,
+        remainingAmount: paymentAmountInRupees - finalRefundAmount,
+        previousRefunds: totalRefundedAmount,
+      },
+      // Legacy field for backward compatibility
       transationId: transaction?._id?.toString() || '',
     });
 
@@ -673,15 +794,22 @@ router.post('/refund', verifyToken, async (req, res) => {
 
     // Update transaction status if found
     if (transaction) {
-      transaction.status = 'REFUND_INITIATED';
+      if (refundType === 'full' || (finalRefundAmount + totalRefundedAmount) >= paymentAmountInRupees) {
+        transaction.status = 'REFUND_INITIATED';
+      } else {
+        transaction.status = 'PARTIAL_REFUND_INITIATED';
+      }
       await transaction.save();
     }
 
     return res.json({
       status: true,
-      message: `Refund of ₹${amount} initiated successfully`,
+      message: `${refundType.charAt(0).toUpperCase() + refundType.slice(1)} refund of ₹${finalRefundAmount} initiated successfully`,
       refundId: refundResponse.id,
-      refundAmount: amount,
+      refundType: refundType,
+      refundAmount: finalRefundAmount,
+      originalPaymentAmount: paymentAmountInRupees,
+      remainingRefundableAmount: paymentAmountInRupees - finalRefundAmount - totalRefundedAmount,
       refundStatus: 'initiated',
     });
   } catch (error) {

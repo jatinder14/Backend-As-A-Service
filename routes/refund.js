@@ -12,40 +12,6 @@ const {
 
 const router = express.Router();
 
-// Input validation middleware
-const validateRefundInput = (req, res, next) => {
-  const { transactionId, paymentId, amount, reason } = req.body;
-
-  // Check required fields
-  if (!transactionId && !paymentId) {
-    return res.status(400).json({
-      error: 'Either transactionId or paymentId is required',
-    });
-  }
-
-  if (!amount || isNaN(amount) || amount <= 0) {
-    return res.status(400).json({
-      error: 'Valid refund amount (positive number) is required',
-    });
-  }
-
-  // Validate amount format (max 2 decimal places)
-  if (!/^\d+(\.\d{1,2})?$/.test(amount.toString())) {
-    return res.status(400).json({
-      error: 'Amount should have maximum 2 decimal places',
-    });
-  }
-
-  // Validate reason length if provided
-  if (reason && reason.length > 500) {
-    return res.status(400).json({
-      error: 'Reason should not exceed 500 characters',
-    });
-  }
-
-  next();
-};
-
 // Initialize Razorpay
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || 'rzp_test_R5dcC7mGZBJI9y',
@@ -54,161 +20,6 @@ const razorpay = new Razorpay({
 
 // Apply authentication to all routes
 router.use(verifyToken);
-
-// Create a new refund
-router.post('/', validateRefundInput, async (req, res) => {
-  try {
-    const { transactionId, paymentId, amount, reason } = req.body;
-
-    // Validate user authentication
-    if (!req.user?.id) {
-      return res.status(401).json({
-        error: 'User authentication required',
-      });
-    }
-
-    let razorpayPaymentId = paymentId;
-    let transaction = null;
-
-    // Find transaction and payment ID
-    if (transactionId) {
-      transaction = await Transaction.findById(transactionId);
-      if (!transaction) {
-        return res.status(404).json({ error: 'Transaction not found' });
-      }
-      razorpayPaymentId = transaction.razorpayPaymentId;
-    } else if (paymentId) {
-      transaction = await Transaction.findOne({ razorpayPaymentId: paymentId });
-    }
-
-    if (!razorpayPaymentId) {
-      return res.status(400).json({ error: 'Razorpay payment ID not found' });
-    }
-
-    // Check if user has permission to refund this transaction
-    if (req.user?.role !== 'admin') {
-      if (!transaction) {
-        return res.status(404).json({
-          error: 'Transaction not found or access denied',
-        });
-      }
-      if (transaction.userId?.toString() !== req.user?.id) {
-        return res.status(403).json({
-          error: 'Access denied - You can only request refunds for your own transactions',
-        });
-      }
-    }
-
-    // Verify payment exists and is refundable
-    let payment;
-    try {
-      payment = await razorpay.payments.fetch(razorpayPaymentId);
-    } catch (error) {
-      console.error('Failed to fetch payment:', error);
-      return res.status(404).json({
-        error: 'Payment not found in Razorpay',
-      });
-    }
-
-    if (payment.status !== 'captured') {
-      return res.status(400).json({
-        error: `Payment status is '${payment.status}', cannot process refund. Only captured payments can be refunded.`,
-      });
-    }
-
-    // Check if refund amount doesn't exceed payment amount
-    const paymentAmountInRupees = payment.amount / 100;
-    if (amount > paymentAmountInRupees) {
-      return res.status(400).json({
-        error: `Refund amount (₹${amount}) cannot exceed payment amount (₹${paymentAmountInRupees})`,
-      });
-    }
-
-    // Convert amount to paise
-    const refundAmountInPaise = Math.round(Math.abs(amount) * 100);
-
-    // Process refund with Razorpay
-    const refundResponse = await razorpay.payments.refund(razorpayPaymentId, {
-      amount: refundAmountInPaise,
-      speed: 'optimum',
-      notes: {
-        reason: reason || 'Customer requested refund',
-        transactionId: transaction?._id?.toString() || '',
-        processedBy: req.user?.id || 'system',
-      },
-    });
-
-    // Create refund record
-    const refundRecord = new Refund({
-      refundId: refundResponse.id,
-      userId: req.user.id, // Direct user reference
-      transactionId: transaction?._id, // Use ObjectId, not string
-      amount: refundResponse.amount / 100, // Store as number
-      refundedAmount: (refundResponse.amount / 100).toString(), // Legacy field
-      isRefunded: 'pending',
-      status: 'PENDING',
-      razorpayPaymentId: refundResponse.payment_id,
-      created_at: new Date(refundResponse.created_at * 1000).toISOString(),
-      reason: reason || 'Customer requested refund',
-      processedBy: req.user.id,
-      processedAt: new Date(),
-      metadata: {
-        originalAmount: transaction?.amount,
-        planName: transaction?.metadata?.planName,
-        originalTransactionId: transaction?._id,
-        userEmail: req.user.email,
-        userName: req.user.name,
-      },
-    });
-
-    await refundRecord.save();
-
-    // Update transaction status
-    if (transaction) {
-      transaction.status = 'REFUND_INITIATED';
-      await transaction.save();
-    }
-
-    // Add refund to user's refund history (hybrid approach)
-    try {
-      await addRefundToUser(req.user.id, refundRecord);
-    } catch (syncError) {
-      console.error('Failed to sync refund to user model:', syncError);
-      // Don't fail the request if sync fails
-    }
-
-    res.json({
-      message: 'Refund initiated successfully',
-      refund: {
-        id: refundRecord._id,
-        refundId: refundResponse.id,
-        amount: amount,
-        status: 'PENDING',
-      },
-    });
-  } catch (error) {
-    console.error('Create refund error:', error);
-
-    let errorMessage = 'Error processing refund';
-    let statusCode = 500;
-
-    if (error.statusCode === 404) {
-      errorMessage = 'Payment not found';
-      statusCode = 404;
-    } else if (error.statusCode === 400) {
-      errorMessage = error.error?.description || 'Invalid refund request';
-      statusCode = 400;
-    } else if (error.name === 'ValidationError') {
-      errorMessage = 'Invalid refund data: ' + error.message;
-      statusCode = 400;
-    } else if (error.name === 'CastError') {
-      errorMessage = 'Invalid ID format';
-      statusCode = 400;
-    }
-
-    res.status(statusCode).json({ error: errorMessage });
-  }
-});
 
 // Get user's own refunds (fast access from User model)
 router.get('/myRefunds/quick', async (req, res) => {
@@ -546,6 +357,36 @@ router.get('/performance/compare/:userId', adminRole, async (req, res) => {
     });
   } catch (error) {
     console.error('Performance comparison error:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Helper endpoint to get valid transaction IDs for testing
+router.get('/helper/transactions', async (req, res) => {
+  try {
+    const { limit = 5 } = req.query;
+
+    // Get recent transactions for the authenticated user
+    const transactions = await Transaction.find({
+      userId: req.user?.id,
+      status: { $in: ['COMPLETED', 'SUCCESS'] } // Only successful transactions can be refunded
+    })
+      .select('_id razorpayPaymentId amount createdAt metadata')
+      .sort({ createdAt: -1 })
+      .limit(parseInt(limit));
+
+    res.json({
+      message: 'Available transactions for refund testing',
+      transactions: transactions.map(t => ({
+        transactionId: t._id,
+        paymentId: t.razorpayPaymentId,
+        amount: t.amount,
+        date: t.createdAt,
+        planName: t.metadata?.planName
+      }))
+    });
+  } catch (error) {
+    console.error('Get helper transactions error:', error);
     res.status(500).json({ error: error.message });
   }
 });
